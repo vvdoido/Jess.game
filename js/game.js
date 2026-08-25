@@ -36,6 +36,19 @@ class InputManager {
       if (document.hidden) this.reset();
     });
 
+    // Em celulares, o gesto de pinça e o toque duplo podem ampliar a página
+    // por cima do canvas. Cancelamos apenas esses gestos do navegador, sem
+    // interferir nos toques normais usados pelos botões do jogo.
+    const preventPageZoom = (e) => e.preventDefault();
+    document.addEventListener('gesturestart', preventPageZoom, { passive: false });
+    document.addEventListener('gesturechange', preventPageZoom, { passive: false });
+    document.addEventListener('gestureend', preventPageZoom, { passive: false });
+
+    const gameWrapper = document.getElementById('game-wrapper');
+    if (gameWrapper) {
+      gameWrapper.addEventListener('dblclick', preventPageZoom, { passive: false });
+    }
+
     // Touch Controls Setup
     this.initTouchControls();
   }
@@ -350,9 +363,20 @@ class Game {
   }
 
   toggleFullscreen() {
-    // Melhor suporte para celulares e tablets
-    const elem = document.documentElement;
-    const isFullscreen = !!(
+    if (this.isFullscreen()) {
+      this.exitFullscreen();
+      return;
+    }
+    this.requestFullscreenForGame();
+  }
+
+  isMobileDevice() {
+    return window.matchMedia('(pointer: coarse)').matches ||
+      (navigator.maxTouchPoints > 0 && Math.min(window.innerWidth, window.innerHeight) <= 1024);
+  }
+
+  isFullscreen() {
+    return !!(
       document.fullscreenElement ||
       document.webkitFullscreenElement ||
       document.mozFullScreenElement ||
@@ -360,44 +384,57 @@ class Game {
       document.webkitIsFullScreen ||
       document.mozFullScreen
     );
+  }
 
-    if (!isFullscreen) {
-      // Entrar em fullscreen
-      const requestFullscreen =
-        elem.requestFullscreen ||
-        elem.webkitRequestFullscreen ||
-        elem.webkitRequestFullScreen || // iOS Safari
-        elem.mozRequestFullScreen ||
-        elem.msRequestFullscreen;
+  lockLandscape() {
+    if (!this.isMobileDevice() || !screen.orientation?.lock) return;
+    try {
+      const result = screen.orientation.lock('landscape');
+      if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch (_) {
+      // Alguns navegadores só permitem a orientação após instalar o atalho.
+    }
+  }
 
-      if (requestFullscreen) {
-        requestFullscreen.call(elem).then(() => {
-          // Forçar orientação landscape em celulares
-          if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {
-              console.log('Não foi possível travar orientação landscape');
-            });
-          }
-        }).catch((err) => {
-          console.log('Erro ao entrar em fullscreen:', err);
-        });
+  requestFullscreenForGame() {
+    const elem = document.getElementById('game-wrapper') || document.documentElement;
+    const requestFullscreen =
+      elem.requestFullscreen ||
+      elem.webkitRequestFullscreen ||
+      elem.webkitRequestFullScreen ||
+      elem.mozRequestFullScreen ||
+      elem.msRequestFullscreen;
+
+    if (!requestFullscreen) return false;
+
+    try {
+      const result = requestFullscreen.call(elem);
+      if (result && typeof result.then === 'function') {
+        result.then(() => this.lockLandscape()).catch(() => {});
       } else {
-        console.log('Fullscreen API não suportada neste dispositivo');
+        // APIs antigas do Safari não retornam Promise.
+        this.lockLandscape();
       }
-    } else {
-      // Sair de fullscreen
-      const exitFullscreen =
-        document.exitFullscreen ||
-        document.webkitExitFullscreen ||
-        document.webkitCancelFullScreen ||
-        document.mozCancelFullScreen ||
-        document.msExitFullscreen;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
-      if (exitFullscreen) {
-        exitFullscreen.call(document).catch((err) => {
-          console.log('Erro ao sair do fullscreen:', err);
-        });
-      }
+  exitFullscreen() {
+    const exitFullscreen =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.webkitCancelFullScreen ||
+      document.mozCancelFullScreen ||
+      document.msExitFullscreen;
+
+    if (!exitFullscreen) return;
+    try {
+      const result = exitFullscreen.call(document);
+      if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch (_) {
+      // Falhar ao sair da tela cheia não deve interromper a partida.
     }
   }
 
@@ -496,6 +533,12 @@ class Game {
   startGame() {
     this.runId++;
     this.runtimeError = null;
+
+    // Esta chamada ainda acontece dentro do toque no botão START, condição
+    // exigida pelos navegadores para aceitar tela cheia.
+    if (this.isMobileDevice() && !this.isFullscreen()) {
+      this.requestFullscreenForGame();
+    }
 
     // Limpar todos os timers ativos do jogo anterior (evita memory leak)
     if (this.activeTimers && this.activeTimers.length > 0) {

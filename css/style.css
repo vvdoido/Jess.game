@@ -29,6 +29,7 @@ body {
   justify-content: center;
   align-items: center;
   overscroll-behavior: none;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
   background: radial-gradient(circle at center, #1a1e29 0%, #08090d 100%);
 }
@@ -47,6 +48,7 @@ body {
   border: 3px solid #222c3d;
   border-radius: 8px;
   overflow: hidden;
+  touch-action: none;
   background: #000;
 }
 
@@ -1307,9 +1309,28 @@ body {
   }
 
   #boss-hud {
-    bottom: max(10px, env(safe-area-inset-bottom));
-    width: min(64%, 580px);
-    padding: 5px 10px;
+    /* No celular, a barra não disputa espaço com o direcional e os botões.
+       Ela vira um indicador compacto no topo, entre os HUDs dos jogadores. */
+    top: max(8px, env(safe-area-inset-top));
+    bottom: auto;
+    width: min(38%, 340px);
+    gap: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  #boss-hud .boss-title,
+  #boss-hud .boss-phase {
+    display: none;
+  }
+
+  #boss-hud .boss-hp-bar {
+    height: 10px;
+    border-width: 1px;
+    box-shadow: 0 0 10px rgba(255, 60, 60, 0.7);
   }
 }
 
@@ -1344,6 +1365,15 @@ body {
 
   .fullscreen-btn {
     display: none;
+  }
+
+  #boss-hud {
+    top: max(6px, env(safe-area-inset-top));
+    width: min(34%, 250px);
+  }
+
+  #boss-hud .boss-hp-bar {
+    height: 8px;
   }
 }
 
