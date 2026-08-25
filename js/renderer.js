@@ -1,12 +1,12 @@
-// Motor de Renderização Gráfica Estilizada para "Cyber Slug: Neon Front"
-// Cenários da Volta ao Mundo (Tóquio, Brasil, Europa e Egito) & MechaGodzilla HD
+
+
 
 class GameRenderer {
   constructor() {
     this.smokeParticles = [];
     this.time = 0;
 
-    // Sprites Oficiais do MechaGodzilla em Alta Definição
+
     this.mechaSprites = {
       idle: new Image(),
       walk1: new Image(),
@@ -26,7 +26,7 @@ class GameRenderer {
       this.mechaSprites.loaded = true;
     };
 
-    // Sprites Oficiais de King Ghidorah (O Dragão Dourado Tricéfalo)
+
     this.ghidorahSprites = {
       roaring_stand: new Image(),
       fly_1: new Image(),
@@ -62,7 +62,7 @@ class GameRenderer {
       };
     });
 
-    // Sprites Oficiais do King Kong (O Titã de Manhattan / Final Boss)
+
     this.kongSprites = {
       idle: [],
       walk: [],
@@ -81,22 +81,22 @@ class GameRenderer {
       loaded: false
     };
     
-    // Carregar sprites do Kong com os nomes corretos dos arquivos
+
     const kongAnimations = {
-      idle: 4,    // idle_1 a idle_4
-      walk: 6,    // walk_1 a walk_6
-      run: 3,     // run_1 a run_3
-      punch: 4,   // punch_1 a punch_4
-      slam: 3,    // slam_1 a slam_3
-      throw: 3,   // throw_1 a throw_3
-      roar: 4,    // roar_1 a roar_4
-      hurt: 3,    // hurt_1 a hurt_3
-      death: 3,   // death_1 a death_3
-      jump: 4,    // jump_1 a jump_4
-      grab: 3,    // grab_1 a grab_3
-      hang: 3,    // hang_1 a hang_3
-      climb: 3,   // climb_1 a climb_3
-      fall: 4     // fall_1 a fall_4
+      idle: 4,
+      walk: 6,
+      run: 3,
+      punch: 4,
+      slam: 3,
+      throw: 3,
+      roar: 4,
+      hurt: 3,
+      death: 3,
+      jump: 4,
+      grab: 3,
+      hang: 3,
+      climb: 3,
+      fall: 4
     };
     
     let kongLoadCount = 0;
@@ -125,7 +125,7 @@ class GameRenderer {
       }
     });
 
-    // Partículas ambientais (Pétalas em Tóquio, Vaga-lumes no Brasil, Tempestade no Egito, Cinzas/Fagulhas em Nova York)
+
     this.ambientParticles = [];
     for (let i = 0; i < 40; i++) {
       this.ambientParticles.push({
@@ -142,7 +142,7 @@ class GameRenderer {
   update(dt) {
     this.time += dt;
 
-    // Atualizar partículas ambientais
+
     this.ambientParticles.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
@@ -152,7 +152,7 @@ class GameRenderer {
     });
   }
 
-  // --- CAPA ARCADE DA TELA INICIAL ---
+
   drawOdysseusCover(ctx, canvasWidth, canvasHeight, time) {
     const coverX = canvasWidth * 0.77;
     const coverY = canvasHeight * 0.57 + Math.sin(time * 1.3) * 4;
@@ -196,15 +196,15 @@ class GameRenderer {
     ctx.fillRect(coverX - 270, coverY - 245, 540, 490);
     ctx.globalCompositeOperation = 'source-over';
 
-    // Tropas em camadas: a diferença de altura e pose cria uma capa com
-    // sensação de esquadrão, não uma fila rígida de bonecos.
+
+
     drawTrooper(coverX - 150, coverY + 53, 0.8, '#24567a', Math.sin(time * 2.1) * 3);
     drawTrooper(coverX - 80, coverY + 26, 0.98, '#61417c', Math.sin(time * 2.1 + 1) * 3);
     drawTrooper(coverX + 100, coverY + 35, 0.92, '#2d6a62', Math.sin(time * 2.1 + 2) * 3);
     drawTrooper(coverX + 160, coverY + 64, 0.76, '#7b3b35', Math.sin(time * 2.1 + 3) * 3);
 
-    // Odisseu no primeiro plano: capacete, lança e escudo inspiram o tema
-    // grego, preservando a leitura arcade e sem depender de arte licenciada.
+
+
     ctx.save();
     ctx.translate(coverX, coverY);
     const shieldPulse = Math.sin(time * 3) * 0.08;
@@ -275,9 +275,9 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- EASTER EGGS DA TELA INICIAL ---
-  // Referências desenhadas no próprio Canvas para manter a abertura leve e
-  // publicável no GitHub Pages, sem baixar imagens ou marcas externas.
+
+
+
   drawMenuEasterEggs(ctx, canvasWidth, canvasHeight, time) {
     this.drawOdysseusCover(ctx, canvasWidth, canvasHeight, time);
     const drawLabel = (text, x, y, color) => {
@@ -294,8 +294,8 @@ class GameRenderer {
     ctx.save();
     ctx.globalAlpha = 0.98;
 
-    // Dois irmãos do britpop em uma plataforma voadora: cabelos, postura e
-    // micro-movimento distintos evitam que a referência pareça estática.
+
+
     const britX = 142 + Math.sin(time * 0.8) * 50;
     const britY = 118 + Math.sin(time * 1.6) * 13;
     ctx.save();
@@ -332,8 +332,8 @@ class GameRenderer {
     ctx.restore();
     drawLabel('BRITPOP BROS', britX, britY + 57, '#8defff');
 
-    // Brasão azul com um galo pixelado: referência futebolística estilizada,
-    // sem reproduzir o escudo oficial.
+
+
     const crestX = canvasWidth - 118 + Math.sin(time * 0.92 + 1) * 34;
     const crestY = 160 + Math.cos(time * 1.35) * 22;
     ctx.save();
@@ -367,7 +367,7 @@ class GameRenderer {
     ctx.restore();
     drawLabel('N17 SKY CREST', crestX, crestY + 58, '#b9e7ff');
 
-    // Corredor e banco flutuante, numa piscadela para filmes de estrada.
+
     const runnerX = 120 + Math.sin(time * 1.1 + 2) * 46;
     const runnerY = canvasHeight - 112 + Math.sin(time * 1.9 + 1) * 14;
     ctx.save();
@@ -408,53 +408,53 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- CENÁRIO PARALLAX DINÂMICO MULTI-PAÍSES (TÓQUIO -> BRASIL -> EUROPA -> EGITO) ---
-  // --- CENÁRIO PARALLAX DINÂMICO MULTI-PAÍSES (TÓQUIO -> BRASIL -> EUROPA -> EGITO -> NOVA YORK) ---
+
+
   drawParallaxBackground(ctx, camera, canvasWidth, canvasHeight, mapWidth) {
     ctx.save();
     const camX = camera.x;
 
-    // Determinar bioma predominante pelo camX
-    // 0 -> 1300: Tóquio | 1300 -> 2500: Brasil | 2500 -> 3700: Europa | 3700 -> 5000: Egito | 5000+: Nova York (Manhattan)
+
+
     let region = 'tokyo';
     if (camX > 4800) region = 'newyork';
     else if (camX > 3500) region = 'egypt';
     else if (camX > 2300) region = 'europe';
     else if (camX > 1100) region = 'brazil';
 
-    // 1. CÉU E GRADIENTES POR PAÍS
+
     const skyGrad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
 
     if (region === 'tokyo') {
-      // Tóquio: Crepúsculo Cyberpunk Magenta / Roxo
+
       skyGrad.addColorStop(0, '#0a091a');
       skyGrad.addColorStop(0.4, '#1b1233');
       skyGrad.addColorStop(0.7, '#3c184e');
       skyGrad.addColorStop(0.9, '#6d1b5b');
       skyGrad.addColorStop(1, '#ff3366');
     } else if (region === 'brazil') {
-      // Brasil: Pôr-do-sol Tropical Dourado / Laranja
+
       skyGrad.addColorStop(0, '#0c1b24');
       skyGrad.addColorStop(0.35, '#193f40');
       skyGrad.addColorStop(0.65, '#5c481e');
       skyGrad.addColorStop(0.85, '#a6511b');
       skyGrad.addColorStop(1, '#ff8800');
     } else if (region === 'europe') {
-      // Europa: Noite Gótica Azul Prateada sob a Lua Cheia
+
       skyGrad.addColorStop(0, '#050a14');
       skyGrad.addColorStop(0.4, '#0d1829');
       skyGrad.addColorStop(0.7, '#182b45');
       skyGrad.addColorStop(0.9, '#243e61');
       skyGrad.addColorStop(1, '#3a5d8c');
     } else if (region === 'egypt') {
-      // Egito: MANHÃ DOURADA NO DESERTO com Sol Nascente
+
       skyGrad.addColorStop(0, '#ffd89b');
       skyGrad.addColorStop(0.35, '#ff8a5a');
       skyGrad.addColorStop(0.65, '#ff6b45');
       skyGrad.addColorStop(0.85, '#d4855b');
       skyGrad.addColorStop(1, '#c49060');
     } else {
-      // Nova York: CÉU APOCALÍPTICO VERMELHO SANGUE / TEMPESTADE DE FOGO E CINZAS
+
       skyGrad.addColorStop(0, '#0a0208');
       skyGrad.addColorStop(0.25, '#220410');
       skyGrad.addColorStop(0.55, '#4a0b18');
@@ -465,12 +465,12 @@ class GameRenderer {
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // 2. CORPO CELESTE (Sol de Tóquio, Pôr-do-sol no Brasil, Lua Cheia na Europa, Pirâmides do Egito ou Empire State em Nova York)
+
     const celX = canvasWidth * 0.7 - (camX % 1300) * 0.05;
     const celY = 95;
 
     if (region === 'tokyo') {
-      // Sol Vermelho Neon com Monte Fuji
+
       const fujiGrad = ctx.createRadialGradient(celX, celY, 10, celX, celY, 65);
       fujiGrad.addColorStop(0, '#ffffff');
       fujiGrad.addColorStop(0.3, '#ff0055');
@@ -480,7 +480,7 @@ class GameRenderer {
       ctx.arc(celX, celY, 65, 0, Math.PI * 2);
       ctx.fill();
 
-      // Silhueta do Monte Fuji
+
       ctx.fillStyle = '#18122b';
       ctx.beginPath();
       ctx.moveTo(celX - 160, canvasHeight - 120);
@@ -499,7 +499,7 @@ class GameRenderer {
       ctx.fill();
 
     } else if (region === 'brazil') {
-      // Sol Tropical Dourado
+
       const sunGrad = ctx.createRadialGradient(celX, celY, 15, celX, celY, 80);
       sunGrad.addColorStop(0, '#fff4cc');
       sunGrad.addColorStop(0.3, '#ffaa00');
@@ -510,7 +510,7 @@ class GameRenderer {
       ctx.arc(celX, celY, 80, 0, Math.PI * 2);
       ctx.fill();
 
-      // Montanhas Tropicais
+
       ctx.fillStyle = '#0f241a';
       ctx.beginPath();
       ctx.arc(celX - 80, canvasHeight - 40, 130, Math.PI, 0);
@@ -520,7 +520,7 @@ class GameRenderer {
       ctx.fill();
 
     } else if (region === 'europe') {
-      // Lua Cheia Prateada Gótica
+
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.shadowColor = '#00d9ff';
       ctx.shadowBlur = 25;
@@ -529,7 +529,7 @@ class GameRenderer {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Silhueta da Torre Eiffel
+
       ctx.fillStyle = '#0d1522';
       ctx.beginPath();
       ctx.moveTo(celX - 45, canvasHeight - 110);
@@ -541,7 +541,7 @@ class GameRenderer {
       ctx.fill();
 
     } else if (region === 'egypt') {
-      // Egito: Pirâmides de Gizé
+
       const sunGrad = ctx.createRadialGradient(celX, celY, 20, celX, celY, 80);
       sunGrad.addColorStop(0, '#ffffff');
       sunGrad.addColorStop(0.3, '#ffeb3b');
@@ -591,7 +591,7 @@ class GameRenderer {
       ctx.fill();
 
     } else {
-      // Nova York: LUA DE SANGUE ECLIPSADA & O EMPIRE STATE BUILDING EM CHAMAS
+
       const moonGrad = ctx.createRadialGradient(celX, celY, 15, celX, celY, 85);
       moonGrad.addColorStop(0, '#fff0d0');
       moonGrad.addColorStop(0.3, '#ff2200');
@@ -602,22 +602,22 @@ class GameRenderer {
       ctx.arc(celX, celY, 85, 0, Math.PI * 2);
       ctx.fill();
 
-      // Silhueta do EMPIRE STATE BUILDING no fundo distante
+
       const nyParallax = (camX - 5000) * 0.12;
       const esbX = 420 - nyParallax;
       
       ctx.fillStyle = '#140810';
-      // Base do Empire State
+
       ctx.fillRect(esbX - 55, canvasHeight - 360, 110, 280);
-      // Nível intermediário
+
       ctx.fillRect(esbX - 38, canvasHeight - 450, 76, 95);
-      // Nível superior
+
       ctx.fillRect(esbX - 22, canvasHeight - 510, 44, 65);
-      // Pináculo / Antena com sinalizador vermelho
+
       ctx.fillRect(esbX - 4, canvasHeight - 570, 8, 65);
       ctx.fillRect(esbX - 1.5, canvasHeight - 595, 3, 28);
 
-      // Luz vermelha pulsante da antena do Empire State
+
       const beaconGlow = Math.sin(this.time * 6) > 0 ? 1 : 0.2;
       ctx.fillStyle = `rgba(255, 0, 0, ${beaconGlow})`;
       ctx.shadowColor = '#ff0000';
@@ -627,12 +627,12 @@ class GameRenderer {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Silhueta do Chrysler Building ao lado
+
       const chryX = 720 - nyParallax;
       ctx.fillStyle = '#11060e';
       ctx.fillRect(chryX - 40, canvasHeight - 380, 80, 300);
       ctx.fillRect(chryX - 25, canvasHeight - 460, 50, 85);
-      // Arcos Deco do Chrysler
+
       ctx.beginPath();
       ctx.moveTo(chryX - 20, canvasHeight - 460);
       ctx.lineTo(chryX, canvasHeight - 530);
@@ -640,7 +640,7 @@ class GameRenderer {
       ctx.closePath();
       ctx.fill();
 
-      // Holofotes Militares de Manhattan cruzando o céu
+
       for (let s = 0; s < 3; s++) {
         const sweepAngle = Math.sin(this.time * 1.5 + s * 1.8) * 0.4 - 0.2;
         const beamBaseX = 200 + s * 300 - nyParallax;
@@ -663,11 +663,11 @@ class GameRenderer {
       }
     }
 
-    // 3. CAMADA MIDGROUND DINÂMICA (Parallax 0.3)
+
     const midP = camX * 0.3;
 
     if (region === 'tokyo') {
-      // Arranha-céus com Kanji Neon e Pagodes
+
       ctx.fillStyle = '#131124';
       for (let i = -100; i < canvasWidth + 200; i += 110) {
         const bx = ((i - midP) % (canvasWidth + 250) + canvasWidth + 250) % (canvasWidth + 250) - 100;
@@ -691,7 +691,7 @@ class GameRenderer {
       }
 
     } else if (region === 'brazil') {
-      // Palmeiras Tropicais
+
       ctx.fillStyle = '#12261a';
       for (let i = -100; i < canvasWidth + 200; i += 130) {
         const tx = ((i - midP) % (canvasWidth + 250) + canvasWidth + 250) % (canvasWidth + 250) - 100;
@@ -705,7 +705,7 @@ class GameRenderer {
       }
 
     } else if (region === 'europe') {
-      // Catedrais Góticas
+
       ctx.fillStyle = '#181d2e';
       for (let i = -100; i < canvasWidth + 200; i += 140) {
         const cx = ((i - midP) % (canvasWidth + 250) + canvasWidth + 250) % (canvasWidth + 250) - 100;
@@ -725,7 +725,7 @@ class GameRenderer {
       }
 
     } else if (region === 'egypt') {
-      // Egito: Dunas Onduladas
+
       ctx.fillStyle = '#422814';
       for (let i = -100; i < canvasWidth + 200; i += 180) {
         const dx = ((i - midP) % (canvasWidth + 300) + canvasWidth + 300) % (canvasWidth + 300) - 100;
@@ -748,16 +748,16 @@ class GameRenderer {
       }
 
     } else {
-      // Nova York: ARRANHA-CÉUS EM RUÍNAS COM PLACAS NEON PISCANDO E VIGAS TORTAS
+
       ctx.fillStyle = '#1c0c14';
       for (let i = -100; i < canvasWidth + 250; i += 135) {
         const nx = ((i - midP) % (canvasWidth + 300) + canvasWidth + 300) % (canvasWidth + 300) - 100;
         const nh = 210 + Math.sin(i * 7) * 75;
 
-        // Prédio comercial em ruínas
+
         ctx.fillRect(nx, canvasHeight - nh - 90, 95, nh);
 
-        // Janelas acesas e quebradas
+
         for (let row = 0; row < nh - 40; row += 22) {
           for (let col = 8; col < 80; col += 18) {
             const isLit = (Math.sin(i + row * 3 + col) > 0.3);
@@ -769,7 +769,7 @@ class GameRenderer {
           }
         }
 
-        // Letreiros luminosos quebrados ("BROADWAY", "HOTEL", "NYC", "CYBER")
+
         const signs = ['NYC', 'EMPIRE', 'HOTEL', 'BROADWAY'];
         const signText = signs[Math.abs(i) % signs.length];
         const blink = Math.sin(this.time * 8 + i) > -0.2;
@@ -783,7 +783,7 @@ class GameRenderer {
           ctx.fillStyle = '#1c0c14';
         }
 
-        // Fumaça saindo do topo dos prédios em chamas
+
         if (i % 2 === 0) {
           ctx.fillStyle = 'rgba(60, 20, 20, 0.4)';
           ctx.beginPath();
@@ -793,7 +793,7 @@ class GameRenderer {
       }
     }
 
-    // 4. PARTÍCULAS AMBIENTAIS ESPECÍFICAS DA REGIÃO
+
     this.ambientParticles.forEach(p => {
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -820,7 +820,7 @@ class GameRenderer {
         ctx.fillStyle = 'rgba(255, 204, 102, 0.7)';
         ctx.fillRect(0, 0, p.size * 1.2, p.size * 0.8);
       } else {
-        // Nova York: CINZAS, BRASAS E FAGULHAS INCANDESCENTES DO APOCALIPSE
+
         const isEmber = Math.random() < 0.4;
         ctx.fillStyle = isEmber ? '#ff4400' : 'rgba(180, 160, 160, 0.65)';
         if (isEmber) {
@@ -836,7 +836,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- MAPA / PLATAFORMAS / CHÃO POR REGIÃO DO MUNDO ---
+
   drawMapElements(ctx, camera, map) {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -844,13 +844,13 @@ class GameRenderer {
     map.platforms.forEach(plat => {
       const biome = plat.biome || 'tokyo';
 
-      // Sombra projetada no chão
+
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.fillRect(plat.x + 4, plat.y + 4, plat.width, plat.height);
 
       if (plat.isGround) {
         if (biome === 'tokyo') {
-          // Asfalto Cyberpunk de Tóquio com faixas de neon
+
           const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
           gGrad.addColorStop(0, '#222538');
           gGrad.addColorStop(0.2, '#161928');
@@ -858,7 +858,7 @@ class GameRenderer {
           ctx.fillStyle = gGrad;
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
 
-          // Faixa de Neon Ciano e Rosa
+
           ctx.fillStyle = '#00d9ff';
           ctx.fillRect(plat.x, plat.y, plat.width, 3);
           ctx.fillStyle = '#ff0055';
@@ -867,7 +867,7 @@ class GameRenderer {
           }
 
         } else if (biome === 'brazil') {
-          // Solo de Terra Tropical da Amazônia com Grama e Raízes
+
           const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
           gGrad.addColorStop(0, '#382212');
           gGrad.addColorStop(0.2, '#241408');
@@ -875,7 +875,7 @@ class GameRenderer {
           ctx.fillStyle = gGrad;
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
 
-          // Grama tropical exuberante no topo
+
           ctx.fillStyle = '#2d6a4f';
           ctx.fillRect(plat.x, plat.y, plat.width, 6);
           ctx.fillStyle = '#52b788';
@@ -884,7 +884,7 @@ class GameRenderer {
           }
 
         } else if (biome === 'europe') {
-          // Calçada de Pedras Portuguesas / Paralelepípedos Medievais
+
           const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
           gGrad.addColorStop(0, '#3a4454');
           gGrad.addColorStop(0.2, '#272e3b');
@@ -892,7 +892,7 @@ class GameRenderer {
           ctx.fillStyle = gGrad;
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
 
-          // Padrão de pedras talhadas
+
           ctx.strokeStyle = '#1b2029';
           ctx.lineWidth = 2;
           for (let x = plat.x; x < plat.x + plat.width; x += 30) {
@@ -901,7 +901,7 @@ class GameRenderer {
           }
 
         } else if (biome === 'egypt') {
-          // ARENA DO EGITO: Blocos Maciços de Calcário e Arenito Dourado das Pirâmides
+
           const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
           gGrad.addColorStop(0, '#d4a373');
           gGrad.addColorStop(0.15, '#b07d50');
@@ -909,11 +909,11 @@ class GameRenderer {
           ctx.fillStyle = gGrad;
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
 
-          // Borda dourada polida com areia
+
           ctx.fillStyle = '#faedcd';
           ctx.fillRect(plat.x, plat.y, plat.width, 5);
 
-          // Grandes lajes de pedra com juntas e relevos de hieróglifos
+
           ctx.strokeStyle = '#5e3c1e';
           ctx.lineWidth = 3;
           for (let x = plat.x; x < plat.x + plat.width; x += 85) {
@@ -923,7 +923,7 @@ class GameRenderer {
             ctx.fillText('𓀀 𓃠 𓆃', x + 15, plat.y + 26);
           }
 
-          // Tochas de Fogo Sagrado do Faraó iluminando a arena
+
           for (let tx = plat.x + 80; tx < plat.x + plat.width; tx += 360) {
             ctx.fillStyle = '#8f5c38';
             ctx.fillRect(tx - 6, plat.y - 45, 12, 45);
@@ -950,7 +950,7 @@ class GameRenderer {
           }
 
         } else {
-          // NOVA YORK APOCALÍPTICA: Asfalto Rachado com Escombros e Faixas de Trânsito Amarelas
+
           const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
           gGrad.addColorStop(0, '#2a2d35');
           gGrad.addColorStop(0.3, '#1a1c22');
@@ -958,7 +958,7 @@ class GameRenderer {
           ctx.fillStyle = gGrad;
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
 
-          // Rachaduras no asfalto
+
           ctx.strokeStyle = '#0a0b0f';
           ctx.lineWidth = 3;
           for (let x = plat.x; x < plat.x + plat.width; x += 120) {
@@ -969,13 +969,13 @@ class GameRenderer {
             ctx.stroke();
           }
 
-          // Faixas amarelas de trânsito desgastadas
+
           ctx.fillStyle = 'rgba(255, 204, 0, 0.4)';
           for (let x = plat.x; x < plat.x + plat.width; x += 60) {
             ctx.fillRect(x, plat.y + 10, 30, 4);
           }
 
-          // Manchas de óleo e sangue
+
           ctx.fillStyle = 'rgba(50, 20, 20, 0.6)';
           for (let x = plat.x + 40; x < plat.x + plat.width; x += 180) {
             ctx.beginPath();
@@ -983,7 +983,7 @@ class GameRenderer {
             ctx.fill();
           }
 
-          // Detritos e escombros de concreto
+
           ctx.fillStyle = '#3d4149';
           for (let x = plat.x + 100; x < plat.x + plat.width; x += 250) {
             ctx.fillRect(x, plat.y, 15, 8);
@@ -992,15 +992,15 @@ class GameRenderer {
         }
 
       } else {
-        // PLATAFORMAS SUSPENSAS POR BIOMA
+
         if (biome === 'tokyo') {
-          // Telhado tradicional japonês com telhas vermelhas e lanternas
+
           ctx.fillStyle = '#8a1c1c';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
           ctx.fillStyle = '#ff3344';
           ctx.fillRect(plat.x, plat.y, plat.width, 4);
 
-          // Lanternas vermelhas de papel penduradas
+
           ctx.fillStyle = '#ff0033';
           ctx.beginPath();
           ctx.arc(plat.x + 25, plat.y + plat.height + 12, 9, 0, Math.PI * 2);
@@ -1011,7 +1011,7 @@ class GameRenderer {
           ctx.fillRect(plat.x + plat.width - 27, plat.y + plat.height + 8, 4, 8);
 
         } else if (biome === 'brazil') {
-          // Ponte rústica de troncos de madeira e cipós
+
           ctx.fillStyle = '#5c3a21';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
           ctx.strokeStyle = '#2b7a4b';
@@ -1022,14 +1022,14 @@ class GameRenderer {
           ctx.stroke();
 
         } else if (biome === 'europe') {
-          // Passarela de pedra de castelo medieval
+
           ctx.fillStyle = '#3f495a';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
           ctx.fillStyle = '#60728c';
           ctx.fillRect(plat.x, plat.y, plat.width, 4);
 
         } else if (biome === 'egypt') {
-          // Passarela sagrada de arenito egípcio com relevos
+
           ctx.fillStyle = '#c68b59';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
           ctx.fillStyle = '#faedcd';
@@ -1039,14 +1039,14 @@ class GameRenderer {
           ctx.fillText('𓇯 𓈖 𓊪 𓋹', plat.x + 20, plat.y + 14);
 
         } else {
-          // NOVA YORK: Vigas de Aço I-Beam Industriais e Concreto Armado com Vergalhões
-          ctx.fillStyle = '#7f1d1d'; // Aço enferrujado
+
+          ctx.fillStyle = '#7f1d1d';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
           ctx.fillStyle = '#991b1b';
           ctx.fillRect(plat.x, plat.y, plat.width, 4);
           ctx.fillRect(plat.x, plat.y + plat.height - 4, plat.width, 4);
           
-          // Rebites de aço industriais
+
           ctx.fillStyle = '#1f2937';
           for (let rx = plat.x + 10; rx < plat.x + plat.width; rx += 25) {
             ctx.beginPath();
@@ -1057,7 +1057,7 @@ class GameRenderer {
       }
     });
 
-    // Obstáculos Destrutíveis
+
     if (map.destructibles) {
       map.destructibles.forEach(obj => {
         if (obj.destroyed) return;
@@ -1103,37 +1103,37 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- RENDERIZAÇÃO DETALHADA DO JOGADOR (CLAUDIO, MARCO, TARMA, FIO) ---
+
   drawPlayer(ctx, camera, p) {
     if (p.isInvulnerable && Math.floor(this.time * 20) % 2 === 0) {
-      return; // Efeito de piscar na invulnerabilidade
+      return;
     }
 
     ctx.save();
     ctx.translate(p.x - camera.x + p.width / 2, p.y - camera.y + p.height / 2);
 
-    // SPIN 360° NA HORIZONTAL - Giro como um PIÃO (não inclinado!)
+
     let spinScaleX = 1;
     if (p.isSpinning && p.weapon === 'AXE') {
-      // Usar escala no eixo X para simular rotação horizontal
-      // spinAngle varia de 0 a 2π durante o giro
+
+
       spinScaleX = Math.cos(p.spinAngle) * p.facing;
       
-      // Quando está de costas (cos negativo), inverte a escala vertical também
+
       if (Math.abs(Math.cos(p.spinAngle)) < 0.1) {
-        spinScaleX = 0.1 * p.facing; // Muito fino quando está de lado
+        spinScaleX = 0.1 * p.facing;
       }
     }
 
-    // Direção horizontal (1 = Direita, -1 = Esquerda). Fora do spin, a
-    // direção do personagem precisa ser usada diretamente; o valor padrão 1
-    // de spinScaleX era o que impedia Jessica de virar para a esquerda.
+
+
+
     const displayDirection = (p.isSpinning && p.weapon === 'AXE') ? spinScaleX : p.facing;
     const characterScale = 1.14;
     ctx.translate(0, -3);
     ctx.scale((displayDirection || p.facing) * characterScale, characterScale);
 
-    // Sombra no chão MAIS REALISTA
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.beginPath();
     ctx.ellipse(0, p.height / 2 - 1, 18, 6, 0, 0, Math.PI * 2);
@@ -1145,31 +1145,31 @@ class GameRenderer {
     const breathe = Math.sin(this.time * 4) * 1.5;
     const charId = p.characterId || 'claudio';
 
-    // Inclinação dinâmica ao correr - MAIS FLUIDA!
+
     if (isRunning && !p.isAttacking) {
-      ctx.rotate(runCycle * 0.08); // Aumento de 0.05 para 0.08 - mais dinâmico
+      ctx.rotate(runCycle * 0.08);
     }
 
-    // Pose de ataque com machado (inclinação para frente)
+
     if (p.isAttacking && charId === 'claudio') {
       ctx.rotate(p.facing * 0.15);
       ctx.translate(p.facing * 8, -3);
     }
 
-    // Pose de arco para Jessica - MELHORADA!
+
     if (p.weapon === 'BOW' && charId === 'jessica' && isRunning) {
-      ctx.rotate(p.facing * 0.06); // Leve inclinação ao correr com arco
+      ctx.rotate(p.facing * 0.06);
     }
 
-    // Definição de Cores Base por Personagem
-    let skinColor = '#e8b896'; // Tom de pele natural de Claudio
-    let pantsColor = '#0f172a'; // Calça preta tática para Claudio
+
+    let skinColor = '#e8b896';
+    let pantsColor = '#0f172a';
     let bootsColor = '#05070a';
     
     if (charId === 'jessica') {
-      skinColor = '#fcd5be'; // Tom de pele delicado e natural de Jessica
-      pantsColor = '#64748b'; // Calça cargo cinza para Jessica
-      bootsColor = '#0f172a'; // Tênis All Star preto e branco
+      skinColor = '#fcd5be';
+      pantsColor = '#64748b';
+      bootsColor = '#0f172a';
     } else if (charId === 'marco') {
       skinColor = '#f0be8b';
       pantsColor = '#4a5b3a';
@@ -1184,22 +1184,22 @@ class GameRenderer {
       bootsColor = '#2d241e';
     }
 
-    // --- CORPO E MEMBROS ---
+
     const hipY = isCrouching ? 8 : 4;
     const torsoY = isCrouching ? 0 : -8 + breathe;
 
-    // 1. Pernas & Calçados (Botas ou Tênis All Star)
+
     ctx.fillStyle = pantsColor;
     if (isCrouching) {
-      // Agachado
+
       ctx.fillRect(-10, 8, 12, 10);
       ctx.fillRect(2, 10, 10, 8);
-      // Calçados
+
       ctx.fillStyle = bootsColor;
       ctx.fillRect(-12, 16, 14, 6);
       ctx.fillRect(2, 16, 14, 6);
       if (charId === 'jessica') {
-        // Biqueira e sola branca do All Star
+
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(-12, 18, 5, 4);
         ctx.fillRect(11, 18, 5, 4);
@@ -1207,54 +1207,54 @@ class GameRenderer {
         ctx.fillRect(2, 21, 14, 2);
       }
     } else if (p.onGround) {
-      // Correndo ou Parado
+
       const leg1Angle = runCycle * 0.6;
       const leg2Angle = -runCycle * 0.6;
 
-      // Perna Esquerda / Trás
+
       ctx.save();
       ctx.translate(-4, hipY);
       ctx.rotate(leg2Angle);
       ctx.fillRect(-3, 0, 7, 14);
       if (charId === 'jessica') {
-        // Bolsos da calça cargo cinza
+
         ctx.fillStyle = '#475569';
         ctx.fillRect(-4, 4, 2, 6);
-        // Tênis All Star
+
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(-4, 12, 10, 6);
-        ctx.fillStyle = '#ffffff'; // Biqueira e sola branca
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(-4, 14, 3, 4);
         ctx.fillRect(-4, 17, 10, 2);
       } else {
-        ctx.fillStyle = bootsColor; // Bota tática preta
+        ctx.fillStyle = bootsColor;
         ctx.fillRect(-4, 12, 10, 6);
       }
       ctx.restore();
 
-      // Perna Direita / Frente
+
       ctx.save();
       ctx.translate(4, hipY);
       ctx.rotate(leg1Angle);
       ctx.fillStyle = pantsColor;
       ctx.fillRect(-3, 0, 7, 14);
       if (charId === 'jessica') {
-        // Bolsos da calça cargo cinza
+
         ctx.fillStyle = '#475569';
         ctx.fillRect(5, 4, 2, 6);
-        // Tênis All Star
+
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(-4, 12, 10, 6);
-        ctx.fillStyle = '#ffffff'; // Biqueira e sola branca
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(3, 14, 3, 4);
         ctx.fillRect(-4, 17, 10, 2);
       } else {
-        ctx.fillStyle = bootsColor; // Bota tática preta
+        ctx.fillStyle = bootsColor;
         ctx.fillRect(-4, 12, 10, 6);
       }
       ctx.restore();
     } else {
-      // No Ar / Pulando
+
       ctx.fillRect(-8, hipY, 7, 10);
       ctx.fillRect(2, hipY - 2, 7, 8);
       ctx.fillStyle = bootsColor;
@@ -1267,19 +1267,19 @@ class GameRenderer {
       }
     }
 
-    // 2. Torso e Vestimentas
+
     ctx.save();
     ctx.translate(0, torsoY);
 
     if (charId === 'claudio') {
-      // --- CLAUDIO: Camisa Branca Social Tática com Gola Aberta e Calça Preta ---
-      // Coldre tático nas costas
+
+
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(-15, -9, 8, 14);
       ctx.fillStyle = '#475569';
       ctx.fillRect(-14, -7, 6, 5);
       
-      // Camisa Branca Social com Caimento Impecável
+
       const shirtGrad = ctx.createLinearGradient(-8, -12, 10, 4);
       shirtGrad.addColorStop(0, '#ffffff');
       shirtGrad.addColorStop(0.7, '#f8fafc');
@@ -1287,7 +1287,7 @@ class GameRenderer {
       ctx.fillStyle = shirtGrad;
       ctx.fillRect(-8, -12, 18, 16);
 
-      // Borda preta interna do decote / gola em V
+
       ctx.fillStyle = '#1e293b';
       ctx.beginPath();
       ctx.moveTo(-1, -12);
@@ -1296,7 +1296,7 @@ class GameRenderer {
       ctx.closePath();
       ctx.fill();
 
-      // Pele no decote da gola aberta
+
       ctx.fillStyle = skinColor;
       ctx.beginPath();
       ctx.moveTo(1, -12);
@@ -1305,7 +1305,7 @@ class GameRenderer {
       ctx.closePath();
       ctx.fill();
 
-      // Gola Social Branca Estruturada
+
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.moveTo(-5, -12);
@@ -1321,7 +1321,7 @@ class GameRenderer {
       ctx.closePath();
       ctx.fill();
 
-      // Botões da Camisa prateados
+
       ctx.fillStyle = '#cbd5e1';
       ctx.beginPath();
       ctx.arc(3, -2, 1.5, 0, Math.PI * 2);
@@ -1330,21 +1330,21 @@ class GameRenderer {
       ctx.arc(3, 2, 1.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cinto Tático de Couro Escuro com Fivela Prateada
+
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(-8, 2, 18, 5);
       ctx.fillStyle = '#94a3b8';
       ctx.fillRect(-1, 2, 6, 5);
 
     } else if (charId === 'jessica') {
-      // --- JESSICA: Roupa Preta Elegante, Aljava de Flechas e Correia Tática ---
-      // Aljava de Flechas nas costas (Quiver)
+
+
       ctx.fillStyle = '#1e1b18';
       ctx.fillRect(-14, -14, 7, 18);
-      ctx.fillStyle = '#b45309'; // Correias de couro da aljava
+      ctx.fillStyle = '#b45309';
       ctx.fillRect(-14, -10, 7, 2);
       ctx.fillRect(-14, -2, 7, 2);
-      // Penas das flechas saindo no topo da aljava
+
       ctx.fillStyle = '#00d9ff';
       ctx.fillRect(-13, -18, 2, 5);
       ctx.fillStyle = '#c084fc';
@@ -1352,7 +1352,7 @@ class GameRenderer {
       ctx.fillStyle = '#00d9ff';
       ctx.fillRect(-7, -17, 2, 4);
 
-      // Blusa Preta de Gola Alta / Manga Longa Ajustada
+
       const topGrad = ctx.createLinearGradient(-8, -12, 10, 4);
       topGrad.addColorStop(0, '#18181b');
       topGrad.addColorStop(0.5, '#09090b');
@@ -1360,11 +1360,11 @@ class GameRenderer {
       ctx.fillStyle = topGrad;
       ctx.fillRect(-8, -12, 18, 16);
 
-      // Gola Alta Preta Delicada
+
       ctx.fillStyle = '#27272a';
       ctx.fillRect(-3, -14, 10, 4);
 
-      // Correia Tática Transversal em Couro com Fivela de Prata
+
       ctx.fillStyle = '#78350f';
       ctx.beginPath();
       ctx.moveTo(-6, -12);
@@ -1373,17 +1373,17 @@ class GameRenderer {
       ctx.lineTo(-8, -10);
       ctx.closePath();
       ctx.fill();
-      ctx.fillStyle = '#00ffff'; // Broche / Emblema neon
+      ctx.fillStyle = '#00ffff';
       ctx.fillRect(-1, -5, 3, 3);
 
-      // Cinto da Calça Cargo com fivela
+
       ctx.fillStyle = '#334155';
       ctx.fillRect(-8, 2, 18, 4);
       ctx.fillStyle = '#94a3b8';
       ctx.fillRect(-1, 2, 5, 4);
 
     } else if (charId === 'marco') {
-      // --- MARCO: Colete Vermelho Tático e Camiseta Branca ---
+
       ctx.fillStyle = '#303b26';
       ctx.fillRect(-15, -10, 8, 14);
       ctx.fillStyle = '#445336';
@@ -1399,7 +1399,7 @@ class GameRenderer {
       ctx.fillRect(-1, 2, 5, 4);
 
     } else if (charId === 'tarma') {
-      // --- TARMA: Jaqueta Marrom de Couro de Piloto ---
+
       ctx.fillStyle = '#4a2f16';
       ctx.fillRect(-14, -10, 7, 14);
       ctx.fillStyle = '#6b4423';
@@ -1412,7 +1412,7 @@ class GameRenderer {
       ctx.fillRect(-1, 2, 5, 4);
 
     } else if (charId === 'fio') {
-      // --- FIO: Camisa Bege Tática com Suspensórios ---
+
       ctx.fillStyle = '#3a2818';
       ctx.fillRect(-13, -9, 6, 12);
       ctx.fillStyle = '#d7c4a8';
@@ -1425,43 +1425,43 @@ class GameRenderer {
       ctx.fillRect(-1, 2, 4, 4);
     }
 
-    // 3. Cabeça, Cabelo, Face e Acessórios
+
     ctx.fillStyle = skinColor;
-    ctx.fillRect(-4, -22, 12, 10); // Rosto Base
+    ctx.fillRect(-4, -22, 12, 10);
 
     if (charId === 'claudio') {
-      // === CLAUDIO: CABELO FADE DE ALTA DEFINIÇÃO, BIGODE, CAVANHAQUE, BRINCO DE DIAMANTE E PINTURA DE GUERRA ===
-      // Cabelo Escuro com Topete e Fade Gradual Suave Fiel à Foto
-      ctx.fillStyle = '#171412';
-      ctx.fillRect(-5, -25, 14, 5); // Topo do cabelo volumoso
-      ctx.fillRect(-6, -23, 3, 4); // Lateral fade
 
-      // Linha do Cabelo / Pezinho Alinhado e Definido
+
+      ctx.fillStyle = '#171412';
+      ctx.fillRect(-5, -25, 14, 5);
+      ctx.fillRect(-6, -23, 3, 4);
+
+
       ctx.fillStyle = '#261f1a';
       ctx.fillRect(-3, -24, 11, 2);
 
-      // Olhos Expressivos e Vivos
+
       ctx.fillStyle = '#14100e';
       ctx.fillRect(3, -19, 3, 2);
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(4, -19, 1, 1); // Brilho no olhar
+      ctx.fillRect(4, -19, 1, 1);
 
-      // Sobrancelha estilosa e delineada
+
       ctx.fillStyle = '#181412';
       ctx.fillRect(2, -21, 5, 1.5);
 
-      // Bigode Aparado Fiel à Foto
+
       ctx.fillStyle = '#181412';
       ctx.fillRect(3, -15, 6, 1.5);
 
-      // Cavanhaque / Barbicha no Queixo Fiel à Foto
+
       ctx.fillStyle = '#181412';
       ctx.fillRect(3, -13, 4, 2.5);
 
-      // --- PINTURA DE GUERRA VERMELHA PASSANDO PELO OLHO (NORDIC WAR STRIPE) ---
+
       if (p.hasWarPaint || p.weapon === 'AXE' || charId === 'claudio') {
         ctx.save();
-        ctx.fillStyle = '#dc2626'; // Vermelho Sangue / Guerra
+        ctx.fillStyle = '#dc2626';
         ctx.shadowColor = '#ff0033';
         ctx.shadowBlur = 4;
         ctx.fillRect(4, -24, 2.5, 12);
@@ -1470,15 +1470,15 @@ class GameRenderer {
         ctx.restore();
       }
 
-      // Orelha e Brinco de Diamante Brilhante com Efeito Shimmer
-      ctx.fillStyle = skinColor;
-      ctx.fillRect(-6, -19, 3, 4); // Orelha
 
-      // Brinco de Diamante com Brilho Realista
+      ctx.fillStyle = skinColor;
+      ctx.fillRect(-6, -19, 3, 4);
+
+
       ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(-6, -17, 2, 2);
 
-      // Brilho pulsante / Sparkle no brinco de diamante
+
       const glint = Math.abs(Math.sin(this.time * 8));
       if (glint > 0.4) {
         ctx.fillStyle = '#ffffff';
@@ -1489,42 +1489,42 @@ class GameRenderer {
       }
 
     } else if (charId === 'jessica') {
-      // === JESSICA: CABELO LONGO CASTANHO ESCURO LISO, OLHOS EXPRESSIVOS E DETALHES FIÉIS À FOTO ===
-      // Cabelo Longo Castanho Escuro Sedoso descendo pelas costas e ombros
-      ctx.fillStyle = '#1e1510';
-      // Parte de trás do cabelo longo
-      ctx.fillRect(-7, -25, 16, 26);
-      ctx.fillRect(-8, -18, 6, 20); // Mecha esquerda caindo pelas costas
-      ctx.fillRect(5, -18, 6, 20); // Mecha direita caindo sobre o ombro
 
-      // Topo e Franja do Cabelo
+
+      ctx.fillStyle = '#1e1510';
+
+      ctx.fillRect(-7, -25, 16, 26);
+      ctx.fillRect(-8, -18, 6, 20);
+      ctx.fillRect(5, -18, 6, 20);
+
+
       ctx.fillStyle = '#2d1e17';
       ctx.fillRect(-5, -26, 14, 6);
-      // Divisão do cabelo no meio/lateral e mechas frontais
+
       ctx.fillStyle = '#3a271e';
       ctx.fillRect(-4, -24, 5, 4);
       ctx.fillRect(2, -24, 6, 4);
 
-      // Olhos Castanhos Expressivos e Bonitos
+
       ctx.fillStyle = '#1c130d';
       ctx.fillRect(3, -19, 3, 2);
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(4, -19, 1, 1); // Brilho encantador no olhar
+      ctx.fillRect(4, -19, 1, 1);
 
-      // Sobrancelhas Arqueadas Delicadas e Delineadas
+
       ctx.fillStyle = '#261811';
       ctx.fillRect(2, -21, 5, 1.2);
 
-      // Lábios Suaves com Leve Tom Rosado Natural
+
       ctx.fillStyle = '#e07a7a';
       ctx.fillRect(3, -14, 4, 1.5);
 
-      // Brinco Discreto e Elegante
+
       ctx.fillStyle = '#fef08a';
       ctx.fillRect(-5, -17, 1.5, 1.5);
 
     } else if (charId === 'marco') {
-      // === MARCO: BANDANA VERMELHA E CABELO LOIRO ===
+
       ctx.fillStyle = '#111';
       ctx.fillRect(4, -19, 3, 2);
       ctx.fillStyle = '#d9aa38';
@@ -1542,7 +1542,7 @@ class GameRenderer {
       ctx.fill();
 
     } else if (charId === 'tarma') {
-      // === TARMA: ÓCULOS ESCUROS E CABELO ESPETADO ===
+
       ctx.fillStyle = '#18181b';
       ctx.fillRect(-6, -26, 14, 6);
       ctx.beginPath();
@@ -1551,26 +1551,26 @@ class GameRenderer {
       ctx.lineTo(3, -26);
       ctx.fill();
 
-      // Óculos Escuros Aviador com Reflexo Neon
+
       ctx.fillStyle = '#09090b';
       ctx.fillRect(1, -19, 8, 4);
       ctx.fillStyle = '#00d9ff';
       ctx.fillRect(2, -18, 3, 1.5);
 
     } else if (charId === 'fio') {
-      // === FIO: BOINA MILITAR VERDE E ÓCULOS ===
-      ctx.fillStyle = '#452b1b';
-      ctx.fillRect(-5, -23, 12, 5); // Cabelo Castanho
 
-      // Boina Verde
+      ctx.fillStyle = '#452b1b';
+      ctx.fillRect(-5, -23, 12, 5);
+
+
       ctx.fillStyle = '#3f5734';
       ctx.beginPath();
       ctx.ellipse(0, -23, 10, 5, -0.2, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#ffcc00'; // Emblema
+      ctx.fillStyle = '#ffcc00';
       ctx.fillRect(2, -25, 2, 2);
 
-      // Óculos Redondos Táticos
+
       ctx.strokeStyle = '#0f172a';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(3, -19, 5, 4);
@@ -1578,7 +1578,7 @@ class GameRenderer {
       ctx.fillRect(4, -18, 3, 2);
     }
 
-    // 4. Braços e Arma com Rotação de Mira (8 Direções) + ANIMAÇÃO DE ATAQUE VERTICAL/SPIN
+
     let aimAngle = 0;
     if (p.aimY < 0) {
       aimAngle = p.aimX !== 0 ? -Math.PI / 4 : -Math.PI / 2;
@@ -1586,22 +1586,22 @@ class GameRenderer {
       aimAngle = Math.PI / 2;
     }
 
-    // ANIMAÇÃO ESPECIAL DO MACHADO
+
     let axeSwingAngle = 0;
     
     if (p.isSpinning && p.weapon === 'AXE') {
-      // SPIN 360° - Girar o braço completamente
+
       axeSwingAngle = p.spinAngle;
       aimAngle = axeSwingAngle;
       
-      // Efeito de blur/rastro durante spin
+
       ctx.globalAlpha = 0.7 + Math.sin(p.spinAngle * 4) * 0.3;
     } else if (p.isAttacking && p.weapon === 'AXE') {
-      // ATAQUE VERTICAL ESTILO DARIUS - De CIMA para BAIXO
+
       const attackProgress = 1 - (p.meleeAttackTime / 0.4);
       
-      // Movimento de -90° (topo) até +90° (chão) em arco vertical
-      axeSwingAngle = -Math.PI / 2 + (attackProgress * Math.PI); // -90° até +90°
+
+      axeSwingAngle = -Math.PI / 2 + (attackProgress * Math.PI);
       aimAngle = axeSwingAngle;
     }
 
@@ -1609,39 +1609,39 @@ class GameRenderer {
     ctx.translate(4, -3);
     ctx.rotate(aimAngle);
 
-    // Recoil da Arma quando atira
+
     const recoil = p.shootRecoil ? -5 : 0;
     ctx.translate(recoil, 0);
 
-    // Desenhar a Arma Atual Segurada
+
     this.drawWeaponSprite(ctx, p.weapon, p.isAttacking || p.isSpinning, p.meleeAttackTime, p.isSpinning);
 
-    ctx.globalAlpha = 1.0; // Restaurar alpha
+    ctx.globalAlpha = 1.0;
 
-    // Manga da Roupa do Braço (MELHORADA)
+
     if (charId === 'claudio') {
-      // Manga branca arregaçada com sombra
+
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = 'rgba(0,0,0,0.1)';
       ctx.shadowBlur = 2;
       ctx.fillRect(-6, -5, 7, 7);
       ctx.shadowBlur = 0;
       
-      // Antebraço com tom de pele melhorado
+
       ctx.fillStyle = skinColor;
       ctx.fillRect(-1, -4, 7, 6);
       
-      // Relógio Tático no Pulso (detalhado)
+
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(2, -5, 3, 7);
       ctx.fillStyle = '#00d9ff';
       ctx.fillRect(2.5, -4, 2, 2);
       
-      // Luva tática sem dedos
+
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(4, -2, 5, 5);
       ctx.fillStyle = skinColor;
-      ctx.fillRect(5, -1, 3, 2); // Dedos visíveis
+      ctx.fillRect(5, -1, 3, 2);
     } else {
       ctx.fillStyle = skinColor;
       ctx.fillRect(-4, -3, 8, 5);
@@ -1649,21 +1649,21 @@ class GameRenderer {
       ctx.fillRect(2, -2, 5, 5);
     }
 
-    // Muzzle Flash / Clarão do Tiro
+
     if (p.shootFlashTimer > 0) {
       this.drawMuzzleFlash(ctx, 22, -2, p.weapon);
     }
 
-    ctx.restore(); // Fim do braço/arma
+    ctx.restore();
 
-    // 5. Ataque Corpo a Corpo (Faca Tática ou Machado Nórdico)
+
     if (p.meleeTimer > 0) {
       this.drawMeleeSlash(ctx, p.meleeTimer, charId, p.weapon === 'AXE');
     }
 
-    ctx.restore(); // Fim do torso
+    ctx.restore();
 
-    // 6. Tag Flutuante do Jogador (1P / 2P)
+
     if (p.playerIndex !== undefined) {
       ctx.fillStyle = p.playerIndex === 0 ? '#00d9ff' : '#ffaa00';
       ctx.font = 'bold 7px "Press Start 2P", monospace';
@@ -1674,17 +1674,17 @@ class GameRenderer {
       ctx.shadowBlur = 0;
     }
 
-    ctx.restore(); // Fim do player
+    ctx.restore();
   }
 
-  // Desenho dos Sprites de Armas (MACHADO MELHORADO)
+
   drawWeaponSprite(ctx, weapon, isAttacking = false, attackTime = 0, isSpinning = false) {
     switch (weapon) {
       case 'AXE':
-        // --- MACHADO NÓRDICO LEVIATHAN (DOURADO E PRETO COM RUNAS DETALHADAS) ---
+
         ctx.save();
         
-        // Efeito de brilho pulsante durante ataque ou spin
+
         if (isAttacking || isSpinning) {
           ctx.shadowColor = isSpinning ? '#ff3300' : '#ffd700';
           ctx.shadowBlur = isSpinning ? 25 : 15 + Math.sin(this.time * 40) * 5;
@@ -1692,7 +1692,7 @@ class GameRenderer {
 
         ctx.translate(6, -8);
         
-        // Cabo de Madeira Entalhada Nórdica (textura melhorada)
+
         const handleGrad = ctx.createLinearGradient(0, 8, 0, 12);
         handleGrad.addColorStop(0, '#2d1f0c');
         handleGrad.addColorStop(0.5, '#3d2f1f');
@@ -1700,7 +1700,7 @@ class GameRenderer {
         ctx.fillStyle = handleGrad;
         ctx.fillRect(-10, 8, 24, 5);
         
-        // Entalhes no cabo
+
         ctx.strokeStyle = '#4a3625';
         ctx.lineWidth = 1;
         for (let x = -8; x < 14; x += 4) {
@@ -1710,13 +1710,13 @@ class GameRenderer {
           ctx.stroke();
         }
         
-        // Detalhes Dourados no cabo (grip rúnico)
+
         ctx.fillStyle = '#d4af37';
         ctx.fillRect(-7, 9, 5, 3);
         ctx.fillRect(0, 9, 5, 3);
         ctx.fillRect(7, 9, 5, 3);
         
-        // Círculos rúnicos no grip
+
         ctx.fillStyle = '#ffd700';
         for (let x = -5; x <= 9; x += 7) {
           ctx.beginPath();
@@ -1724,14 +1724,14 @@ class GameRenderer {
           ctx.fill();
         }
 
-        // Anel de Fixação Dourado no Topo (mais detalhado)
+
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(12, 6, 6, 9);
         ctx.fillStyle = '#b8860b';
         ctx.fillRect(13, 7, 4, 1);
         ctx.fillRect(13, 13, 4, 1);
 
-        // Lâmina Negra Larga (forma mais agressiva)
+
         ctx.fillStyle = '#0d1117';
         ctx.beginPath();
         ctx.moveTo(15, 7);
@@ -1741,7 +1741,7 @@ class GameRenderer {
         ctx.closePath();
         ctx.fill();
 
-        // Fio da Lâmina em Prata Polida (mais brilhante)
+
         ctx.strokeStyle = '#f0f0f0';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -1749,17 +1749,17 @@ class GameRenderer {
         ctx.quadraticCurveTo(36, 11, 30, 26);
         ctx.stroke();
 
-        // Entalhes Rúnicos Dourados BRILHANTES na Lâmina
+
         ctx.fillStyle = '#ffee00';
         ctx.shadowColor = '#ffcc00';
         ctx.shadowBlur = 8;
         
-        // Runas nórdicas estilizadas
+
         ctx.fillRect(19, 5, 8, 2);
         ctx.fillRect(21, 9, 5, 2);
         ctx.fillRect(20, 13, 6, 2);
         
-        // Símbolos rúnicos
+
         ctx.strokeStyle = '#ffd700';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -1770,7 +1770,7 @@ class GameRenderer {
 
         ctx.shadowBlur = 0;
 
-        // Espigão Traseiro pontiagudo
+
         ctx.fillStyle = '#d4af37';
         ctx.beginPath();
         ctx.moveTo(10, 4);
@@ -1779,7 +1779,7 @@ class GameRenderer {
         ctx.lineTo(10, 16);
         ctx.fill();
 
-        // Ponta Superior da lâmina (spike)
+
         ctx.fillStyle = '#ffd700';
         ctx.beginPath();
         ctx.moveTo(27, -9);
@@ -1787,17 +1787,17 @@ class GameRenderer {
         ctx.lineTo(29, -6);
         ctx.fill();
 
-        // Trilha de energia dourada durante ataque/spin
+
         if (isAttacking || isSpinning) {
-          const trailCount = isSpinning ? 12 : 5; // Mais trilhas no spin!
+          const trailCount = isSpinning ? 12 : 5;
           for (let i = 0; i < trailCount; i++) {
             ctx.fillStyle = isSpinning ? 
-              `rgba(255, 100, 0, ${0.9 - i * 0.06})` : // Laranja intenso no spin
+              `rgba(255, 100, 0, ${0.9 - i * 0.06})` :
               `rgba(255, 215, 0, ${0.6 - i * 0.1})`;
             ctx.fillRect(25 + i * 3, 6 - i * 1.5, 4, 10 + i * 0.5);
           }
           
-          // Círculo de energia no spin
+
           if (isSpinning) {
             ctx.strokeStyle = `rgba(255, 215, 0, ${0.8 - Math.sin(this.time * 30) * 0.3})`;
             ctx.lineWidth = 3;
@@ -1811,31 +1811,31 @@ class GameRenderer {
         break;
 
       case 'BOW':
-        // --- ARCO TÁTICO CYBER DA JESSICA (CURVAS EM FIBRA DE CARBONO E CORDA DE ENERGIA CIANO) ---
+
         ctx.save();
         ctx.translate(6, -2);
         
-        // Empunhadura Riser Central em Carbono
+
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, -6, 5, 12);
         ctx.fillStyle = '#00d9ff';
-        ctx.fillRect(1, -3, 3, 6); // Núcleo de energia ciano
+        ctx.fillRect(1, -3, 3, 6);
 
-        // Membros do Arco Recurvo (Laminas Superior e Inferior)
+
         ctx.strokeStyle = '#1e293b';
         ctx.lineWidth = 3.5;
         ctx.beginPath();
-        // Membro Superior
+
         ctx.moveTo(2, -5);
         ctx.quadraticCurveTo(8, -16, 2, -24);
         ctx.stroke();
-        // Membro Inferior
+
         ctx.beginPath();
         ctx.moveTo(2, 5);
         ctx.quadraticCurveTo(8, 16, 2, 24);
         ctx.stroke();
 
-        // Linhas de Detalhe Neon nas Lâminas
+
         ctx.strokeStyle = '#00ffff';
         ctx.lineWidth = 1.5;
         ctx.shadowColor = '#00ffff';
@@ -1847,28 +1847,28 @@ class GameRenderer {
         ctx.quadraticCurveTo(7, 15, 3, 22);
         ctx.stroke();
 
-        // Corda de Plasma / Energia Luminescente
+
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1.2;
         ctx.shadowColor = '#00d9ff';
         ctx.shadowBlur = 8;
         ctx.beginPath();
         ctx.moveTo(2, -24);
-        ctx.lineTo(-4, 0); // Ponto de tração
+        ctx.lineTo(-4, 0);
         ctx.lineTo(2, 24);
         ctx.stroke();
 
-        // Flecha Encaixada Pronta para o Disparo (Nocked Arrow)
+
         ctx.fillStyle = '#e2e8f0';
-        ctx.fillRect(-6, -1, 24, 2); // Haste
-        ctx.fillStyle = '#00ffff'; // Ponta de energia brilhante
+        ctx.fillRect(-6, -1, 24, 2);
+        ctx.fillStyle = '#00ffff';
         ctx.beginPath();
         ctx.moveTo(18, -3);
         ctx.lineTo(24, 0);
         ctx.lineTo(18, 3);
         ctx.closePath();
         ctx.fill();
-        // Penas traseiras da flecha
+
         ctx.fillStyle = '#c084fc';
         ctx.fillRect(-6, -3, 3, 2);
         ctx.fillRect(-6, 1, 3, 2);
@@ -1878,22 +1878,22 @@ class GameRenderer {
         break;
 
       case 'HMG':
-        // Heavy Machine Gun: Corpo robusto cinza chumbo com tambor de munição e cano duplo
+
         ctx.fillStyle = '#2d3748';
         ctx.fillRect(0, -5, 18, 7);
         ctx.fillStyle = '#1a202c';
-        ctx.fillRect(4, 2, 8, 7); // Tambor redondo
+        ctx.fillRect(4, 2, 8, 7);
         ctx.fillStyle = '#718096';
-        ctx.fillRect(18, -4, 6, 4); // Cano
+        ctx.fillRect(18, -4, 6, 4);
         ctx.fillStyle = '#ff9900';
-        ctx.fillRect(6, -7, 4, 2); // Mira ótica
+        ctx.fillRect(6, -7, 4, 2);
         break;
 
       case 'SHOTGUN':
-        // Shotgun: Escopeta de cano serrado com coronha de madeira e cano duplo grosso
-        ctx.fillStyle = '#61482b'; // Madeira
+
+        ctx.fillStyle = '#61482b';
         ctx.fillRect(-2, -3, 8, 6);
-        ctx.fillStyle = '#2d3748'; // Aço
+        ctx.fillStyle = '#2d3748';
         ctx.fillRect(6, -5, 16, 7);
         ctx.fillStyle = '#111';
         ctx.fillRect(20, -5, 4, 3);
@@ -1901,37 +1901,37 @@ class GameRenderer {
         break;
 
       case 'ROCKET':
-        // Rocket Launcher / Bazooka militar verde com ogiva
+
         ctx.fillStyle = '#3b4a2c';
         ctx.fillRect(-6, -7, 26, 9);
         ctx.fillStyle = '#ff3300';
-        ctx.fillRect(20, -6, 5, 7); // Ponta do míssil
+        ctx.fillRect(20, -6, 5, 7);
         ctx.fillStyle = '#111';
-        ctx.fillRect(2, -10, 4, 3); // Mira
+        ctx.fillRect(2, -10, 4, 3);
         break;
 
       case 'FLAME':
-        // Flame Shot: Tanque pressurizado e bico de ignição com chama piloto
+
         ctx.fillStyle = '#c53030';
         ctx.fillRect(0, -6, 16, 8);
         ctx.fillStyle = '#e2e8f0';
         ctx.fillRect(16, -4, 6, 4);
         ctx.fillStyle = '#00d9ff';
-        ctx.fillRect(22, -3, 2, 2); // Piloto azul
+        ctx.fillRect(22, -3, 2, 2);
         break;
 
       case 'LASER':
-        // Laser Gun: Futurista branca/ciano com bobinas de energia
+
         ctx.fillStyle = '#edf2f7';
         ctx.fillRect(0, -5, 18, 7);
         ctx.fillStyle = '#00d9ff';
-        ctx.fillRect(4, -3, 10, 3); // Núcleo brilhante
+        ctx.fillRect(4, -3, 10, 3);
         ctx.fillStyle = '#4a5568';
         ctx.fillRect(18, -4, 5, 5);
         break;
 
       default:
-        // Pistola Padrão Semi-Automática Metal Slug
+
         ctx.fillStyle = '#4a5568';
         ctx.fillRect(0, -4, 12, 5);
         ctx.fillStyle = '#1a202c';
@@ -1940,7 +1940,7 @@ class GameRenderer {
     }
   }
 
-  // Clarão de Tiro (Muzzle Flash)
+
   drawMuzzleFlash(ctx, x, y, weapon) {
     ctx.save();
     ctx.translate(x, y);
@@ -1949,7 +1949,7 @@ class GameRenderer {
     const colorCore = weapon === 'LASER' ? '#00ffff' : (weapon === 'FLAME' ? '#ff3300' : '#ffffff');
     const colorOuter = weapon === 'LASER' ? '#0088ff' : (weapon === 'FLAME' ? '#ffaa00' : '#ff9900');
 
-    // Espículas de fogo
+
     ctx.fillStyle = colorOuter;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -1961,7 +1961,7 @@ class GameRenderer {
     ctx.closePath();
     ctx.fill();
 
-    // Núcleo branco incandescente
+
     ctx.fillStyle = colorCore;
     ctx.beginPath();
     ctx.arc(4, 0, size * 0.35, 0, Math.PI * 2);
@@ -1970,17 +1970,17 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // Efeito de Corte de Faca ou Machado Nórdico (Melee Attack)
+
   drawMeleeSlash(ctx, timer, charId = 'claudio', isAxe = false) {
     ctx.save();
     
     if (isAxe || charId === 'claudio') {
-      // --- CORTE ÉPICO DO MACHADO NÓRDICO (ONDA DOURADA MASSIVA EM ARCO LARGO) ---
-      const progress = 1 - (timer / 0.4); // Normalizar de 0 a 1
+
+      const progress = 1 - (timer / 0.4);
       const startAngle = -Math.PI * 0.7 + progress * 1.2;
       const endAngle = Math.PI * 0.7 + progress * 1.2;
 
-      // Arco externo dourado brilhante
+
       ctx.strokeStyle = '#ffd700';
       ctx.shadowColor = '#ffaa00';
       ctx.shadowBlur = 20;
@@ -1990,7 +1990,7 @@ class GameRenderer {
       ctx.arc(18, 0, 50, startAngle, endAngle);
       ctx.stroke();
 
-      // Arco médio branco incandescente
+
       ctx.strokeStyle = '#ffffff';
       ctx.shadowBlur = 15;
       ctx.lineWidth = 5;
@@ -1998,7 +1998,7 @@ class GameRenderer {
       ctx.arc(18, 0, 48, startAngle, endAngle);
       ctx.stroke();
 
-      // Arco interno com efeito de energia rúnica
+
       ctx.strokeStyle = '#ffee00';
       ctx.shadowBlur = 10;
       ctx.lineWidth = 3;
@@ -2006,7 +2006,7 @@ class GameRenderer {
       ctx.arc(18, 0, 45, startAngle, endAngle);
       ctx.stroke();
 
-      // Desenhar o machado físico em movimento no arco
+
       const midAngle = (startAngle + endAngle) / 2;
       const axeX = 18 + Math.cos(midAngle) * 45;
       const axeY = Math.sin(midAngle) * 45;
@@ -2015,7 +2015,7 @@ class GameRenderer {
       ctx.translate(axeX, axeY);
       ctx.rotate(midAngle + Math.PI / 2);
 
-      // Lâmina preta do machado
+
       ctx.fillStyle = '#11161d';
       ctx.beginPath();
       ctx.moveTo(-8, -6);
@@ -2026,18 +2026,18 @@ class GameRenderer {
       ctx.closePath();
       ctx.fill();
 
-      // Detalhes dourados na lâmina
+
       ctx.fillStyle = '#ffd700';
       ctx.fillRect(-4, -8, 10, 3);
       ctx.fillRect(-4, 5, 10, 3);
 
-      // Cabo do machado
+
       ctx.fillStyle = '#3d2f1f';
       ctx.fillRect(-12, -2, 8, 4);
 
       ctx.restore();
 
-      // Partículas de energia ao longo do arco
+
       for (let a = startAngle; a < endAngle; a += 0.3) {
         const px = 18 + Math.cos(a) * (45 + Math.random() * 8);
         const py = Math.sin(a) * (45 + Math.random() * 8);
@@ -2046,7 +2046,7 @@ class GameRenderer {
       }
 
     } else {
-      // Corte padrão de facão
+
       const slashColor = '#00d9ff';
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
       ctx.shadowColor = slashColor;
@@ -2061,7 +2061,7 @@ class GameRenderer {
       ctx.arc(10, 0, 30, startAngle, endAngle);
       ctx.stroke();
 
-      // Lâmina de aço
+
       ctx.fillStyle = '#cbd5e0';
       ctx.fillRect(14, -2, 16, 4);
       ctx.fillStyle = '#ff0055';
@@ -2071,7 +2071,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- RENDERIZAÇÃO DO VEÍCULO PILOTÁVEL (THE CYBER SLUG - MINI TANK) ---
+
   drawSlug(ctx, camera, slug, driverChar = 'claudio') {
     ctx.save();
     ctx.translate(slug.x - camera.x + slug.width / 2, slug.y - camera.y + slug.height / 2);
@@ -2079,13 +2079,13 @@ class GameRenderer {
 
     const bounce = Math.sin(this.time * 12) * (Math.abs(slug.vx) > 0.1 ? 2 : 0.5);
 
-    // 1. Esteiras e Rodas de Trator Bouncing
+
     ctx.fillStyle = '#1a202c';
     ctx.beginPath();
     ctx.roundRect(-30, 10, 60, 16, 8);
     ctx.fill();
 
-    // Rodas giratórias com detalhes
+
     ctx.fillStyle = '#4a5568';
     for (let wx = -20; wx <= 20; wx += 13) {
       ctx.beginPath();
@@ -2098,7 +2098,7 @@ class GameRenderer {
       ctx.fillStyle = '#4a5568';
     }
 
-    // 2. Chassis Blindado Azul/Cinza Militar (Dourado se for Tarma Buffed)
+
     ctx.save();
     ctx.translate(0, bounce);
 
@@ -2114,7 +2114,7 @@ class GameRenderer {
     }
     ctx.fillStyle = chassisGrad;
 
-    // Formato arredondado icônico do Metal Slug Tank
+
     ctx.beginPath();
     ctx.moveTo(-26, 10);
     ctx.lineTo(26, 10);
@@ -2123,12 +2123,12 @@ class GameRenderer {
     ctx.closePath();
     ctx.fill();
 
-    // Rebites e Emblema de Estrela
+
     ctx.fillStyle = slug.tarmaBuffed ? '#ffcc00' : '#fff';
     ctx.font = '10px sans-serif';
     ctx.fillText('★', -4, 4);
 
-    // Escapamento com fumaça
+
     ctx.fillStyle = '#718096';
     ctx.fillRect(-28, -6, 6, 6);
     if (Math.random() < 0.3) {
@@ -2138,33 +2138,33 @@ class GameRenderer {
       ctx.fill();
     }
 
-    // 3. Torreta Superior com Canhão e Metralhadoras Vulcan
+
     ctx.fillStyle = slug.tarmaBuffed ? '#5c4520' : '#3b5373';
     ctx.beginPath();
     ctx.arc(0, -12, 14, Math.PI, 0);
     ctx.fill();
 
-    // Escotilha do Comandante
+
     ctx.fillStyle = '#1a202c';
     ctx.fillRect(-8, -16, 16, 4);
 
-    // Se o jogador estiver dentro, desenhar o herói selecionado aparecendo na escotilha
+
     if (slug.isOccupied) {
       const dChar = slug.driverCharacterId || driverChar;
       if (dChar === 'claudio') {
-        // Claudio no cockpit do tanque com fade, brinco, camisa branca e pintura de guerra
+
         ctx.fillStyle = '#dfad88';
-        ctx.fillRect(-4, -24, 8, 8); // Rosto
+        ctx.fillRect(-4, -24, 8, 8);
         ctx.fillStyle = '#171412';
-        ctx.fillRect(-5, -26, 10, 4); // Cabelo Fade
+        ctx.fillRect(-5, -26, 10, 4);
         ctx.fillStyle = '#dc2626';
-        ctx.fillRect(0, -25, 2, 8); // Listra de guerra
+        ctx.fillRect(0, -25, 2, 8);
         ctx.fillStyle = '#181412';
-        ctx.fillRect(0, -18, 4, 2); // Bigode/Cavanhaque
+        ctx.fillRect(0, -18, 4, 2);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-5, -20, 2, 2); // Brinco
+        ctx.fillRect(-5, -20, 2, 2);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-6, -16, 12, 4); // Camisa branca
+        ctx.fillRect(-6, -16, 12, 4);
       } else if (dChar === 'tarma') {
         ctx.fillStyle = '#e6b280';
         ctx.fillRect(-4, -24, 8, 8);
@@ -2193,26 +2193,26 @@ class GameRenderer {
       }
     }
 
-    // Canhão Principal de 120mm
+
     ctx.save();
     ctx.translate(4, -10);
     ctx.rotate(slug.cannonAngle || 0);
     ctx.fillStyle = '#2d3748';
     ctx.fillRect(0, -4, 26, 8);
     ctx.fillStyle = '#1a202c';
-    ctx.fillRect(22, -5, 6, 10); // Boca do canhão
+    ctx.fillRect(22, -5, 6, 10);
     ctx.restore();
 
-    // Metralhadora Vulcan Giratória Inferior
+
     ctx.fillStyle = '#1a202c';
     ctx.fillRect(12, 0, 14, 4);
     ctx.fillRect(14, 4, 12, 4);
 
-    ctx.restore(); // Fim do chassis
-    ctx.restore(); // Fim do slug
+    ctx.restore();
+    ctx.restore();
   }
 
-  // --- FRAGMENTOS DA EXECUÇÃO DO CLAUDIO ---
+
   drawExecutionEffects(ctx, camera, effects) {
     if (!effects || effects.length === 0) return;
 
@@ -2235,7 +2235,7 @@ class GameRenderer {
       ctx.shadowColor = accent;
       ctx.shadowBlur = 14 * progress;
 
-      // Metade esquerda do inimigo, arremessada para fora.
+
       ctx.save();
       ctx.translate(-split, -effect.split * 0.22);
       ctx.rotate(-0.18 * (effect.direction || 1));
@@ -2251,7 +2251,7 @@ class GameRenderer {
       ctx.fillRect(-12, -8, 9, 3);
       ctx.restore();
 
-      // Metade direita, espelhada, deixando a divisão visual nítida.
+
       ctx.save();
       ctx.translate(split, effect.split * 0.22);
       ctx.rotate(0.18 * (effect.direction || 1));
@@ -2267,7 +2267,7 @@ class GameRenderer {
       ctx.fillRect(3, -8, 9, 3);
       ctx.restore();
 
-      // Traço rúnico do machado no ponto da divisão.
+
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -2286,12 +2286,12 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- INIMIGOS ADAPTADOS A CADA BIOMA COM IDENTIDADE VISUAL ÚNICA ---
+
   drawEnemy(ctx, camera, e) {
     ctx.save();
     ctx.translate(e.x - camera.x + e.width / 2, e.y - camera.y + e.height / 2);
-    // Leve aumento visual para os inimigos não parecerem miniaturas perto do
-    // cenário, sem alterar as hitboxes e o equilíbrio do combate.
+
+
     ctx.translate(0, -2);
     ctx.scale(e.facing * 1.1, 1.1);
 
@@ -2301,7 +2301,7 @@ class GameRenderer {
 
     const biome = e.biome || 'tokyo';
 
-    // Sombra projetada
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
     ctx.ellipse(0, e.height / 2 - 1, 14, 4, 0, 0, Math.PI * 2);
@@ -2311,20 +2311,20 @@ class GameRenderer {
       const walk = Math.sin(this.time * 12 + e.id) * 0.4;
 
       if (biome === 'tokyo') {
-        // [TÓQUIO] Soldado Cyberpunk Tático com Visor Neon e Exoesqueleto
+
         ctx.fillStyle = '#111424';
         ctx.fillRect(-6 + walk * 4, 4, 5, 12);
         ctx.fillRect(2 - walk * 4, 4, 5, 12);
         ctx.fillStyle = '#00d9ff';
-        ctx.fillRect(-6 + walk * 4, 8, 5, 2); // Linhas de neon nas pernas
+        ctx.fillRect(-6 + walk * 4, 8, 5, 2);
         ctx.fillRect(2 - walk * 4, 8, 5, 2);
 
         ctx.fillStyle = '#1e243b';
-        ctx.fillRect(-7, -8, 14, 14); // Colete blindado
+        ctx.fillRect(-7, -8, 14, 14);
         ctx.fillStyle = '#ff0055';
-        ctx.fillRect(-7, -2, 14, 2); // Faixa de neon magenta
+        ctx.fillRect(-7, -2, 14, 2);
 
-        // Capacete Cyber com Visor Ciano Brilhante
+
         ctx.fillStyle = '#0a0d18';
         ctx.fillRect(-4, -18, 10, 10);
         ctx.fillStyle = '#00d9ff';
@@ -2333,38 +2333,38 @@ class GameRenderer {
         ctx.fillRect(0, -15, 6, 3);
         ctx.shadowBlur = 0;
 
-        // Rifle de Plasma Cyberpunk
+
         ctx.fillStyle = '#2d3748';
         ctx.fillRect(2, -5, 18, 5);
         ctx.fillStyle = '#00d9ff';
         ctx.fillRect(8, -4, 6, 2);
 
       } else if (biome === 'brazil') {
-        // [BRASIL] Guerrilheiro da Selva com Camuflagem, Bandana Vermelha e Colete
-        ctx.fillStyle = '#2d3b24'; // Calça camuflada
+
+        ctx.fillStyle = '#2d3b24';
         ctx.fillRect(-6 + walk * 4, 4, 5, 12);
         ctx.fillRect(2 - walk * 4, 4, 5, 12);
 
-        ctx.fillStyle = '#415233'; // Camisa militar
+        ctx.fillStyle = '#415233';
         ctx.fillRect(-7, -8, 14, 14);
-        ctx.fillStyle = '#61472a'; // Coldre e canivete
+        ctx.fillStyle = '#61472a';
         ctx.fillRect(-7, -1, 14, 3);
 
-        // Cabeça com Bandana Vermelha
+
         ctx.fillStyle = '#e8a974';
         ctx.fillRect(-3, -16, 8, 8);
-        ctx.fillStyle = '#d91414'; // Bandana vermelha
+        ctx.fillStyle = '#d91414';
         ctx.fillRect(-5, -17, 11, 4);
-        ctx.fillRect(-7, -15, 3, 6); // Ponta da bandana ao vento
+        ctx.fillRect(-7, -15, 3, 6);
 
-        // Fuzil com coronha de madeira
+
         ctx.fillStyle = '#5c3a21';
         ctx.fillRect(-2, -3, 6, 4);
         ctx.fillStyle = '#1a202c';
         ctx.fillRect(2, -4, 16, 4);
 
       } else if (biome === 'europe') {
-        // [EUROPA] Guarda Real do Castelo com Sobretudo Azul-Marinho e Botões Dourados
+
         ctx.fillStyle = '#1c2233';
         ctx.fillRect(-6 + walk * 4, 4, 5, 12);
         ctx.fillRect(2 - walk * 4, 4, 5, 12);
@@ -2372,13 +2372,13 @@ class GameRenderer {
         ctx.fillRect(-7 + walk * 4, 12, 7, 5);
         ctx.fillRect(1 - walk * 4, 12, 7, 5);
 
-        ctx.fillStyle = '#203254'; // Casaco clássico
+        ctx.fillStyle = '#203254';
         ctx.fillRect(-7, -8, 14, 14);
-        ctx.fillStyle = '#ffcc00'; // Botões dourados
+        ctx.fillStyle = '#ffcc00';
         ctx.fillRect(-1, -6, 2, 2);
         ctx.fillRect(-1, -2, 2, 2);
 
-        // Quepe Militar com Insígnia
+
         ctx.fillStyle = '#f0be8b';
         ctx.fillRect(-3, -16, 8, 8);
         ctx.fillStyle = '#152238';
@@ -2386,26 +2386,26 @@ class GameRenderer {
         ctx.fillStyle = '#ffcc00';
         ctx.fillRect(0, -18, 3, 2);
 
-        // Carabina Clássica
+
         ctx.fillStyle = '#4a2f1b';
         ctx.fillRect(-2, -4, 18, 4);
         ctx.fillStyle = '#8a99ad';
         ctx.fillRect(12, -4, 6, 3);
 
       } else {
-        // [EGITO] Soldado dos Faraós com Armadura Dourada e Lápis-Lazúli
+
         ctx.fillStyle = '#2c1e13';
         ctx.fillRect(-6 + walk * 4, 4, 5, 12);
         ctx.fillRect(2 - walk * 4, 4, 5, 12);
 
-        ctx.fillStyle = '#b07d50'; // Túnica do deserto
+        ctx.fillStyle = '#b07d50';
         ctx.fillRect(-7, -8, 14, 14);
-        ctx.fillStyle = '#ffd700'; // Peitoral de ouro
+        ctx.fillStyle = '#ffd700';
         ctx.fillRect(-6, -8, 12, 6);
-        ctx.fillStyle = '#0066cc'; // Lápis-lazúli
+        ctx.fillStyle = '#0066cc';
         ctx.fillRect(-3, -6, 6, 3);
 
-        // Tocado Egípcio Nemes Dourado e Azul
+
         ctx.fillStyle = '#e8a974';
         ctx.fillRect(-3, -16, 8, 8);
         ctx.fillStyle = '#ffd700';
@@ -2413,7 +2413,7 @@ class GameRenderer {
         ctx.fillStyle = '#0066cc';
         ctx.fillRect(-5, -17, 11, 2);
 
-        // Lança/Fuzil de Energia Dourada
+
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(2, -4, 18, 4);
         ctx.fillStyle = '#ff3300';
@@ -2422,7 +2422,7 @@ class GameRenderer {
 
     } else if (e.type === 'shield') {
       if (biome === 'tokyo') {
-        // [TÓQUIO] Tropa de Choque Cyber com Escudo de Barreira Holográfica
+
         ctx.fillStyle = '#111424';
         ctx.fillRect(-6, 2, 12, 14);
         ctx.fillStyle = '#1a2238';
@@ -2430,20 +2430,20 @@ class GameRenderer {
 
         ctx.fillStyle = '#0a0d18';
         ctx.fillRect(-4, -18, 10, 9);
-        ctx.fillStyle = '#ff0055'; // Visor neon rosa
+        ctx.fillStyle = '#ff0055';
         ctx.fillRect(1, -15, 5, 2);
 
-        // Escudo Holográfico Neon Ciano
+
         ctx.fillStyle = 'rgba(0, 217, 255, 0.45)';
         ctx.fillRect(6, -20, 10, 36);
         ctx.strokeStyle = '#00d9ff';
         ctx.lineWidth = 2;
         ctx.strokeRect(6, -20, 10, 36);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(9, -10, 4, 14); // Padrão hexagonal de energia
+        ctx.fillRect(9, -10, 4, 14);
 
       } else if (biome === 'brazil') {
-        // [BRASIL] Guardião Tribal com Escudo de Máscara de Madeira Rústica
+
         ctx.fillStyle = '#3d2514';
         ctx.fillRect(-6, 2, 12, 14);
         ctx.fillStyle = '#5c3a21';
@@ -2451,55 +2451,55 @@ class GameRenderer {
 
         ctx.fillStyle = '#e8a974';
         ctx.fillRect(-4, -18, 10, 9);
-        ctx.fillStyle = '#2b7a4b'; // Pintura de guerra verde
+        ctx.fillStyle = '#2b7a4b';
         ctx.fillRect(1, -15, 5, 3);
 
-        // Escudo de Máscara Tribal com Pintura Sagrada
+
         ctx.fillStyle = '#5c3a21';
         ctx.fillRect(6, -22, 12, 38);
-        ctx.strokeStyle = '#a0ff3c'; // Olhos e boca esculpidos brilhantes
+        ctx.strokeStyle = '#a0ff3c';
         ctx.lineWidth = 2;
         ctx.strokeRect(6, -22, 12, 38);
         ctx.fillStyle = '#ffcc00';
-        ctx.fillRect(9, -15, 6, 4); // Olhos da máscara
+        ctx.fillRect(9, -15, 6, 4);
         ctx.fillStyle = '#ff3300';
-        ctx.fillRect(9, -2, 6, 6);  // Boca de guerra
+        ctx.fillRect(9, -2, 6, 6);
 
       } else if (biome === 'europe') {
-        // [EUROPA] Cavaleiro Gótico com Armadura de Placas de Aço e Escudo com Cruz
+
         ctx.fillStyle = '#334155';
         ctx.fillRect(-6, 2, 12, 14);
-        ctx.fillStyle = '#64748b'; // Cota de malha e placas
+        ctx.fillStyle = '#64748b';
         ctx.fillRect(-8, -10, 14, 14);
 
-        // Elmo Medieval com Visor de Fenda
+
         ctx.fillStyle = '#475569';
         ctx.fillRect(-4, -19, 11, 10);
         ctx.fillStyle = '#000';
         ctx.fillRect(1, -15, 5, 2);
 
-        // Grande Escudo Torre com Cruz Vermelha
+
         ctx.fillStyle = '#cbd5e1';
         ctx.fillRect(6, -22, 11, 38);
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 2;
         ctx.strokeRect(6, -22, 11, 38);
-        // Cruz Templária Vermelha
+
         ctx.fillStyle = '#d91414';
         ctx.fillRect(7, -6, 9, 4);
         ctx.fillRect(10, -16, 3, 24);
 
       } else {
-        // [EGITO] Guardião de Anúbis com Cabeça de Chacal e Escudo de Ouro
+
         ctx.fillStyle = '#1c1917';
         ctx.fillRect(-6, 2, 12, 14);
         ctx.fillStyle = '#292524';
         ctx.fillRect(-8, -10, 14, 14);
 
-        // Máscara de Chacal de Anúbis com Olhos Vermelhos
+
         ctx.fillStyle = '#1c1917';
         ctx.fillRect(-4, -20, 11, 11);
-        ctx.beginPath(); // Orelhas pontiagudas de chacal
+        ctx.beginPath();
         ctx.moveTo(-3, -20);
         ctx.lineTo(-1, -26);
         ctx.lineTo(2, -20);
@@ -2507,16 +2507,16 @@ class GameRenderer {
         ctx.lineTo(5, -26);
         ctx.lineTo(8, -20);
         ctx.fill();
-        ctx.fillStyle = '#ff0033'; // Olhos vermelhos
+        ctx.fillStyle = '#ff0033';
         ctx.fillRect(2, -16, 4, 2);
 
-        // Escudo de Ouro do Faraó com Escaravelho
+
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(6, -22, 12, 38);
         ctx.strokeStyle = '#b45309';
         ctx.lineWidth = 2;
         ctx.strokeRect(6, -22, 12, 38);
-        ctx.fillStyle = '#0284c7'; // Escaravelho de lápis-lazúli
+        ctx.fillStyle = '#0284c7';
         ctx.beginPath();
         ctx.arc(12, -3, 4, 0, Math.PI * 2);
         ctx.fill();
@@ -2531,7 +2531,7 @@ class GameRenderer {
         ctx.fillRect(-3, -16, 8, 8);
         ctx.fillStyle = '#ffaa00';
         ctx.fillRect(1, -15, 4, 3);
-        // Lançador de Mísseis Cyber
+
         ctx.fillStyle = '#1e293b';
         ctx.fillRect(-8, -14, 28, 7);
         ctx.fillStyle = '#00d9ff';
@@ -2545,7 +2545,7 @@ class GameRenderer {
         ctx.fillRect(-3, -16, 8, 8);
         ctx.fillStyle = '#ff4400';
         ctx.fillRect(-5, -18, 12, 5);
-        // Bazuca Camuflada de Selva
+
         ctx.fillStyle = '#1e381f';
         ctx.fillRect(-8, -14, 28, 7);
         ctx.fillStyle = '#ffaa00';
@@ -2557,9 +2557,9 @@ class GameRenderer {
         ctx.fillRect(-8, -8, 14, 14);
         ctx.fillStyle = '#f0be8b';
         ctx.fillRect(-3, -16, 8, 8);
-        ctx.fillStyle = '#854d0e'; // Óculos de proteção steampunk
+        ctx.fillStyle = '#854d0e';
         ctx.fillRect(-4, -16, 10, 4);
-        // Canhão de Mísseis de Latão Steampunk
+
         ctx.fillStyle = '#ca8a04';
         ctx.fillRect(-8, -14, 28, 8);
         ctx.fillStyle = '#ea580c';
@@ -2573,7 +2573,7 @@ class GameRenderer {
         ctx.fillRect(-3, -16, 8, 8);
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(-4, -18, 10, 6);
-        // Canhão Solar de Rá
+
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(-8, -14, 28, 7);
         ctx.fillStyle = '#ff0033';
@@ -2585,7 +2585,7 @@ class GameRenderer {
       ctx.translate(0, hover);
 
       if (biome === 'tokyo') {
-        // Drone Cyberpunk Quadricóptero com Holo-Scanner
+
         ctx.fillStyle = 'rgba(0, 217, 255, 0.7)';
         const propW = Math.abs(Math.sin(this.time * 30)) * 36;
         ctx.fillRect(-propW / 2, -16, propW, 3);
@@ -2604,7 +2604,7 @@ class GameRenderer {
         ctx.shadowBlur = 0;
 
       } else if (biome === 'brazil') {
-        // Drone Camuflado da Selva
+
         ctx.fillStyle = 'rgba(160, 255, 60, 0.7)';
         const propW = Math.abs(Math.sin(this.time * 30)) * 36;
         ctx.fillRect(-propW / 2, -16, propW, 3);
@@ -2620,7 +2620,7 @@ class GameRenderer {
         ctx.fill();
 
       } else if (biome === 'europe') {
-        // Autômato Voador Steampunk de Latão com Engrenagens
+
         ctx.fillStyle = '#ca8a04';
         const propW = Math.abs(Math.sin(this.time * 25)) * 34;
         ctx.fillRect(-propW / 2, -16, propW, 4);
@@ -2630,7 +2630,7 @@ class GameRenderer {
         ctx.arc(0, -6, 12, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#f59e0b'; // Fornalha de vapor brilhante
+        ctx.fillStyle = '#f59e0b';
         ctx.shadowColor = '#f59e0b';
         ctx.shadowBlur = 8;
         ctx.beginPath();
@@ -2639,8 +2639,8 @@ class GameRenderer {
         ctx.shadowBlur = 0;
 
       } else {
-        // Escaravelho Voador de Ouro do Egito
-        ctx.fillStyle = '#ffd700'; // Asas douradas
+
+        ctx.fillStyle = '#ffd700';
         const wingFlap = Math.sin(this.time * 35) * 12;
         ctx.beginPath();
         ctx.moveTo(0, -6);
@@ -2656,7 +2656,7 @@ class GameRenderer {
         ctx.ellipse(0, -6, 14, 9, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#ff0033'; // Joia solar central
+        ctx.fillStyle = '#ff0033';
         ctx.shadowColor = '#ff0033';
         ctx.shadowBlur = 10;
         ctx.beginPath();
@@ -2669,7 +2669,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- REFÉM / POW (PRISONER OF WAR) RESGATÁVEL ---
+
   drawPOW(ctx, camera, pow) {
     ctx.save();
     ctx.translate(pow.x - camera.x + pow.width / 2, pow.y - camera.y + pow.height / 2);
@@ -2734,7 +2734,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- CHEFÃO TITÃ (MECHAGODZILLA DINÂMICO HD - APEX TITAN DO EGITO) ---
+
   drawBoss(ctx, camera, boss) {
     if (boss.hiddenByDragon) return;
     if (boss.isGhidorah) {
@@ -2767,13 +2767,13 @@ class GameRenderer {
     const isMissile = boss.state === 'MISSILE_SALVO';
     const isRecoil = boss.state === 'RECOIL_LASER';
 
-    // 1. Sombra Gigantesca Dinâmica no Solo do Egito
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.beginPath();
     ctx.ellipse(0, boss.height / 2 - 6, boss.width / 2 + 35, 24, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Trilhas de plasma deixam o dash impossível de confundir com caminhada.
+
     if (boss.state === 'RUSH') {
       ctx.save();
       const trailDirection = -(boss.facing || -1);
@@ -2792,15 +2792,15 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 2. Renderização Articulada do MechaGodzilla com Sprites HD
+
     if (this.mechaSprites && this.mechaSprites.loaded) {
       ctx.save();
 
-      // Inverter horizontalmente com base na direção em que o Titã olha
+
       ctx.scale(boss.facing || -1, 1);
 
-      // O micro-deslocamento contínuo impede que o sprite pareça preso a uma
-      // grade: mesmo parado, o peso do reator e a respiração movem o corpo.
+
+
       const gaitSway = Math.sin(boss.animTime * (isWalking ? 7.2 : 3.4)) * (isWalking ? 2.4 : 0.9);
       const impactJitter = (boss.impactWobble || 0) * Math.sin(boss.animTime * 42) * 3;
       ctx.translate(gaitSway + impactJitter, (boss.bodyBob || 0) + (boss.impactOffsetY || 0));
@@ -2809,7 +2809,7 @@ class GameRenderer {
         ctx.rotate(totalLean * (boss.facing || -1));
       }
 
-      // Escolher frame adequado de animação
+
       let currentSprite = this.mechaSprites.idle;
 
       if (isFiring) {
@@ -2817,7 +2817,7 @@ class GameRenderer {
       } else if (isCharging || isStomping || isRecoil) {
         currentSprite = this.mechaSprites.stance;
       } else if (isWalking) {
-        // Ciclo de caminhada com passos pesados
+
         const walkCycle = [
           this.mechaSprites.walk1,
           this.mechaSprites.stance,
@@ -2826,27 +2826,27 @@ class GameRenderer {
         ];
         currentSprite = walkCycle[Math.floor(boss.animTime * 6) % 4] || this.mechaSprites.walk1;
       } else if (isMissile || Math.abs(boss.cannonAngle || 0) > 0.08) {
-        // A mira só ganha prioridade quando parado. Durante a caminhada, o
-        // ciclo de passadas precisa continuar visível para dar peso ao Titã.
+
+
         currentSprite = this.mechaSprites.aim;
       } else {
         currentSprite = this.mechaSprites.idle;
       }
 
-      // Brilho pulsante nos espinhos dorsais de titânio
+
       const spineGlowIntensity = Math.min(45, (boss.spineGlow || 0.4) * 30);
       if (spineGlowIntensity > 5) {
         ctx.shadowColor = '#ff0033';
         ctx.shadowBlur = spineGlowIntensity;
       }
 
-      // Renderizar o Sprite Oficial
+
       const spriteW = 270;
       const spriteH = 250;
       ctx.drawImage(currentSprite, -spriteW / 2, -spriteH / 2, spriteW, spriteH);
       ctx.shadowBlur = 0;
 
-      // 3. Olhos / Scanner Óptico Vermelho com Feixe de Mira
+
       const eyeX = 25;
       const eyeY = -72;
       const eyeGlow = ctx.createRadialGradient(eyeX, eyeY, 1, eyeX, eyeY, isCharging ? 22 : 12);
@@ -2858,7 +2858,7 @@ class GameRenderer {
       ctx.arc(eyeX, eyeY, isCharging ? 22 : 12, 0, Math.PI * 2);
       ctx.fill();
 
-      // Feixe de mira laser vermelho projetado nos olhos durante a carga
+
       if (isCharging) {
         ctx.strokeStyle = 'rgba(255, 0, 50, 0.8)';
         ctx.lineWidth = 2;
@@ -2870,7 +2870,7 @@ class GameRenderer {
         ctx.setLineDash([]);
       }
 
-      // Arcos elétricos de sobrecarga quando HP < 50%
+
       if (hpRatio < 0.5) {
         ctx.strokeStyle = '#ff0033';
         ctx.lineWidth = 2;
@@ -2888,18 +2888,18 @@ class GameRenderer {
       ctx.restore();
 
     } else {
-      // Fallback Procedural
+
       ctx.fillStyle = '#334155';
       ctx.fillRect(-boss.width / 2, -boss.height / 2, boss.width, boss.height);
     }
 
-    // 4. VÓRTICE DE CARREGAMENTO DE ENERGIA (ANTECIPAÇÃO ANTES DO LASER)
+
     if (isCharging && boss.chargeParticles) {
       ctx.save();
       const mouthX = (boss.facing === 1 ? 80 : -80);
       const mouthY = -42 + (boss.bodyBob || 0);
 
-      // Núcleo de fusão brilhando intensamente na boca
+
       ctx.fillStyle = '#ff0033';
       ctx.shadowColor = '#ff0033';
       ctx.shadowBlur = 30;
@@ -2911,7 +2911,7 @@ class GameRenderer {
       ctx.arc(mouthX, mouthY, 8, 0, Math.PI * 2);
       ctx.fill();
 
-      // Partículas convergindo para o centro da boca
+
       boss.chargeParticles.forEach(p => {
         const px = (p.curX || p.x) - (boss.x + boss.width / 2);
         const py = (p.curY || p.y) - (boss.y + boss.height / 2);
@@ -2924,13 +2924,13 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 5. MEGA FEIXE LASER DE PRÓTONS (PROTON SCREAM) CORTANDO A ARENA DO EGITO
+
     if (isFiring) {
       ctx.save();
       const mouthX = (boss.facing === 1 ? 80 : -80);
       const mouthY = -42 + (boss.bodyBob || 0);
 
-      // Núcleo atômico incandescente na boca do Titã
+
       ctx.fillStyle = '#ff0033';
       ctx.shadowColor = '#ff0033';
       ctx.shadowBlur = 40;
@@ -2943,30 +2943,30 @@ class GameRenderer {
       ctx.arc(mouthX, mouthY, 16, 0, Math.PI * 2);
       ctx.fill();
 
-      // Trajetória do Mega Raio Laser
+
       const beamLength = 1050;
       const beamHeight = 42 + Math.sin(this.time * 40) * 10;
       const startX = mouthX;
       const endX = mouthX + (boss.facing * beamLength);
       const drawStartX = Math.min(startX, endX);
 
-      // Camada 1: Corona Externa de Plasma Vermelho
+
       ctx.fillStyle = 'rgba(255, 0, 50, 0.75)';
       ctx.fillRect(drawStartX, mouthY - beamHeight / 2, beamLength, beamHeight);
 
-      // Camada 2: Chamas e Energia Alaranjada Incandescente
+
       ctx.fillStyle = 'rgba(255, 120, 0, 0.9)';
       ctx.fillRect(drawStartX, mouthY - beamHeight / 3, beamLength, beamHeight * 0.66);
 
-      // Camada 3: Núcleo Dourado
+
       ctx.fillStyle = '#ffcc00';
       ctx.fillRect(drawStartX, mouthY - 8, beamLength, 16);
 
-      // Camada 4: Núcleo Branco Puro de Energia Atômica
+
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(drawStartX, mouthY - 4, beamLength, 8);
 
-      // Anéis de choque e distorção de onda gravitacional
+
       for (let r = 0; r < 8; r++) {
         const ringOffset = (r * 125 + ((this.time * 800) % 125));
         const ringX = startX + (boss.facing * ringOffset);
@@ -2977,7 +2977,7 @@ class GameRenderer {
         ctx.stroke();
       }
 
-      // Arcos de raios no feixe
+
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       for (let l = 0; l < 4; l++) {
@@ -2996,7 +2996,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- CHEFÃO SUPREMO: KING GHIDORAH (O DRAGÃO DOURADO TRICÉFALO) ---
+
   drawKingGhidorah(ctx, camera, boss) {
     if (!boss) return;
     const isFlying = boss.isFlying || ['ASCEND', 'AERIAL_HOVER', 'AERIAL_BOMBARD', 'AERIAL_SWOOP'].includes(boss.state);
@@ -3006,7 +3006,7 @@ class GameRenderer {
     const screenX = renderX - camera.x;
     const screenY = renderY - camera.y;
 
-    // 1. Sombra Dinâmica no Solo
+
     ctx.save();
     const altitude = Math.max(0, (groundLevelY - screenY));
     const shadowScale = Math.max(0.35, 1 - altitude / 450);
@@ -3017,7 +3017,7 @@ class GameRenderer {
     ctx.fill();
     ctx.restore();
 
-    // 2. Trilhas e Rastros de Velocidade no Rasante Aéreo (Swoop)
+
     if (boss.state === 'AERIAL_SWOOP') {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
@@ -3036,7 +3036,7 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 3. Renderização Principal do Sprite
+
     ctx.save();
     ctx.translate(screenX, screenY);
     ctx.rotate(boss.cinematicTilt || boss.impactTilt || 0);
@@ -3104,7 +3104,7 @@ class GameRenderer {
     }
 
     if (currentSprite && currentSprite.width > 0) {
-      // Aura Dourada Radiante
+
       const auraIntensity = (boss.phase === 3 ? 38 : (boss.phase === 2 ? 22 : 12)) + Math.sin(boss.animTime * 8) * 6;
       ctx.shadowColor = (boss.phase === 3) ? '#ffcc00' : '#ffd700';
       ctx.shadowBlur = auraIntensity;
@@ -3114,7 +3114,7 @@ class GameRenderer {
       ctx.drawImage(currentSprite, -sw / 2, -sh / 2, sw, sh);
       ctx.shadowBlur = 0;
 
-      // Faíscas elétricas de sobrecarga nas cabeças
+
       if (boss.phase >= 2 || boss.state === 'ROAR' || boss.state === 'GRAVITY_BEAMS') {
         ctx.strokeStyle = '#fff5a0';
         ctx.lineWidth = 2.5;
@@ -3129,14 +3129,14 @@ class GameRenderer {
         }
       }
     } else {
-      // Fallback estilizado dourado caso sprite ainda esteja em carregamento
+
       ctx.fillStyle = '#d4af37';
       ctx.fillRect(-80, -80, 160, 160);
     }
 
     ctx.restore();
 
-    // 4. EFEITO: GRAVITY BEAMS (TRIPLE LIGHTNING BEAMS DAS 3 CABEÇAS)
+
     if (boss.state === 'GRAVITY_BEAMS' && boss.stateTimer > 0.1) {
       ctx.save();
       const mouthX = screenX + (boss.facing === 1 ? 85 : -85);
@@ -3154,7 +3154,7 @@ class GameRenderer {
         const endX = mouthX + beamDir * beamLength;
         const endY = startY + Math.tan(h.angle) * beamLength;
 
-        // Camada 1: Halo de Plasma Dourado
+
         ctx.strokeStyle = 'rgba(255, 170, 0, 0.7)';
         ctx.shadowColor = '#ffd700';
         ctx.shadowBlur = 28;
@@ -3164,7 +3164,7 @@ class GameRenderer {
         ctx.lineTo(endX, endY);
         ctx.stroke();
 
-        // Camada 2: Núcleo de Eletricidade Amarela
+
         ctx.strokeStyle = '#ffee33';
         ctx.lineWidth = 12 + Math.sin(boss.animTime * 40 + idx) * 3;
         ctx.beginPath();
@@ -3172,7 +3172,7 @@ class GameRenderer {
         ctx.lineTo(endX, endY);
         ctx.stroke();
 
-        // Camada 3: Feixe Central Branco Puro
+
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 5;
         ctx.beginPath();
@@ -3180,7 +3180,7 @@ class GameRenderer {
         ctx.lineTo(endX, endY);
         ctx.stroke();
 
-        // Arcos de Relâmpagos em Zig-Zag ao longo do Feixe
+
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -3195,7 +3195,7 @@ class GameRenderer {
         }
         ctx.stroke();
 
-        // Anéis de Choque Gravitacional
+
         for (let r = 0; r < 5; r++) {
           const ringDist = ((r * 220 + boss.animTime * 900) % beamLength);
           const rx = mouthX + beamDir * ringDist;
@@ -3211,7 +3211,7 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 5. EFEITO: VARREDURA TRIPLA DE SOLO (GROUND SWEEP BEAMS)
+
     if (boss.state === 'GROUND_SWEEP_BEAMS') {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
@@ -3220,7 +3220,7 @@ class GameRenderer {
       const sweepProgress = 1 - Math.max(0, boss.stateTimer / (boss.maxSweepTime || 1.8));
       const groundImpactX = mouthX + (boss.facing || -1) * (150 + sweepProgress * 700);
 
-      // Três feixes convergindo no solo
+
       [-25, 0, 25].forEach((yOff, i) => {
         ctx.strokeStyle = 'rgba(255, 190, 0, 0.8)';
         ctx.shadowColor = '#ffaa00';
@@ -3239,7 +3239,7 @@ class GameRenderer {
         ctx.stroke();
       });
 
-      // Impacto de Fogo Dourado no Chão
+
       ctx.fillStyle = 'rgba(255, 220, 50, 0.9)';
       ctx.shadowColor = '#ff6600';
       ctx.shadowBlur = 30;
@@ -3249,7 +3249,7 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 6. EFEITO: VÓRTICE / TORNADO DOURADO (GOLDEN TORNADO)
+
     if (boss.state === 'GOLDEN_TORNADO') {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
@@ -3268,7 +3268,7 @@ class GameRenderer {
         ctx.ellipse(screenX + Math.sin(rot) * 15, ringY, ringRadiusX, ringRadiusY, Math.sin(rot) * 0.2, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Linhas de vento verticais em espiral
+
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -3279,7 +3279,7 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 7. EFEITO: SUPERNOVA / ENERGY BURST (EXPLOSÃO RADIAL EM 360°)
+
     if (boss.state === 'ENERGY_BURST') {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
@@ -3287,7 +3287,7 @@ class GameRenderer {
       const maxRadius = 380;
       const curRadius = burstProgress * maxRadius;
 
-      // Anel expansivo 1
+
       ctx.strokeStyle = `rgba(255, 230, 80, ${1 - burstProgress * 0.8})`;
       ctx.shadowColor = '#ffcc00';
       ctx.shadowBlur = 35;
@@ -3296,7 +3296,7 @@ class GameRenderer {
       ctx.arc(screenX, screenY, curRadius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Anel expansivo secundário
+
       if (curRadius > 40) {
         ctx.strokeStyle = `rgba(255, 120, 0, ${1 - burstProgress})`;
         ctx.lineWidth = 8;
@@ -3305,7 +3305,7 @@ class GameRenderer {
         ctx.stroke();
       }
 
-      // Raios solares radiantes em 360 graus
+
       const rayCount = 18;
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
@@ -3320,14 +3320,14 @@ class GameRenderer {
       ctx.restore();
     }
 
-    // 8. EFEITO: DECOLAGEM COM PROPULSORES VERTICAIS (ASCEND BLAST)
+
     if (boss.state === 'ASCEND') {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       ctx.shadowColor = '#ffd700';
       ctx.shadowBlur = 30;
 
-      // Dois pilares de energia atirados para baixo
+
       [-28, 28].forEach(xOffset => {
         const bx = screenX + xOffset;
         const by = screenY + 40;
@@ -3347,7 +3347,7 @@ class GameRenderer {
         ctx.lineTo(bx, bottomY);
         ctx.stroke();
 
-        // Chamas de impacto no solo
+
         ctx.fillStyle = '#ffaa00';
         ctx.beginPath();
         ctx.ellipse(bx, bottomY - 5, 35, 12, 0, 0, Math.PI * 2);
@@ -3357,7 +3357,7 @@ class GameRenderer {
     }
   }
 
-  // --- CHEFÃO SUPREMO FINAL: KING KONG (O REI DE MANHATTAN) ---
+
   drawKingKong(ctx, camera, boss) {
     if (!boss) return;
     
@@ -3366,7 +3366,7 @@ class GameRenderer {
     const screenX = renderX - camera.x;
     const screenY = renderY - camera.y;
 
-    // Sombra
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.beginPath();
     ctx.ellipse(screenX + boss.width / 2, screenY + boss.height + 10, boss.width * 0.4, 20, 0, 0, Math.PI * 2);
@@ -3375,17 +3375,20 @@ class GameRenderer {
     ctx.save();
     ctx.translate(screenX, screenY);
 
-    // Flash de dano
+
     if (boss.flashTimer > 0) {
       ctx.globalAlpha = 0.7 + Math.sin(boss.flashTimer * 30) * 0.3;
       ctx.filter = 'brightness(2) saturate(0.3)';
     }
 
-    // Selecionar sprite baseado no estado (animações naturais de gorila)
+
     let spriteArray = this.kongSprites.idle;
     let frameIndex = 0;
     
     if (this.kongSprites.loaded) {
+      const duration = boss.getStateDuration(boss.state);
+      const progress = Math.max(0, Math.min(1, 1 - (boss.stateTimer || 0) / duration));
+      
       switch (boss.state) {
         case 'WALK':
           spriteArray = this.kongSprites.walk;
@@ -3396,19 +3399,22 @@ class GameRenderer {
         case 'PUNCH_LEFT':
         case 'PUNCH_RIGHT':
           spriteArray = this.kongSprites.punch;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 9), spriteArray.length - 1);
+          frameIndex = Math.floor(progress * spriteArray.length);
+          frameIndex = Math.max(0, Math.min(spriteArray.length - 1, frameIndex));
           break;
         
         case 'GROUND_SLAM':
         case 'BERSERKER_SLAM':
           spriteArray = this.kongSprites.slam;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 8), spriteArray.length - 1);
+          frameIndex = Math.floor(progress * spriteArray.length);
+          frameIndex = Math.max(0, Math.min(spriteArray.length - 1, frameIndex));
           break;
         
         case 'THROW_BOULDER':
         case 'THROW_CAR':
           spriteArray = this.kongSprites.throw;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 6), spriteArray.length - 1);
+          frameIndex = Math.floor(progress * spriteArray.length);
+          frameIndex = Math.max(0, Math.min(spriteArray.length - 1, frameIndex));
           break;
         
         case 'CHEST_POUND':
@@ -3416,23 +3422,19 @@ class GameRenderer {
         case 'INTRO_ROAR':
         case 'ROAR_TAUNT':
           spriteArray = this.kongSprites.roar;
-          frameIndex = Math.floor((boss.stateTimer || 0) * 6) % spriteArray.length;
+          frameIndex = Math.floor(progress * spriteArray.length) % spriteArray.length;
           break;
         
         case 'HURT':
           spriteArray = this.kongSprites.hurt;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 10), spriteArray.length - 1);
+          frameIndex = Math.floor(progress * spriteArray.length);
+          frameIndex = Math.max(0, Math.min(spriteArray.length - 1, frameIndex));
           break;
         
         case 'DYING':
           spriteArray = this.kongSprites.death;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 3), spriteArray.length - 1);
-          break;
-        
-        case 'LEAP':
-          // Usar animação de jump para leap
-          spriteArray = this.kongSprites.jump;
-          frameIndex = Math.floor((boss.stateTimer || 0) * 8) % spriteArray.length;
+          frameIndex = Math.floor(progress * spriteArray.length);
+          frameIndex = Math.max(0, Math.min(spriteArray.length - 1, frameIndex));
           break;
         
         case 'RUN':
@@ -3440,11 +3442,20 @@ class GameRenderer {
           frameIndex = Math.floor((boss.animTimer || 0) * 11) % spriteArray.length;
           break;
         
-        default: // IDLE e outros estados
+        default:
           spriteArray = this.kongSprites.idle;
           frameIndex = Math.floor((boss.animTimer || 0) * 5) % spriteArray.length;
           break;
       }
+
+
+      if (!spriteArray || spriteArray.length === 0) {
+        spriteArray = this.kongSprites.idle;
+        frameIndex = 0;
+      }
+      
+
+      frameIndex = Math.max(0, Math.min(spriteArray.length - 1, frameIndex));
 
       const sprite = spriteArray[frameIndex];
       if (sprite && sprite.complete && sprite.naturalWidth > 0) {
@@ -3456,29 +3467,29 @@ class GameRenderer {
         ctx.translate(boss.width / 2, boss.height / 2);
         ctx.scale(boss.facing, 1);
         
-        // Adicionar balanço natural do corpo (gorila se movimenta)
+
         const breathe = Math.sin(boss.animTimer * 3) * 2;
         ctx.translate(0, breathe);
         
         ctx.rotate(boss.impactTilt || 0);
         
-        // Manter nitidez dos pixels (estilo arcade clássico)
+
         ctx.imageSmoothingEnabled = false;
         
         ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
         ctx.restore();
       } else {
-        // Fallback se sprite não carregou
+
         this.drawKongFallback(ctx, boss);
       }
     } else {
-      // Fallback enquanto carrega
+
       this.drawKongFallback(ctx, boss);
     }
 
     ctx.restore();
 
-    // Nome do boss
+
     ctx.fillStyle = '#8b4513';
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
@@ -3488,18 +3499,18 @@ class GameRenderer {
     ctx.fillText('KING KONG', screenX + boss.width / 2, screenY - 15);
   }
   
-  // Renderização de fallback simples para Kong
+
   drawKongFallback(ctx, boss) {
     ctx.fillStyle = '#3d2817';
     ctx.fillRect(boss.width * 0.2, boss.height * 0.1, boss.width * 0.6, boss.height * 0.8);
     
-    // Cabeça
+
     ctx.fillStyle = '#2d1d0f';
     ctx.beginPath();
     ctx.arc(boss.width / 2, boss.height * 0.15, boss.width * 0.25, 0, Math.PI * 2);
     ctx.fill();
     
-    // Olhos
+
     ctx.fillStyle = boss.isBerserker ? '#ff0000' : '#ffcc00';
     ctx.beginPath();
     ctx.arc(boss.width * 0.4, boss.height * 0.12, 6, 0, Math.PI * 2);
@@ -3507,7 +3518,7 @@ class GameRenderer {
     ctx.fill();
   }
 
-  // --- DRAGÃO TRICÉFALO — CENA FINAL ORGÂNICA ---
+
   drawDragon(ctx, camera, dragon) {
     if (!dragon) return;
     const s = this.ghidorahSprites;
@@ -3519,7 +3530,7 @@ class GameRenderer {
     const sprScale = 1.7 * (dragon.scale || 1);
     ctx.scale((dragon.facing || -1) * sprScale, sprScale);
 
-    // Sombra do Dragão
+
     ctx.fillStyle = 'rgba(12, 7, 2, 0.35)';
     ctx.beginPath();
     ctx.ellipse(0, 70, 110, 22, 0, 0, Math.PI * 2);
@@ -3543,7 +3554,7 @@ class GameRenderer {
       ctx.drawImage(sprite, -sw / 2, -sh / 2, sw, sh);
       ctx.shadowBlur = 0;
     } else {
-      // Fallback Dourado
+
       ctx.fillStyle = '#ffd700';
       ctx.fillRect(-80, -80, 160, 160);
     }
@@ -3585,7 +3596,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- PROJÉTEIS E TIROS CINEMÁTICOS ---
+
   drawProjectiles(ctx, camera, projectiles) {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -3595,15 +3606,15 @@ class GameRenderer {
       ctx.translate(p.x, p.y);
 
       if (p.type === 'arrow') {
-        // --- FLECHA CYBER PERFURANTE DA JESSICA ---
+
         const angle = Math.atan2(p.vy, p.vx);
         ctx.rotate(angle);
 
-        // Haste da Flecha Prateada/Fibra
+
         ctx.fillStyle = '#e2e8f0';
         ctx.fillRect(-12, -1, 24, 2);
 
-        // Ponta Perfurante de Energia Ciano / Brilhante
+
         ctx.fillStyle = '#00ffff';
         ctx.shadowColor = '#00ffff';
         ctx.shadowBlur = 10;
@@ -3614,7 +3625,7 @@ class GameRenderer {
         ctx.closePath();
         ctx.fill();
 
-        // Penas Traseiras da Flecha
+
         ctx.fillStyle = '#c084fc';
         ctx.beginPath();
         ctx.moveTo(-12, 0);
@@ -3629,7 +3640,7 @@ class GameRenderer {
         ctx.closePath();
         ctx.fill();
 
-        // Rastro de Luz de Fótons
+
         ctx.strokeStyle = 'rgba(0, 217, 255, 0.7)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -3639,14 +3650,14 @@ class GameRenderer {
         ctx.shadowBlur = 0;
 
       } else if (p.type === 'bomb_arrow') {
-        // --- FLECHA EXPLOSIVA (BOMB ARROW) ---
+
         const angle = Math.atan2(p.vy, p.vx);
         ctx.rotate(angle);
 
         ctx.fillStyle = '#e2e8f0';
         ctx.fillRect(-12, -1.5, 24, 3);
 
-        // Ogiva Explosiva Pulsante Vermelho/Laranja
+
         ctx.fillStyle = '#ff0033';
         ctx.shadowColor = '#ff3300';
         ctx.shadowBlur = 14;
@@ -3661,7 +3672,7 @@ class GameRenderer {
         ctx.shadowBlur = 0;
 
       } else if (p.type === 'bullet') {
-        // Bala Normal / HMG: Traçante Dourado Incandescente
+
         ctx.fillStyle = '#ffe600';
         ctx.shadowColor = '#ff7700';
         ctx.shadowBlur = 8;
@@ -3747,7 +3758,7 @@ class GameRenderer {
         ctx.fill();
 
       } else if (p.type === 'boulder') {
-        // Pedregulho massivo arremessado por King Kong
+
         ctx.rotate(p.rotation || (this.time * 7));
         const s = this.kongSprites;
         if (s && s.boulder && s.boulder.complete && s.boulder.naturalWidth > 0) {
@@ -3761,9 +3772,9 @@ class GameRenderer {
         }
 
       } else if (p.type === 'car') {
-        // Destroços de Táxi Amarelo de Nova York em chamas rodopiando
+
         ctx.rotate(p.rotation || (this.time * 5));
-        ctx.fillStyle = '#eab308'; // Amarelo táxi NY
+        ctx.fillStyle = '#eab308';
         ctx.fillRect(-22, -11, 44, 22);
         ctx.fillStyle = '#111827';
         ctx.fillRect(-16, -13, 9, 3);
@@ -3776,7 +3787,7 @@ class GameRenderer {
         for (let tx = -18; tx < 18; tx += 8) {
           ctx.fillRect(tx, -2, 4, 4);
         }
-        // Rastro de chamas
+
         ctx.fillStyle = 'rgba(255, 68, 0, 0.75)';
         ctx.beginPath();
         ctx.arc(-18, 0, 9, 0, Math.PI * 2);
@@ -3789,7 +3800,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- EXPLOSÕES ARCADE MULTI-CAMADA ---
+
   drawExplosions(ctx, camera, explosions) {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -3798,17 +3809,17 @@ class GameRenderer {
       ctx.save();
       ctx.translate(exp.x, exp.y);
 
-      const progress = exp.life / exp.maxLife; // 1 (início) até 0 (fim)
+      const progress = exp.life / exp.maxLife;
       const currentRadius = exp.radius * (1 - progress * 0.3);
 
-      // 1. Onda de Choque Externa (Shockwave Ring)
+
       ctx.strokeStyle = `rgba(255, 200, 100, ${progress * 0.7})`;
       ctx.lineWidth = 4 * progress;
       ctx.beginPath();
       ctx.arc(0, 0, currentRadius * 1.3 * (1 - progress), 0, Math.PI * 2);
       ctx.stroke();
 
-      // 2. Bolhas de Fogo e Fumaça Volumétrica
+
       exp.blobs.forEach(b => {
         const bx = b.x * (1 - progress);
         const by = b.y * (1 - progress);
@@ -3832,7 +3843,7 @@ class GameRenderer {
         ctx.fill();
       });
 
-      // 3. Núcleo Incandescente
+
       if (progress > 0.6) {
         ctx.fillStyle = `rgba(255, 255, 255, ${progress})`;
         ctx.beginPath();
@@ -3846,7 +3857,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- PARTÍCULAS (CARTUCHOS, FAÍSCAS, FUMAÇA, SANGUE/ÓLEO) ---
+
   drawParticles(ctx, camera, particles) {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -3856,29 +3867,29 @@ class GameRenderer {
       ctx.translate(p.x, p.y);
 
       if (p.type === 'casing') {
-        // Cartucho de Latão Dourado Ejetado
+
         ctx.rotate(p.rotation || 0);
         ctx.fillStyle = '#ffd700';
         ctx.fillRect(-2, -1, 4, 2);
 
       } else if (p.type === 'spark') {
-        // Faísca Brilhante
+
         ctx.fillStyle = '#ffea00';
         ctx.shadowColor = '#ff7700';
         ctx.shadowBlur = 4;
         ctx.fillRect(-1.5, -1.5, 3, 3);
 
       } else if (p.type === 'smoke') {
-        // Fumaça Translúcida
+
         ctx.fillStyle = `rgba(180, 190, 200, ${p.alpha * 0.4})`;
         ctx.beginPath();
-        // Efeitos podem ser atualizados no mesmo quadro em que são removidos.
-        // Clampar aqui evita que uma partícula residual interrompa o canvas.
+
+
         ctx.arc(0, 0, Math.max(0.1, p.radius || 0.1), 0, Math.PI * 2);
         ctx.fill();
 
       } else if (p.type === 'blood') {
-        // Sangue / Óleo
+
         ctx.fillStyle = p.color || '#b91c1c';
         ctx.beginPath();
         ctx.arc(0, 0, p.radius || 2.5, 0, Math.PI * 2);
@@ -3891,7 +3902,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- ITENS COLETÁVEIS E CAIXAS DE SUPRIMENTOS ---
+
   drawPickups(ctx, camera, pickups) {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -3901,20 +3912,20 @@ class GameRenderer {
       const bob = Math.sin(this.time * 6 + item.x) * 4;
       ctx.translate(item.x, item.y + bob);
 
-      // Aura de Brilho
+
       ctx.fillStyle = 'rgba(255, 200, 0, 0.25)';
       ctx.beginPath();
       ctx.arc(14, 14, 18, 0, Math.PI * 2);
       ctx.fill();
 
-      // Caixa Metálica com Letra da Arma Estilo Metal Slug
+
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, 28, 28);
       ctx.strokeStyle = item.color || '#ffaa00';
       ctx.lineWidth = 2.5;
       ctx.strokeRect(0, 0, 28, 28);
 
-      // Letra do Ícone [H], [S], [R], [F], [L], [B]
+
       ctx.fillStyle = item.color || '#ffea00';
       ctx.font = 'bold 13px "Press Start 2P", monospace';
       ctx.textAlign = 'center';
@@ -3927,7 +3938,7 @@ class GameRenderer {
     ctx.restore();
   }
 
-  // --- TEXTOS FLUTUANTES (SCORE, WEAPON PICKUP) ---
+
   drawFloatingTexts(ctx, camera, texts) {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -3948,5 +3959,5 @@ class GameRenderer {
   }
 }
 
-// Instância global do renderizador
+
 const renderer = new GameRenderer();

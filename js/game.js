@@ -1,12 +1,12 @@
-// Motor Principal do Jogo: Loop, Câmera, Colisões, Spawner e Interface
 
-// Sistema de Debug - Desabilitar em produção para melhor performance
+
+
 const DEBUG = false;
 
-// Funções de log condicionais
+
 const debugLog = DEBUG ? console.log.bind(console) : () => {};
 const debugWarn = DEBUG ? console.warn.bind(console) : () => {};
-const debugError = console.error.bind(console); // Erros sempre aparecem
+const debugError = console.error.bind(console);
 
 class InputManager {
   constructor() {
@@ -15,7 +15,7 @@ class InputManager {
     this.gamepadKeys = {};
 
     window.addEventListener('keydown', (e) => {
-      // Prevenir scroll padrão com setas e espaço
+
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
         e.preventDefault();
       }
@@ -29,16 +29,16 @@ class InputManager {
       this.keys[e.code] = false;
     });
 
-    // Um toque interrompido por chamada, troca de aba ou gesto do sistema não
-    // pode deixar o personagem correndo ou atirando para sempre.
+
+
     window.addEventListener('blur', () => this.reset());
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.reset();
     });
 
-    // Em celulares, o gesto de pinça e o toque duplo podem ampliar a página
-    // por cima do canvas. Cancelamos apenas esses gestos do navegador, sem
-    // interferir nos toques normais usados pelos botões do jogo.
+
+
+
     const preventPageZoom = (e) => e.preventDefault();
     document.addEventListener('gesturestart', preventPageZoom, { passive: false });
     document.addEventListener('gesturechange', preventPageZoom, { passive: false });
@@ -49,13 +49,13 @@ class InputManager {
       gameWrapper.addEventListener('dblclick', preventPageZoom, { passive: false });
     }
 
-    // Touch Controls Setup
+
     this.initTouchControls();
   }
 
   isDown(action) {
     switch (action) {
-      // 1P Controls: WASD + J/K/L/E/R ou Touch/Gamepad
+
       case 'left': return !!(this.keys['KeyA'] || this.keys['TouchLeft'] || this.gamepadKeys.left);
       case 'right': return !!(this.keys['KeyD'] || this.keys['TouchRight'] || this.gamepadKeys.right);
       case 'up': return !!(this.keys['KeyW'] || this.keys['TouchUp'] || this.gamepadKeys.up);
@@ -65,9 +65,9 @@ class InputManager {
       case 'bomb': return !!(this.keys['KeyL'] || this.keys['KeyX'] || this.keys['TouchBomb'] || this.gamepadKeys.bomb);
       case 'enter': return !!(this.keys['KeyE'] || this.keys['KeyC'] || this.keys['TouchEnter'] || this.gamepadKeys.enter);
       case 'execution': return !!this.keys['KeyR'];
-      case 'pause': return !!(this.keys['Escape'] || this.keys['KeyP']); // Pause com ESC ou P
+      case 'pause': return !!(this.keys['Escape'] || this.keys['KeyP']);
 
-      // 2P Controls: Setas + Teclado Numérico / Linha de Números (1, 2, 3, 4, 0) + U/I/O/P/Y
+
       case 'p2_left': return !!(this.keys['ArrowLeft'] || this.keys['Numpad4']);
       case 'p2_right': return !!(this.keys['ArrowRight'] || this.keys['Numpad6']);
       case 'p2_up': return !!(this.keys['ArrowUp'] || this.keys['Numpad8']);
@@ -83,15 +83,15 @@ class InputManager {
 
   isPressed(action) {
     switch (action) {
-      // 1P
+
       case 'jump': return !!(this.pressed['Space'] || this.pressed['KeyJ'] || this.pressed['TouchJump'] || this.pressed['GamepadJump']);
       case 'shoot': return !!(this.pressed['KeyK'] || this.pressed['KeyZ'] || this.pressed['TouchShoot'] || this.pressed['GamepadShoot']);
       case 'bomb': return !!(this.pressed['KeyL'] || this.pressed['KeyX'] || this.pressed['TouchBomb'] || this.pressed['GamepadBomb']);
       case 'enter': return !!(this.pressed['KeyE'] || this.pressed['KeyC'] || this.pressed['TouchEnter'] || this.pressed['GamepadEnter']);
       case 'execution': return !!this.pressed['KeyR'];
-      case 'pause': return !!(this.pressed['Escape'] || this.pressed['KeyP']); // Pause pressed once
+      case 'pause': return !!(this.pressed['Escape'] || this.pressed['KeyP']);
 
-      // 2P
+
       case 'p2_jump': return !!(this.pressed['Digit1'] || this.pressed['Numpad1'] || this.pressed['KeyU']);
       case 'p2_shoot': return !!(this.pressed['Digit2'] || this.pressed['Numpad2'] || this.pressed['KeyI']);
       case 'p2_bomb': return !!(this.pressed['Digit3'] || this.pressed['Numpad3'] || this.pressed['KeyO']);
@@ -155,7 +155,7 @@ class InputManager {
     }
     const gp = gamepads[0];
 
-    // D-pad / Analógico
+
     const axX = gp.axes[0];
     const axY = gp.axes[1];
     this.gamepadKeys.left = axX < -0.3 || gp.buttons[14]?.pressed;
@@ -163,7 +163,7 @@ class InputManager {
     this.gamepadKeys.up = axY < -0.3 || gp.buttons[12]?.pressed;
     this.gamepadKeys.down = axY > 0.3 || gp.buttons[13]?.pressed;
 
-    // Botões de Ação
+
     const updateGamepadAction = (name, isDown, pressedKey) => {
       if (isDown && !this.gamepadKeys[name]) this.pressed[pressedKey] = true;
       this.gamepadKeys[name] = !!isDown;
@@ -181,7 +181,7 @@ class Game {
     this.ctx = this.canvas.getContext('2d');
     this.input = new InputManager();
 
-    // Dimensões Virtuais do Jogo (Resolução Arcade 16:9)
+
     this.canvas.width = 960;
     this.canvas.height = 540;
 
@@ -192,21 +192,21 @@ class Game {
     this.time = 0;
     this.lastTime = 0;
     this.runId = 0;
-    this.state = 'START'; // 'START', 'PLAYING', 'GAMEOVER', 'VICTORY'
-    this.activeTimers = []; // Array para armazenar IDs de timers e evitar memory leak
-    this.isPaused = false; // Sistema de pause
+    this.state = 'START';
+    this.activeTimers = [];
+    this.isPaused = false;
     this.runtimeError = null;
 
-    // Modo de Jogo
-    this.gameMode = '1P'; // '1P' ou '2P'
 
-    // Entidades
+    this.gameMode = '1P';
+
+
     this.map = null;
-    this.players = []; // Array de jogadores para suportar multiplayer
+    this.players = [];
     this.enemies = [];
     this.boss = null;
-    // A ordem dos chefes é controlada em um único lugar. Isso evita que um
-    // chefe derrotado seja criado novamente quando a arena é liberada.
+
+
     this.bossStage = 'MECHAGODZILLA';
     this.dragon = null;
     this.lightningEffects = [];
@@ -223,7 +223,7 @@ class Game {
     this.pickups = [];
     this.floatingTexts = [];
     
-    // SISTEMA DE PORTÕES/BARREIRAS POR BIOMA!
+
     this.biomeGates = {
       tokyo: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 1250 },
       brazil: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 2450 },
@@ -232,11 +232,11 @@ class Game {
       newyork: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 6750 }
     };
 
-    // Seleções de Personagens
+
     this.p1Character = 'claudio';
     this.p2Character = 'jessica';
 
-    // Cache de elementos do HUD - Player 1
+
     this.hudHpFill = document.getElementById('hud-hp-fill');
     this.hudScore = document.getElementById('hud-score');
     this.hudWeaponName = document.getElementById('hud-weapon-name');
@@ -247,7 +247,7 @@ class Game {
     this.hudCharImg = document.getElementById('hud-char-img');
     this.hudCharName = document.getElementById('hud-char-name');
     
-    // Cache de elementos do HUD - Player 2
+
     this.hudP2Group = document.getElementById('hud-p2-group');
     this.hudP2HpFill = document.getElementById('hud-p2-hp-fill');
     this.hudP2WeaponName = document.getElementById('hud-p2-weapon-name');
@@ -258,7 +258,7 @@ class Game {
     this.hudP2CharImg = document.getElementById('hud-p2-char-img');
     this.hudP2CharName = document.getElementById('hud-p2-char-name');
     
-    // Boss e Slug HUD
+
     this.bossHud = document.getElementById('boss-hud');
     this.bossTitle = document.getElementById('boss-title') || (this.bossHud ? this.bossHud.querySelector('.boss-title') : null);
     this.bossHpFill = document.getElementById('boss-hp-fill');
@@ -278,13 +278,13 @@ class Game {
     window.addEventListener('orientationchange', resetFrameTime);
     document.addEventListener('visibilitychange', resetFrameTime);
 
-    // Configuração do Seletor de Modo (1P / 2P)
+
     this.setupModeSelection();
     
-    // Configuração da Seleção de Personagens
+
     this.setupCharacterSelection();
 
-    // Botão Iniciar
+
     const startBtn = document.getElementById('btn-start-game');
     if (startBtn) {
       startBtn.addEventListener('click', () => {
@@ -292,8 +292,8 @@ class Game {
       });
     }
 
-    // A capa abre primeiro. O botão leva à seleção de personagem sem perder
-    // a escolha de Claudio/Jessica antes da missão começar.
+
+
     const openGameBtn = document.getElementById('btn-open-game');
     if (openGameBtn) {
       openGameBtn.addEventListener('click', () => {
@@ -307,7 +307,7 @@ class Game {
       });
     }
 
-    // Botão Reiniciar
+
     const restartBtn = document.getElementById('btn-restart-game');
     if (restartBtn) {
       restartBtn.addEventListener('click', () => {
@@ -322,7 +322,7 @@ class Game {
       });
     }
 
-    // Botões da tela de Pause
+
     const resumeBtn = document.getElementById('btn-resume-game');
     if (resumeBtn) {
       resumeBtn.addEventListener('click', () => {
@@ -340,7 +340,7 @@ class Game {
       });
     }
 
-    // Botão Mute
+
     const audioBtn = document.getElementById('btn-toggle-audio');
     if (audioBtn) {
       audioBtn.addEventListener('click', () => {
@@ -350,7 +350,7 @@ class Game {
       });
     }
 
-    // Botão Fullscreen
+
     const fullscreenBtn = document.getElementById('btn-toggle-fullscreen');
     if (fullscreenBtn) {
       fullscreenBtn.addEventListener('click', () => {
@@ -358,7 +358,7 @@ class Game {
       });
     }
 
-    // Iniciar loop de animação
+
     requestAnimationFrame((t) => this.gameLoop(t));
   }
 
@@ -392,7 +392,7 @@ class Game {
       const result = screen.orientation.lock('landscape');
       if (result && typeof result.catch === 'function') result.catch(() => {});
     } catch (_) {
-      // Alguns navegadores só permitem a orientação após instalar o atalho.
+
     }
   }
 
@@ -412,7 +412,7 @@ class Game {
       if (result && typeof result.then === 'function') {
         result.then(() => this.lockLandscape()).catch(() => {});
       } else {
-        // APIs antigas do Safari não retornam Promise.
+
         this.lockLandscape();
       }
       return true;
@@ -434,7 +434,7 @@ class Game {
       const result = exitFullscreen.call(document);
       if (result && typeof result.catch === 'function') result.catch(() => {});
     } catch (_) {
-      // Falhar ao sair da tela cheia não deve interromper a partida.
+
     }
   }
 
@@ -465,7 +465,7 @@ class Game {
   }
 
   setupCharacterSelection() {
-    // Seleção P1
+
     const cardsP1 = document.querySelectorAll('.char-card[data-player="1"]');
     cardsP1.forEach(card => {
       card.addEventListener('click', () => {
@@ -482,7 +482,7 @@ class Game {
       });
     });
 
-    // Seleção P2
+
     const cardsP2 = document.querySelectorAll('.char-card[data-player="2"]');
     cardsP2.forEach(card => {
       card.addEventListener('click', () => {
@@ -534,19 +534,19 @@ class Game {
     this.runId++;
     this.runtimeError = null;
 
-    // Esta chamada ainda acontece dentro do toque no botão START, condição
-    // exigida pelos navegadores para aceitar tela cheia.
+
+
     if (this.isMobileDevice() && !this.isFullscreen()) {
       this.requestFullscreenForGame();
     }
 
-    // Limpar todos os timers ativos do jogo anterior (evita memory leak)
+
     if (this.activeTimers && this.activeTimers.length > 0) {
       this.activeTimers.forEach(timerId => clearTimeout(timerId));
       this.activeTimers = [];
     }
     
-    // Garantir que não está pausado
+
     this.isPaused = false;
     const pauseScreen = document.getElementById('pause-screen');
     if (pauseScreen) pauseScreen.style.display = 'none';
@@ -570,7 +570,7 @@ class Game {
 
     this.map = new LevelMap(this.canvas.width, this.canvas.height);
     
-    // Instanciar Jogadores (1P e 2P)
+
     if (this.gameMode === '2P') {
       this.players = [
         new Player(60, this.canvas.height - 180, this.p1Character, 0),
@@ -585,7 +585,7 @@ class Game {
       if (this.hudP2Group) this.hudP2Group.style.display = 'none';
     }
 
-    this.player = this.players[0]; // Referência de compatibilidade para 1P
+    this.player = this.players[0];
 
     this.enemies = [];
     this.boss = null;
@@ -605,8 +605,8 @@ class Game {
     this.pickups = [];
     this.floatingTexts = [];
 
-    // Cada portal só abre quando o setor inteiro foi limpo. O contador era
-    // sempre zero, o que fazia os biomas serem liberados após o primeiro KO.
+
+
     Object.entries(this.biomeGates).forEach(([biome, gate]) => {
       gate.active = false;
       gate.cleared = false;
@@ -614,20 +614,20 @@ class Game {
       gate.enemiesRequired = this.map.enemySpawners.filter(spawner => spawner.biome === biome).length;
     });
 
-    // Spawna os Reféns POW
+
     this.map.powSpawns.forEach(p => {
       this.pows.push(new POW(p.x, p.y, p.reward));
     });
 
-    // Spawna o Tanque Slug
+
     this.map.slugSpawns.forEach(s => {
       this.slugs.push(new SlugVehicle(s.x, s.y));
     });
 
-    // Atualizar HUD com os personagens
+
     this.updateHUDCharacter(this.p1Character, charAnnounce1, 0);
 
-    // Texto de Entrada Triunfal
+
     this.players.forEach(p => {
       const badge = p.characterId === 'claudio' ? '★ CLAUDIO NORDIC WARRIOR ★' : 
                    (p.characterId === 'jessica' ? '🏹 JESSICA PHANTOM HUNTRESS 🏹' : `${p.characterId.toUpperCase()} READY!`);
@@ -641,8 +641,8 @@ class Game {
   }
 
   gameLoop(currentTime) {
-    // Um erro inesperado não pode matar o requestAnimationFrame e deixar a
-    // página parecendo congelada. A missão fica em pausa e pode ser reiniciada.
+
+
     if (this.runtimeError) {
       requestAnimationFrame((t) => this.gameLoop(t));
       return;
@@ -654,12 +654,12 @@ class Game {
       this.time += dt;
       this.input.updateGamepad();
 
-      // Verificar se pause foi pressionado durante o jogo
+
       if (this.state === 'PLAYING' && this.input.isPressed('pause')) {
         this.togglePause();
       }
 
-      // Se está pausado, não atualizar o jogo, apenas renderizar
+
       if (this.state === 'PLAYING' && !this.isPaused) {
         this.update(dt);
       }
@@ -670,7 +670,7 @@ class Game {
       this.isPaused = true;
       this.input.reset();
       
-      // Log detalhado do erro para debug
+
       debugError('=== ERRO CRÍTICO NO LOOP DO JOGO ===');
       debugError('Mensagem:', error.message);
       debugError('Stack:', error.stack);
@@ -712,7 +712,7 @@ class Game {
       pauseScreen.style.display = this.isPaused ? 'flex' : 'none';
     }
     
-    // Pausar/Resumir áudio
+
     if (this.isPaused) {
       audio.pauseBGM();
     } else {
@@ -723,27 +723,27 @@ class Game {
   update(dt) {
     renderer.update(dt);
 
-    // A vitória final é uma cena controlada pelo motor. Manter esta rota
-    // separada impede que tiros ou inimigos comuns interrompam o dragão.
+
+
     if (this.cinematicActive) {
       this.updateFinaleCinematic(dt);
       return;
     }
 
-    // 1. Atualizar Todos os Jogadores Ativos
+
     this.players.forEach(p => {
       p.update(dt, this.input, this);
     });
 
-    // 2. Atualizar Tanques Slug
+
     this.slugs.forEach(slug => {
       slug.update(dt, this.input, this);
     });
 
-    // 3. Atualizar e Spawnar Inimigos por Proximidade dos Jogadores
+
     const leadPlayerX = Math.max(...this.players.map(p => p.x));
 
-    // Anúncios de Chegada em Novos Países
+
     if (!this.announcedRegions['tokyo'] && leadPlayerX > 30) {
       this.announcedRegions['tokyo'] = true;
       this.addFloatingText(this.camera.x + 480, 80, '⛩️ SETOR 1: TÓQUIO, JAPÃO (CYBER NEO-TOKYO) ⛩️', '#00d9ff', 15);
@@ -775,24 +775,24 @@ class Game {
         spawner.spawned = true;
         const b = spawner.biome || this.getBiomeAt(spawner.x);
         const enemy = new Enemy(spawner.x, spawner.y, spawner.type, b);
-        enemy.biome = spawner.biome; // Marcar bioma para sistema de portões
+        enemy.biome = spawner.biome;
         this.enemies.push(enemy);
         
-        // Ativar portão do bioma quando primeiro inimigo aparecer
+
         if (spawner.biome && this.biomeGates[spawner.biome]) {
           this.biomeGates[spawner.biome].active = true;
         }
       }
     });
 
-    // Atualizar Inimigos
+
     this.enemies = this.enemies.filter(e => {
       if (e.hp <= 0) {
-        // Contar morte do inimigo para o portão do bioma
+
         if (e.biome && this.biomeGates[e.biome] && !this.biomeGates[e.biome].cleared) {
           this.biomeGates[e.biome].enemiesKilled++;
           
-          // Verificar se todos os inimigos do bioma foram mortos
+
           const gate = this.biomeGates[e.biome];
           if (gate.enemiesKilled >= gate.enemiesRequired && gate.active) {
             gate.cleared = true;
@@ -807,13 +807,13 @@ class Game {
       return true;
     });
     this.enemies.forEach(e => {
-      // Persegue o jogador mais próximo
+
       const targetP = this.getClosestPlayer(e.x, e.y);
       e.update(dt, targetP, this);
     });
 
-    // A progressão de chefes não depende apenas da posição: cada encontro só
-    // pode nascer depois que o anterior tiver sido encerrado.
+
+
     if (this.bossStage === 'MECHAGODZILLA' && !this.boss && this.map.bossSpawn && leadPlayerX > this.map.bossSpawn.triggerX) {
       this.boss = new Boss(this.map.bossSpawn.x, this.map.bossSpawn.y);
       audio.playBossWarning();
@@ -824,7 +824,7 @@ class Game {
     }
 
     if (this.bossStage === 'KONG' && !this.boss && this.map.finalBossSpawn && leadPlayerX > this.map.finalBossSpawn.triggerX) {
-      // Limpar qualquer flash cinematográfico residual da fase do Ghidorah
+
       this.cinematicFlash = 0;
       this.cinematicFlashColor = '#ffffff';
       this.lightningEffects = [];
@@ -841,23 +841,23 @@ class Game {
     if (this.boss) {
       const targetP = this.getClosestPlayer(this.boss.x, this.boss.y);
       
-      // Só atualiza o boss se não estiver na cinemática do dragão
+
       if (!this.cinematicActive || this.boss.isGhidorah || this.boss.isKingKong) {
         this.boss.update(dt, targetP, this);
       }
 
-      // Compatibilidade com sessões antigas: a transição atual é direta e
-      // não cria mais a cinemática do dragão.
+
+
       if (this.boss.isDead && !this.boss.isGhidorah && !this.boss.isKingKong && !this.cinematicActive && !this.dragon) {
         this.beginGhidorahTransition(this.boss);
       }
     }
 
-    // A cinemática do dragão só deve ser atualizada se cinematicActive estiver true
-    // (isso evita conflitos com beginGhidorahTransition que não cria dragão)
+
+
     if (this.cinematicActive && this.dragon && this.dragon.state !== 'DONE' && this.dragon.update) {
       try {
-        // A cinemática é atualizada pelo motor, não por timers soltos
+
         this.dragon.update(dt, this);
       } catch (dragonError) {
         debugError('Erro ao atualizar dragão durante cinemática:', dragonError);
@@ -869,55 +869,55 @@ class Game {
       }
     }
 
-    // 5. Atualizar Reféns POW
+
     this.pows.forEach(pow => {
       const targetP = this.getClosestPlayer(pow.x, pow.y);
       pow.update(dt, targetP, this);
     });
 
-    // 6. Atualizar Projéteis e Checar Colisões
+
     this.updateProjectiles(dt);
 
-    // 7. Atualizar Explosões
+
     this.explosions.forEach(exp => {
       exp.life -= dt;
     });
     this.explosions = this.explosions.filter(exp => exp.life > 0);
 
-    // 8. Atualizar Partículas (Fumaça, Cartuchos, Faíscas)
+
     this.updateParticles(dt);
     this.updateExecutionEffects(dt);
     this.updateLightningEffects(dt);
 
-    // 9. Atualizar Textos Flutuantes
+
     this.floatingTexts.forEach(t => {
       t.y -= 24 * dt;
       t.alpha -= 1.1 * dt;
     });
     this.floatingTexts = this.floatingTexts.filter(t => t.alpha > 0);
 
-    // 10. Coleta de Itens Pickups por Todos os Jogadores
+
     this.checkPickupCollisions();
 
-    // 11. Atualizar Câmera e Screen Shake
+
     this.updateCamera(dt);
 
-    // 12. Atualizar HUD de Ambos os Jogadores
+
     this.updateHUD();
     
-    // 13. Sistema de Portões - Bloquear jogador se não matou todos os inimigos!
+
     this.updateBiomeGates();
   }
 
   getClosestPlayer(x, y) {
-    // Garantir que sempre retorna um player válido
+
     if (!this.players || this.players.length === 0) {
       return this.player || { x: x, y: y, width: 40, height: 40, isDead: true };
     }
     
     const activePlayers = this.players.filter(p => p && !p.isDead);
     if (activePlayers.length === 0) {
-      // Se todos estão mortos, retorna o primeiro player mesmo assim
+
       return this.players[0] || this.player || { x: x, y: y, width: 40, height: 40, isDead: true };
     }
     
@@ -933,22 +933,22 @@ class Game {
     return closest;
   }
 
-  // SISTEMA DE PORTÕES/BARREIRAS POR BIOMA
+
   updateBiomeGates() {
-    // Verificar cada portão ativo
+
     Object.keys(this.biomeGates).forEach(biome => {
       const gate = this.biomeGates[biome];
       
       if (gate.active && !gate.cleared) {
-        // Bloquear todos os jogadores neste portão!
+
         this.players.forEach(p => {
           if (p && !p.isDead) {
-            // Jogador tentando passar do portão antes de matar todos
+
             if (p.x > gate.x) {
-              p.x = gate.x; // Parede invisível
-              p.vx = Math.min(0, p.vx); // Não deixa ir para frente
+              p.x = gate.x;
+              p.vx = Math.min(0, p.vx);
               
-              // Aviso visual
+
               if (Math.random() < 0.05) {
                 this.addFloatingText(gate.x + 50, 250, `⚠️ CLEAR ALL ENEMIES! ${gate.enemiesKilled}/${gate.enemiesRequired} ⚠️`, '#ff3300', 12);
               }
@@ -978,7 +978,7 @@ class Game {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       
-      // Proteção contra projéteis undefined ou inválidos
+
       if (!p || typeof p.update !== 'function') {
         debugWarn(`Projétil inválido no índice ${i}, removendo`);
         this.projectiles.splice(i, 1);
@@ -995,11 +995,11 @@ class Game {
         continue;
       }
 
-      // Colisão de Projéteis do Jogador contra Inimigos, Chefão e Barris
+
       if (p.isPlayer) {
         let hit = false;
 
-        // Contra Inimigos Comuns
+
         for (let j = this.enemies.length - 1; j >= 0; j--) {
           const e = this.enemies[j];
           if (p.x > e.x && p.x < e.x + e.width && p.y > e.y && p.y < e.y + e.height) {
@@ -1009,7 +1009,7 @@ class Game {
           }
         }
 
-        // Contra o Chefão
+
         if (!hit && this.boss && !this.boss.isDead) {
           if (p.x > this.boss.x && p.x < this.boss.x + this.boss.width && p.y > this.boss.y && p.y < this.boss.y + this.boss.height) {
             this.boss.takeDamage(p.damage, this);
@@ -1017,7 +1017,7 @@ class Game {
           }
         }
 
-        // Contra Barris e Caixas Destrutíveis
+
         if (!hit) {
           for (let k = 0; k < this.map.destructibles.length; k++) {
             const obj = this.map.destructibles[k];
@@ -1029,7 +1029,7 @@ class Game {
                 if (obj.type === 'barrel') {
                   this.spawnExplosion(obj.x + obj.width / 2, obj.y + obj.height / 2, 60);
                   audio.playExplosion(true);
-                  // Dano em área nos inimigos próximos
+
                   this.enemies.forEach(e => {
                     if (Math.hypot((e.x + e.width / 2) - (obj.x + obj.width / 2), (e.y + e.height / 2) - (obj.y + obj.height / 2)) < 110) {
                       e.takeDamage(120, 0, this);
@@ -1038,7 +1038,7 @@ class Game {
                 } else {
                   this.spawnExplosion(obj.x + obj.width / 2, obj.y + obj.height / 2, 25);
                   audio.playExplosion(false);
-                  // Drop de item na caixa
+
                   this.pickups.push(new Pickup(obj.x, obj.y, 'BOMB'));
                 }
               }
@@ -1058,7 +1058,7 @@ class Game {
         }
 
       } else {
-        // Projétil Inimigo contra TODOS os Jogadores ou Tanque Slug
+
         let hitAny = false;
         for (let pi = 0; pi < this.players.length; pi++) {
           const pl = this.players[pi];
@@ -1124,7 +1124,7 @@ class Game {
         p.x += p.vx;
         p.y += p.vy;
         p.rotation += 0.3;
-        // Quique no chão
+
         if (p.y > this.canvas.height - 80) {
           p.y = this.canvas.height - 80;
           p.vy = -p.vy * 0.4;
@@ -1156,7 +1156,7 @@ class Game {
   updateFinaleCinematic(dt) {
     this.finaleElapsed += dt;
     
-    // Verificar se ainda temos um dragão válido
+
     if (!this.dragon || !this.dragon.update) {
       debugWarn('Dragão não encontrado ou inválido durante cinemática, forçando spawn do Ghidorah');
       this.cinematicActive = false;
@@ -1165,7 +1165,7 @@ class Game {
       return;
     }
     
-    // Verificar se ainda temos um boss válido antes de tentar atualizar o dragão
+
     if (!this.boss) {
       debugWarn('Boss não encontrado durante cinemática, forçando spawn do Ghidorah');
       this.cinematicActive = false;
@@ -1188,21 +1188,21 @@ class Game {
 
     if (this.state !== 'PLAYING') return;
 
-    // Timeout de segurança: se passar de 2.5s por qualquer motivo, força o spawn imediato do King Ghidorah
+
     if (this.finaleElapsed >= 2.5 && (!this.boss || !this.boss.isGhidorah)) {
       debugLog('Timeout de segurança atingido, spawning Ghidorah');
       this.spawnGhidorahBoss();
       return;
     }
 
-    // Se o dragão já levou o MechaGodzilla embora e King Ghidorah está pronto
+
     if (!this.dragon || this.dragon.state === 'DONE') {
       if (this.boss && this.boss.isGhidorah) {
         debugLog('Cinemática completa, King Ghidorah está ativo');
         this.cinematicActive = false;
         return;
       } else {
-        // Se o dragão acabou mas o Ghidorah não foi spawnado, spawnar agora
+
         debugLog('Dragão terminou mas Ghidorah não foi spawnado, corrigindo...');
         this.spawnGhidorahBoss();
         return;
@@ -1210,8 +1210,8 @@ class Game {
     }
     this.cinematicFlash = Math.max(0, this.cinematicFlash - dt * 1.8);
 
-    // A carcaça, explosões e raios continuam vivos durante a cena, mas os
-    // jogadores ficam seguros e não há novas colisões de combate.
+
+
     this.players.forEach(player => {
       player.isInvulnerable = true;
       player.vx = 0;
@@ -1261,7 +1261,7 @@ class Game {
     let targetX = avgX - this.canvas.width * 0.35;
     const maxCamX = Math.max(0, this.map.width - this.canvas.width);
 
-    // Se o Chefão estiver ativado, travar a câmera suavemente na arena correta
+
     if (this.boss && !this.boss.isDead) {
       const arenaMinX = this.boss.isKingKong
         ? Math.min(maxCamX, (this.map.finalBossSpawn ? this.map.finalBossSpawn.triggerX - 80 : 6400))
@@ -1271,11 +1271,11 @@ class Game {
       targetX = Math.max(0, Math.min(maxCamX, targetX));
     }
 
-    // Interpolação suave
+
     this.camera.x += (targetX - this.camera.x) * 0.1;
     this.camera.y = 0;
 
-    // Screen Shake
+
     if (this.shakeDuration > 0) {
       this.shakeDuration -= dt;
       this.camera.x += (Math.random() - 0.5) * this.shakePower * 2;
@@ -1288,7 +1288,7 @@ class Game {
     this.shakeDuration = duration;
   }
 
-  // --- RESOLUÇÃO DE COLISÕES DE PLATAFORMAS ---
+
   resolveHorizontalCollision(ent) {
     this.map.platforms.forEach(p => {
       if (ent.x + ent.width > p.x && ent.x < p.x + p.width && ent.y + ent.height > p.y && ent.y < p.y + p.height) {
@@ -1304,7 +1304,7 @@ class Game {
   resolveVerticalCollision(ent) {
     this.map.platforms.forEach(p => {
       if (ent.x + ent.width * 0.7 > p.x && ent.x + ent.width * 0.3 < p.x + p.width) {
-        // Aterrissagem no topo da plataforma
+
         if (ent.y + ent.height >= p.y && ent.y + ent.height <= p.y + 18 && ent.vy >= 0) {
           ent.y = p.y - ent.height;
           ent.vy = 0;
@@ -1314,7 +1314,7 @@ class Game {
     });
   }
 
-  // --- SPAWNERS DE EFEITOS E PARTÍCULAS ---
+
   spawnExplosion(x, y, radius = 40) {
     const blobs = [];
     const count = 6;
@@ -1422,8 +1422,8 @@ class Game {
       player.vx = 0;
     });
 
-    // A cinemática é decorativa: a continuação da missão não pode depender
-    // de um sprite, áudio ou frame específico terminar corretamente.
+
+
     const transitionRunId = this.runId;
     const transitionTimer = setTimeout(() => {
       this.activeTimers = this.activeTimers.filter(id => id !== transitionTimer);
@@ -1443,7 +1443,7 @@ class Game {
       debugLog('DragonCinematic criado com sucesso');
     } catch (error) {
       debugError('Erro ao criar DragonCinematic:', error);
-      // Se falhar, spawnar Ghidorah diretamente
+
       this.spawnGhidorahBoss();
     }
   }
@@ -1451,20 +1451,20 @@ class Game {
   beginGhidorahTransition(defeatedBoss) {
     if (this.bossStage !== 'MECHAGODZILLA' || this.state !== 'PLAYING') return;
 
-    // A antiga cena do dragão foi removida: ela era a origem do travamento
-    // pós-morte. A troca mantém apenas impacto visual curto e segue o jogo.
+
+
     this.bossStage = 'TRANSITION_TO_GHIDORAH';
     
-    // IMPORTANTE: Verificar se existe dragon ANTES de limpar referências
+
     const hasDragonCinematic = this.dragon && this.dragon.state !== 'DONE';
     
     if (!hasDragonCinematic) {
-      // Não há cinemática do dragão, podemos limpar tudo
+
       this.cinematicActive = false;
       this.dragon = null;
       if (this.boss === defeatedBoss) this.boss = null;
     } else {
-      // Há cinemática do dragão ativa, manter referências mas marcar como escondido
+
       debugLog('Mantendo referência do boss para cinemática do dragão');
       if (this.boss === defeatedBoss) {
         this.boss.hiddenByDragon = true;
@@ -1498,7 +1498,7 @@ class Game {
     this.projectiles = [];
     this.lightningEffects = [];
     
-    // Trovoadas e escurecimento elétrico do céu
+
     this.cinematicFlash = 0.6;
     this.cinematicFlashColor = '#ffd700';
     this.triggerScreenShake(20, 0.8);
@@ -1508,7 +1508,7 @@ class Game {
 
     this.addFloatingText(this.camera.x + this.canvas.width / 2, 120, '⚡ ALERTA MÁXIMO! O DRAGÃO DOURADO RETORNA! ⚡', '#ffd700', 18);
 
-    // Gerar relâmpagos pelo cenário antes do pouso
+
     const currentRunId = this.runId;
     for (let i = 0; i < 6; i++) {
       setTimeout(() => {
@@ -1528,7 +1528,7 @@ class Game {
   }
 
   spawnGhidorahBoss() {
-    // Garantir que não spawna múltiplas vezes
+
     if (this.boss && this.boss.isGhidorah) {
       debugLog('King Ghidorah já existe, pulando spawn');
       return;
@@ -1536,23 +1536,23 @@ class Game {
 
     debugLog('Spawning King Ghidorah Boss...');
     
-    // CRÍTICO: Limpar completamente o estado da cinemática
+
     this.cinematicActive = false;
     this.dragon = null;
     this.finaleElapsed = 0;
     this.bossStage = 'GHIDORAH';
     
-    // Remover invulnerabilidade dos jogadores
+
     this.players.forEach(player => {
       player.isInvulnerable = false;
     });
 
-    // Criar o novo boss (King Ghidorah)
+
     const spawnX = Math.min(this.map.bossSpawn ? this.map.bossSpawn.x : 4600, this.camera.x + this.canvas.width * 0.72);
     const spawnY = this.map.bossSpawn ? this.map.bossSpawn.y : 220;
     this.boss = new KingGhidorahBoss(spawnX, spawnY);
     
-    // Atualizar HUD
+
     if (this.bossHud) {
       this.bossHud.style.display = 'flex';
     }
@@ -1563,8 +1563,8 @@ class Game {
   completeGhidorahBattle(ghidorah) {
     if (this.bossStage !== 'GHIDORAH') return;
 
-    // Marcar a próxima etapa antes do intervalo de saída impede um novo
-    // Mechagodzilla caso a câmera seja atualizada nesse intervalo.
+
+
     this.bossStage = 'KONG';
     const completedRunId = this.runId;
     const timerId = setTimeout(() => {
@@ -1610,8 +1610,8 @@ class Game {
     audio.playMechaRoar();
     this.addFloatingText(x, y - 110, '💥 RASANTE DAS TRÊS CABEÇAS! 💥', '#ffe066', 15);
 
-    // A garra deixa uma trajetória violenta: faíscas, impacto e arcos de
-    // eletricidade acompanham a queda da carcaça, sem alterar o visual dela.
+
+
     for (let i = 0; i < 7; i++) {
       const angle = -2.7 + i * 0.24;
       const reach = 90 + i * 20;
@@ -1656,8 +1656,8 @@ class Game {
     audio.playMechaRoar();
     this.addFloatingText(this.camera.x + this.canvas.width / 2, 105, '⚡ DRAGON STORM — APOCALYPSE AOE! ⚡', '#f8e16c', 16);
 
-    // O impacto limpa qualquer ameaça ainda ativa na arena, mas não pune os
-    // jogadores durante a cena de vitória.
+
+
     this.enemies.forEach(enemy => {
       if (Math.hypot((enemy.x + enemy.width / 2) - x, (enemy.y + enemy.height / 2) - y) <= radius) {
         enemy.takeDamage(9999, 0, this);
@@ -1717,9 +1717,9 @@ class Game {
     return closest;
   }
 
-  // --- ATUALIZAÇÃO DO HUD EM TEMPO REAL ---
+
   updateHUD() {
-    // Player 1 HUD
+
     const p1 = this.players[0] || this.player;
     if (p1) {
       const hpPct1 = Math.max(0, Math.min(100, (p1.hp / p1.maxHp) * 100));
@@ -1737,7 +1737,7 @@ class Game {
       }
     }
 
-    // Player 2 HUD (se ativo em modo 2P)
+
     if (this.gameMode === '2P' && this.players[1]) {
       const p2 = this.players[1];
       if (this.hudP2HpFill) {
@@ -1758,7 +1758,7 @@ class Game {
       }
     }
 
-    // Tanque Slug HUD
+
     const pInSlug = this.players.find(p => p.inSlug && p.slugRef);
     if (pInSlug && pInSlug.slugRef) {
       this.slugHud.style.display = 'flex';
@@ -1767,7 +1767,7 @@ class Game {
       this.slugHud.style.display = 'none';
     }
 
-    // Barra de Vida do Chefão
+
     if (this.boss && !this.boss.isDead) {
       this.bossHud.style.display = 'flex';
       const bossHpPct = Math.max(0, Math.min(100, (this.boss.hp / this.boss.maxHp) * 100));
@@ -1802,7 +1802,7 @@ class Game {
     }
   }
 
-  // --- FINALIZAÇÃO DE MISSÃO & GAME OVER ---
+
   gameOver() {
     this.state = 'GAMEOVER';
     audio.announce("GAME OVER");
@@ -1820,43 +1820,43 @@ class Game {
     document.getElementById('victory-screen').style.display = 'flex';
   }
 
-  // --- RENDERIZAÇÃO DO FRAME ---
+
   render() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     if (this.state === 'START') {
-      // Desenhar fundo arcade animado
+
       renderer.drawParallaxBackground(this.ctx, { x: this.time * 20, y: 0 }, this.canvas.width, this.canvas.height, 4000);
       renderer.drawMenuEasterEggs(this.ctx, this.canvas.width, this.canvas.height, this.time);
       return;
     }
 
-    // 1. Cenário Parallax
+
     renderer.drawParallaxBackground(this.ctx, this.camera, this.canvas.width, this.canvas.height, this.map.width);
 
-    // 2. Plataformas e Obstáculos
+
     renderer.drawMapElements(this.ctx, this.camera, this.map);
 
-    // 3. Tanques Slug
+
     this.slugs.forEach(s => {
       if (!s.destroyed) renderer.drawSlug(this.ctx, this.camera, s, (s.driverCharacterId || 'claudio'));
     });
 
-    // 4. Reféns POW
+
     this.pows.forEach(pow => {
       renderer.drawPOW(this.ctx, this.camera, pow);
     });
 
-    // 5. Inimigos Comuns
+
     this.enemies.forEach(e => {
       renderer.drawEnemy(this.ctx, this.camera, e);
     });
 
-    // Fragmentos temporários da execução do Claudio, exibidos mesmo depois de
-    // o inimigo já ter sido removido da lista de entidades.
+
+
     renderer.drawExecutionEffects(this.ctx, this.camera, this.executionEffects);
 
-    // 6. Chefão Goliath
+
     if (this.boss && !this.boss.hiddenByDragon) {
       renderer.drawBoss(this.ctx, this.camera, this.boss);
     }
@@ -1865,34 +1865,34 @@ class Game {
       renderer.drawDragon(this.ctx, this.camera, this.dragon);
     }
 
-    // 7. Todos os Jogadores Ativos (se não estiverem dentro do tanque)
+
     this.players.forEach(p => {
       if (!p.inSlug && !p.isDead) {
         renderer.drawPlayer(this.ctx, this.camera, p);
       }
     });
-    // 8. Itens Coletáveis Pickups
+
     renderer.drawPickups(this.ctx, this.camera, this.pickups);
 
-    // 9. Projéteis e Granadas
+
     renderer.drawProjectiles(this.ctx, this.camera, this.projectiles);
 
-    // 10. Partículas
+
     renderer.drawParticles(this.ctx, this.camera, this.particles);
 
     renderer.drawLightningEffects(this.ctx, this.camera, this.lightningEffects);
 
-    // 11. Explosões
+
     renderer.drawExplosions(this.ctx, this.camera, this.explosions);
 
     renderer.drawCinematicFlash(this.ctx, this.cinematicFlash, this.cinematicFlashColor);
 
-    // 12. Textos Flutuantes
+
     renderer.drawFloatingTexts(this.ctx, this.camera, this.floatingTexts);
   }
 }
 
-// Inicializar motor de jogo quando a página carregar
+
 window.addEventListener('DOMContentLoaded', () => {
   window.gameEngine = new Game();
   window.game = window.gameEngine;

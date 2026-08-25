@@ -1,8 +1,8 @@
-// Entidades e Lógica de Jogo: Jogador, Inimigos, Chefão, Reféns, Veículo e Projéteis
 
-// ==========================================
-// 1. JOGADOR (CLAUDIO, MARCO, TARMA, FIO)
-// ==========================================
+
+
+
+
 class Player {
   constructor(x, y, characterId = 'claudio', playerIndex = 0) {
     this.x = x;
@@ -14,12 +14,12 @@ class Player {
     this.jumpForce = -10.5;
     this.gravity = 0.48;
     this.onGround = false;
-    this.facing = 1; // 1 = direita, -1 = esquerda
+    this.facing = 1;
     this.isCrouching = false;
     this.aimX = 1;
     this.aimY = 0;
 
-    // Configuração do Jogador e Índice (1P ou 2P)
+
     this.characterId = characterId;
     this.playerIndex = playerIndex;
     this.hasWarPaint = (this.characterId === 'claudio');
@@ -32,14 +32,14 @@ class Player {
     this.pickupMultiplier = 1.0;
     this.slugBonus = false;
 
-    // Status Base
+    
     this.hp = 100;
     this.maxHp = 100;
-    this.lives = 4; // Vida extra para dar mais chance!
+    this.lives = 4;
     this.score = 0;
     this.grenades = 10;
     
-    // Armamento Base
+
     this.weapon = 'PISTOL';
     this.ammo = Infinity;
     this.shootCooldown = 0;
@@ -47,58 +47,58 @@ class Player {
     this.shootFlashTimer = 0;
     this.meleeTimer = 0;
     this.meleeComboStep = 0;
-    this.meleeAttackTime = 0; // Tempo de animação do ataque
-    this.isAttacking = false; // Flag de ataque ativo
-    this.isSpinning = false; // Flag de spin 360°
-    this.spinAngle = 0; // Ângulo do spin atual
-    this.attackDirection = 'vertical'; // 'vertical' ou 'horizontal'
-    this.isExecuting = false; // Flag de execução aérea
-    this.executionPhase = 0; // 0=subindo, 1=no topo, 2=descendo
+    this.meleeAttackTime = 0;
+    this.isAttacking = false;
+    this.isSpinning = false;
+    this.spinAngle = 0;
+    this.attackDirection = 'vertical';
+    this.isExecuting = false;
+    this.executionPhase = 0;
     this.executionDirection = 1;
     this.coyoteTimer = 0;
     this.jumpBufferTimer = 0;
 
-    // Aplicar Especialidades por Personagem
+
     if (this.characterId === 'claudio') {
-      // Claudio: Nordic Warrior & Wielder of the Leviathan Axe
-      this.speed = 5.2; // Mais rápido e ágil
+
+      this.speed = 5.2;
       this.grenades = 15;
-      this.meleeDamage = 350; // Dano DEVASTADOR de Machado (aumentado para compensar luta corpo a corpo)
-      this.meleeRange = 75; // Alcance estendido
+      this.meleeDamage = 350;
+      this.meleeRange = 75;
       this.hasWarPaint = true;
-      this.weapon = 'AXE'; // Claudio empunha o Machado Nórdico!
-      this.ammo = Infinity; // Machado não gasta munição
+      this.weapon = 'AXE';
+      this.ammo = Infinity;
     } else if (this.characterId === 'jessica') {
-      // Jessica: Elite Phantom Huntress / Bow Specialist
-      this.speed = 5.2; // Alta agilidade e reflexos rápidos
+
+      this.speed = 5.2;
       this.grenades = 12;
       this.meleeDamage = 95;
       this.meleeRange = 45;
-      this.weapon = 'BOW'; // Jessica inicia com o Arco Tático Cyber!
+      this.weapon = 'BOW';
       this.ammo = 180;
       this.pickupMultiplier = 1.35;
       this.bowCombo = 0;
-      this.damageResistance = 0.75; // Resistência aumentada (recebe 25% menos dano)
-      this.maxHp = 120; // HP aumentado de 100 para 120
-      this.hp = 120; // Iniciar com HP cheio
+      this.damageResistance = 0.75;
+      this.maxHp = 120;
+      this.hp = 120;
     } else if (this.characterId === 'marco') {
-      // Marco: Burst Fire (Maior cadência de tiro)
+
       this.speed = 4.2;
       this.fireRateMultiplier = 1.25;
     } else if (this.characterId === 'tarma') {
-      // Tarma: Slug Master (Tanque aprimorado e resistência física)
+
       this.speed = 4.2;
       this.damageResistance = 0.85;
       this.slugBonus = true;
     } else if (this.characterId === 'fio') {
-      // Fio: Supply Drop (Começa com Heavy Machine Gun e bônus de itens)
+
       this.speed = 4.2;
       this.weapon = 'HMG';
       this.ammo = 300;
       this.pickupMultiplier = 1.5;
     }
 
-    // Estados Especiais
+
     this.isInvulnerable = false;
     this.invulnerableTimer = 0;
     this.inSlug = false;
@@ -116,9 +116,9 @@ class Player {
       return;
     }
 
-    // --- VERIFICAÇÃO DE QUEDA FATAL EM BURACO / ABISMO ---
-    // Dar mais margem - só morre se cair BEM longe da tela
-    const abyssLevel = game.canvas.height + 120; // Aumentado de 40 para 120
+
+
+    const abyssLevel = game.canvas.height + 120;
     if (this.y > abyssLevel && !this.isDead) {
       audio.playPitFall();
       game.addFloatingText(this.x, game.canvas.height - 60, 'CAIU NO ABISMO!', '#ff2222', 13);
@@ -126,14 +126,14 @@ class Player {
       return;
     }
 
-    // Se estiver pilotando o tanque Slug, a movimentação é delegada ao veículo
+
     if (this.inSlug && this.slugRef) {
       this.x = this.slugRef.x + 20;
       this.y = this.slugRef.y - 10;
       return;
     }
 
-    // Timers de Recuo e Muzzle Flash
+
     if (this.shootCooldown > 0) this.shootCooldown -= dt;
     if (this.shootFlashTimer > 0) this.shootFlashTimer -= dt;
     if (this.meleeTimer > 0) this.meleeTimer -= dt;
@@ -144,9 +144,9 @@ class Player {
       }
     }
 
-    // Atualizar spin 360°
+
     if (this.isSpinning) {
-      this.spinAngle += dt * 18; // Velocidade de rotação
+      this.spinAngle += dt * 18;
       if (this.spinAngle >= Math.PI * 2) {
         this.isSpinning = false;
         this.spinAngle = 0;
@@ -158,13 +158,13 @@ class Player {
       if (this.invulnerableTimer <= 0) this.isInvulnerable = false;
     }
 
-    // --- ENTRADA DE MOVIMENTO (1P ou 2P) ---
-    // Player 1 (índice 0): WASD + J/K/L/E
-    // Player 2 (índice 1): Arrows + U/I/O/P ou NumPad1/2/3/0
+
+
+
     let moveLeft, moveRight, lookUp, lookDown, jumpPressed, shootPressed, bombPressed, enterPressed, executionPressed;
     
     if (this.playerIndex === 0) {
-      // Jogador 1 (WASD + J/K/L/R/E)
+
       moveLeft = input.isDown('left');
       moveRight = input.isDown('right');
       lookUp = input.isDown('up');
@@ -175,7 +175,7 @@ class Player {
       enterPressed = input.isPressed('enter');
       executionPressed = input.isPressed('execution');
     } else {
-      // Jogador 2 (Setas + 1/2/3/4/0 ou Numpad)
+
       moveLeft = input.isDown('p2_left');
       moveRight = input.isDown('p2_right');
       lookUp = input.isDown('p2_up');
@@ -187,19 +187,19 @@ class Player {
       executionPressed = input.isPressed('p2_execution');
     }
 
-    // Pequena tolerância no pulo deixa o controle mais justo: o comando ainda
-    // é aceito logo após sair de uma plataforma ou pouco antes de aterrissar.
+
+
     this.coyoteTimer = this.onGround ? 0.1 : Math.max(0, this.coyoteTimer - dt);
     if (jumpPressed) this.jumpBufferTimer = 0.12;
     else this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dt);
 
-    // Agachamento
+
     this.isCrouching = lookDown && this.onGround;
 
-    // Movimentação Horizontal
+
     if (this.isExecuting) {
-      // A execução mantém o avanço no ar; antes, o personagem perdia o dash
-      // no quadro seguinte caso o jogador soltasse a tecla de direção.
+
+
       this.vx = this.executionDirection * 8.5;
       this.facing = this.executionDirection;
     } else if (!this.isCrouching) {
@@ -216,11 +216,11 @@ class Player {
       this.vx = 0;
     }
 
-    // Direção da Mira (8 Direções)
+
     this.aimX = (moveLeft && !moveRight) ? -1 : ((moveRight && !moveLeft) ? 1 : this.facing);
     this.aimY = lookUp ? -1 : (lookDown ? 1 : 0);
 
-    // Pulo
+
     if (this.jumpBufferTimer > 0 && this.coyoteTimer > 0 && !this.isExecuting) {
       this.vy = this.jumpForce;
       this.onGround = false;
@@ -230,11 +230,11 @@ class Player {
       game.spawnDust(this.x + this.width / 2, this.y + this.height);
     }
 
-    // Gravidade
+
     this.vy += this.gravity;
     if (this.vy > 14) this.vy = 14;
 
-    // Aplicação de Movimento e Colisão
+
     this.x += this.vx;
     game.resolveHorizontalCollision(this);
 
@@ -242,7 +242,7 @@ class Player {
     this.onGround = false;
     game.resolveVerticalCollision(this);
 
-    // Efeito de Execução Aérea em Voo e Impacto no Solo
+
     if (this.isExecuting) {
       game.spawnBlood(this.x + this.width / 2, this.y + this.height / 2);
       game.spawnSpark(this.x + this.width / 2, this.y + this.height / 2);
@@ -251,16 +251,16 @@ class Player {
       }
     }
 
-    // Ação: Atirar ou Desferir Machado
+
     if (shootPressed) {
-      // Se tiver o Machado Nórdico, só ataca corpo a corpo
+
       if (this.weapon === 'AXE') {
-        // Alternar entre ataque vertical e horizontal
+
         if (lookDown) {
-          // Segurando S = Ataque VERTICAL (de cima pra baixo)
+
           this.attackDirection = 'vertical';
         } else {
-          // Normal = Ataque HORIZONTAL (esquerda pra direita)
+
           this.attackDirection = 'horizontal';
         }
         this.tryAxeMeleeAttack(game);
@@ -269,22 +269,22 @@ class Player {
       }
     }
 
-    // Ação: Lançar Granada OU SPIN ATTACK 360° (se tiver machado)
+
     if (bombPressed) {
       if (this.weapon === 'AXE' && this.grenades > 0) {
-        // ATAQUE ESPECIAL 360° GIRANDO O PERSONAGEM INTEIRO!
+
         this.tryAxeSpinAttack(game);
       } else if (this.grenades > 0) {
         this.throwGrenade(game);
       }
     }
 
-    // Ação: Entrar no Cyber Slug
+
     if (enterPressed) {
       this.tryEnterSlug(game);
     }
 
-    // Ação: EXECUÇÃO AÉREA (Tecla R para 1P, Tecla 4 para 2P)
+
     if (executionPressed) {
       if (!this.inSlug) {
         if (this.weapon === 'AXE' || this.characterId === 'claudio') {
@@ -296,11 +296,11 @@ class Player {
     }
   }
 
-  // === ATAQUE DO MACHADO NÓRDICO (VERTICAL OU HORIZONTAL) ===
+
   tryAxeMeleeAttack(game) {
     if (this.meleeTimer > 0) return;
 
-    // ATIVAR MODO DE ATAQUE
+
     this.isAttacking = true;
     this.meleeAttackTime = 0.4;
     
@@ -309,7 +309,7 @@ class Player {
     const dashDistance = 12;
     this.x += this.facing * dashDistance;
 
-    // Buscar inimigos em alcance
+
     game.enemies.forEach(e => {
       const dist = Math.hypot((e.x + e.width / 2) - (this.x + this.width / 2), (e.y + e.height / 2) - (this.y + this.height / 2));
       const angle = Math.atan2((e.y + e.height / 2) - (this.y + this.height / 2), (e.x + e.width / 2) - (this.x + this.width / 2));
@@ -352,9 +352,9 @@ class Player {
           enemy.takeDamage(comboDamage, Math.atan2(0, this.facing), game);
         }
         
-        // Efeitos diferentes por direção de ataque
+
         if (this.attackDirection === 'vertical') {
-          // VERTICAL: Impacto no chão
+
           game.spawnSpark(enemy.x + enemy.width / 2, enemy.y + enemy.height);
           
           for (let i = 0; i < 15; i++) {
@@ -377,7 +377,7 @@ class Player {
             enemy.vy = -8;
           }
         } else {
-          // HORIZONTAL: Corte lateral
+
           game.spawnSpark(enemy.x + (this.facing === 1 ? enemy.width : 0), enemy.y + enemy.height / 2);
           
           for (let i = 0; i < 15; i++) {
@@ -403,7 +403,7 @@ class Player {
         }
       });
 
-      // Textos por direção
+
       const verticalTexts = ['⚡ SLAM!', '💥 ESMAGAR!', '🔥 EXECUÇÃO!'];
       const horizontalTexts = ['⚔️ CORTE!', '💫 CLEAVE!', '⚡ DEVASTAR!'];
       const comboColors = ['#ffcc00', '#ff6600', '#ff0000'];
@@ -417,7 +417,7 @@ class Player {
         14
       );
 
-      // Ondas de choque
+
       const impactX = this.x + this.width / 2 + (this.attackDirection === 'horizontal' ? this.facing * 35 : 0);
       const impactY = this.attackDirection === 'vertical' ? this.y + this.height + 5 : this.y + this.height / 2;
       
@@ -448,7 +448,7 @@ class Player {
       return true;
     }
 
-    // Swing no ar
+
     if (this.meleeTimer <= 0) {
       this.meleeTimer = 0.25;
       audio.playAxeSwing();
@@ -472,32 +472,32 @@ class Player {
     return false;
   }
 
-  // === ATAQUE ESPECIAL 360° GIRANDO O MACHADO ===
+
   tryAxeSpinAttack(game) {
     if (this.meleeTimer > 0 || this.isSpinning) return;
 
-    // Consumir 1 granada para ativar o spin
+
     this.grenades--;
     
-    // Ativar modo SPIN 360°
+
     this.isSpinning = true;
     this.spinAngle = 0;
-    this.meleeTimer = 0.6; // Cooldown longo após spin
+    this.meleeTimer = 0.6;
     
-    // Som épico de spin
+
     audio.playAxeSwing();
     setTimeout(() => audio.playAxeHit(), 150);
     setTimeout(() => audio.playExplosion(true), 300);
     
-    // Screen shake contínuo
+
     game.triggerScreenShake(10, 0.6);
     
-    // Texto de ultimate
+
     game.addFloatingText(this.x, this.y - 35, '⚔️ SPIN DEVASTADOR 360° ⚔️', '#ff3300', 15);
     
-    // Dano contínuo durante toda a rotação
+
     let hitCount = 0;
-    const spinDamage = (this.meleeDamage || 180) * 1.5; // 50% mais dano
+    const spinDamage = (this.meleeDamage || 180) * 1.5;
     
     const spinInterval = setInterval(() => {
       if (!this.isSpinning) {
@@ -507,7 +507,7 @@ class Player {
       
       hitCount++;
       
-      // Detectar inimigos em TODAS as direções (360°)
+
       const spinRange = 85;
       
       game.enemies.forEach(e => {
@@ -517,7 +517,7 @@ class Player {
             e.takeDamage(spinDamage / 4, Math.atan2(e.y - this.y, e.x - this.x), game);
           }
           
-          // Knockback radial
+
           if (e.vx !== undefined) {
             const angle = Math.atan2(e.y - this.y, e.x - this.x);
             e.vx = Math.cos(angle) * 12;
@@ -526,7 +526,7 @@ class Player {
         }
       });
       
-      // Boss também
+
       if (game.boss && !game.boss.isDead) {
         const bDist = Math.hypot((game.boss.x + game.boss.width / 2) - (this.x + this.width / 2), (game.boss.y + game.boss.height / 2) - (this.y + this.height / 2));
         if (bDist < spinRange + 100) {
@@ -534,7 +534,7 @@ class Player {
         }
       }
       
-      // Partículas circulares INTENSAS durante o spin
+
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
         const radius = 50 + Math.sin(this.spinAngle * 3) * 10;
         game.particles.push({
@@ -548,7 +548,7 @@ class Player {
         });
       }
       
-      // Rastro dourado circular do machado
+
       for (let i = 0; i < 3; i++) {
         const angle = this.spinAngle + (Math.random() - 0.5) * 0.3;
         game.particles.push({
@@ -562,12 +562,12 @@ class Player {
         });
       }
       
-    }, 80); // Tick de dano a cada 80ms
+    }, 80);
     
     return true;
   }
 
-  // === EXECUÇÃO AÉREA DEVASTADORA (TECLA R / 4) - PULAR E DIVIDIR O INIMIGO AO MEIO ===
+
   tryAxeExecutionJump(game) {
     if (this.meleeTimer > 0 || this.isExecuting) return false;
 
@@ -576,7 +576,7 @@ class Player {
     this.meleeAttackTime = 1.2;
     this.meleeTimer = 1.0;
 
-    // Salto ágil para frente
+
     this.vy = -13.5;
     this.executionDirection = this.facing;
     this.vx = this.executionDirection * 8.5;
@@ -612,22 +612,22 @@ class Player {
     const impactX = this.x + this.facing * 35;
     const impactY = this.y + this.height;
 
-    // Explosão massiva de impacto
+
     game.spawnExplosion(impactX, impactY, 70);
 
-    // Buscar inimigos no raio do corte
+
     const cleaveRadius = 140;
     let hitCount = 0;
 
     game.enemies.forEach(e => {
       const dist = Math.hypot((e.x + e.width / 2) - impactX, (e.y + e.height / 2) - impactY);
       if (dist < cleaveRadius) {
-        const damage = 650; // Dano massivo que parte ao meio
+        const damage = 650;
         if (game.addExecutionSplit) game.addExecutionSplit(e, this.facing);
         e.takeDamage(damage, Math.atan2(0, this.facing), game);
         hitCount++;
 
-        // Efeito visual de corte vertical e sangue jorrando dos dois lados
+
         const ex = e.x + e.width / 2;
         const ey = e.y + e.height / 2;
         for (let i = 0; i < 35; i++) {
@@ -658,7 +658,7 @@ class Player {
       game.addFloatingText(impactX, impactY - 50, '💀 DIVIDIDO AO MEIO! 💀', '#ff0000', 18);
     }
 
-    // Rachadura e faíscas no chão
+
     for (let i = 0; i < 35; i++) {
       const angle = (Math.random() * Math.PI) - Math.PI / 2;
       game.particles.push({
@@ -681,7 +681,7 @@ class Player {
     game.triggerScreenShake(8, 0.3);
     game.addFloatingText(this.x, this.y - 25, '🏹 CHUVA DE FLECHAS! 🏹', '#00d9ff', 15);
 
-    // Dispara 10 flechas de plasma do céu caindo em leque
+
     for (let i = 0; i < 6; i++) {
       setTimeout(() => {
         const arrowX = this.x - 100 + i * 50;
@@ -695,10 +695,10 @@ class Player {
   tryShoot(game) {
     if (this.shootCooldown > 0) return;
 
-    // Definir cadência por arma
+
     let fireDelay = 0.18;
     switch (this.weapon) {
-      case 'BOW': fireDelay = 0.14; break; // Alta cadência do Arco Tático
+      case 'BOW': fireDelay = 0.14; break;
       case 'HMG': fireDelay = 0.08; break;
       case 'SHOTGUN': fireDelay = 0.45; break;
       case 'ROCKET': fireDelay = 0.35; break;
@@ -707,7 +707,7 @@ class Player {
       default: fireDelay = 0.16; break;
     }
     
-    // Aplicar multiplicador de cadência
+
     fireDelay /= this.fireRateMultiplier;
 
     this.shootCooldown = fireDelay;
@@ -715,7 +715,7 @@ class Player {
     this.shootRecoil = true;
     setTimeout(() => { this.shootRecoil = false; }, 70);
 
-    // Origem do Disparo
+
     let spawnX = this.x + (this.facing === 1 ? this.width + 4 : -4);
     let spawnY = this.y + (this.isCrouching ? 28 : 18);
 
@@ -738,15 +738,15 @@ class Player {
     const ndx = dirX / norm;
     const ndy = dirY / norm;
 
-    // Disparar projéteis de acordo com a arma
+
     this.spawnWeaponProjectiles(game, spawnX, spawnY, ndx, ndy);
 
-    // Ejetar cartucho de latão (se for arma de fogo)
+
     if (this.weapon !== 'AXE' && this.weapon !== 'BOW') {
       game.spawnCasing(this.x + this.width / 2, this.y + 16, -this.facing);
     }
 
-    // Consumir Munição
+
     if (this.weapon !== 'PISTOL' && this.weapon !== 'AXE') {
       this.ammo--;
       if (this.ammo <= 0) {
@@ -762,11 +762,11 @@ class Player {
 
     switch (this.weapon) {
       case 'BOW':
-        // Arco Tático da Jessica: Flechas Perfurantes & Rajada Tripla
+
         audio.playBowShot();
         this.bowCombo = (this.bowCombo || 0) + 1;
         if (this.bowCombo % 3 === 0) {
-          // Rajada Tripla Especial em Leque
+
           audio.playBowSpecial();
           for (let i = -1; i <= 1; i++) {
             const spread = i * 0.12;
@@ -777,7 +777,7 @@ class Player {
           game.triggerScreenShake(3, 0.08);
           game.addFloatingText(sx, sy - 20, '🏹 TRIPLE ARROW!', '#00d9ff', 12);
         } else {
-          // Flecha Única Rápida e Perfurante
+
           game.projectiles.push(new Projectile(sx, sy, dx * 24, dy * 24, 'arrow', 75, true, 5, 1.8));
           game.triggerScreenShake(1.5, 0.04);
         }
@@ -826,7 +826,7 @@ class Player {
         game.triggerScreenShake(1, 0.05);
         break;
 
-      default: // PISTOL
+      default:
         audio.playShootPistol();
         game.projectiles.push(new Projectile(sx, sy, dx * speed, dy * speed, 'bullet', 18, true, 3.5));
         game.triggerScreenShake(1, 0.04);
@@ -839,7 +839,7 @@ class Player {
     this.grenades--;
 
     if (this.characterId === 'jessica' && this.weapon === 'BOW') {
-      // Jessica dispara uma Flecha Explosiva Tática (Bomb Arrow)
+
       audio.playBowShot();
       audio.playBowSpecial();
       const gvx = this.facing * 18;
@@ -856,8 +856,8 @@ class Player {
   }
 
   checkMeleeAttack(game) {
-    // Ataques corpo a corpo para personagens sem machado
-    if (this.weapon === 'AXE') return false; // Claudio usa o sistema especial de machado
+
+    if (this.weapon === 'AXE') return false;
 
     const meleeRange = this.meleeRange || 40;
     const nearbyEnemy = game.enemies.find(e => {
@@ -881,7 +881,7 @@ class Player {
 
   tryEnterSlug(game) {
     if (this.inSlug) {
-      // Sair do Slug
+
       this.inSlug = false;
       if (this.slugRef) {
         this.slugRef.isOccupied = false;
@@ -895,7 +895,7 @@ class Player {
       return;
     }
 
-    // Procurar tanque próximo
+
     const slug = game.slugs.find(s => {
       const dist = Math.hypot((s.x + s.width / 2) - (this.x + this.width / 2), (s.y + s.height / 2) - (this.y + this.height / 2));
       return dist < 65 && !s.isOccupied;
@@ -908,7 +908,7 @@ class Player {
       slug.driverCharacterId = this.characterId;
       slug.driverPlayerIndex = this.playerIndex;
 
-      // Se o piloto for Tarma (Slug Master), aplicar bônus de tanque
+
       if (this.slugBonus && !slug.tarmaBuffed) {
         slug.tarmaBuffed = true;
         slug.maxHp = 400;
@@ -932,7 +932,7 @@ class Player {
       return;
     }
 
-    // Aplicar resistência a dano
+
     if (this.damageResistance) {
       amount *= this.damageResistance;
     }
@@ -957,7 +957,7 @@ class Player {
     audio.playExplosion(false);
 
     if (this.lives < 0) {
-      // Verificar se todos os jogadores morreram
+
       game.checkAllPlayersDead();
     }
   }
@@ -968,7 +968,7 @@ class Player {
     
     if (this.characterId === 'claudio') {
       this.weapon = 'AXE';
-      this.ammo = Infinity; // Machado não usa munição
+      this.ammo = Infinity;
       this.hasWarPaint = true;
       this.grenades = 15;
     } else if (this.characterId === 'jessica') {
@@ -994,7 +994,7 @@ class Player {
   }
 
   equipWeapon(type, ammoCount, game) {
-    // Claudio NÃO pode trocar o Machado Nórdico por outras armas!
+
     if (this.characterId === 'claudio' && type !== 'AXE') {
       game.addFloatingText(this.x, this.y - 20, 'MACHADO ETERNO!', '#ffcc00', 11);
       audio.announce("LEVIATHAN AXE");
@@ -1025,16 +1025,16 @@ class Player {
   }
 }
 
-// ==========================================
-// 2. INIMIGOS E TROPAS ADAPTADAS POR BIOMA
-// ==========================================
+
+
+
 class Enemy {
   constructor(x, y, type = 'soldier', biome = 'tokyo') {
     this.id = Math.random();
     this.x = x;
     this.y = y;
     this.type = type;
-    this.biome = biome; // 'tokyo', 'brazil', 'europe', 'egypt'
+    this.biome = biome;
     this.facing = -1;
     this.vx = 0;
     this.vy = 0;
@@ -1043,7 +1043,7 @@ class Enemy {
     this.shootTimer = 0.8 + Math.random() * 1.5;
     this.animTime = Math.random() * 10;
 
-    // Configurações por tipo e bioma
+
     switch (type) {
       case 'shield':
         this.width = 34;
@@ -1073,7 +1073,7 @@ class Enemy {
         this.baseY = y;
         break;
 
-      default: // soldier
+      default:
         this.width = 28;
         this.height = 44;
         this.hp = biome === 'egypt' ? 45 : (biome === 'europe' ? 40 : 35);
@@ -1092,13 +1092,13 @@ class Enemy {
     const distToPlayer = player.x - this.x;
     const absDist = Math.abs(distToPlayer);
 
-    // Virar na direção do jogador
+
     if (this.type !== 'drone') {
       this.facing = distToPlayer > 0 ? 1 : -1;
     }
 
     if (this.type === 'drone') {
-      // IA do Drone: voo senoidal e tracking suave
+
       this.x += Math.sign(distToPlayer) * this.speed * 0.8;
       this.y = this.baseY + Math.sin(game.time * 4 + this.id) * 35;
 
@@ -1111,7 +1111,7 @@ class Enemy {
       return;
     }
 
-    // IA Terrestre (Soldier, Shield, Rocket)
+
     if (absDist > 220) {
       this.vx = this.facing * this.speed;
     } else if (absDist < 80 && this.type !== 'shield') {
@@ -1120,13 +1120,13 @@ class Enemy {
       this.vx = 0;
     }
 
-    // Ataque do Inimigo
+
     if (this.shootTimer <= 0 && absDist < 520) {
       this.shootTimer = 1.6 + Math.random() * 1.2;
       this.performAttack(player, game);
     }
 
-    // Gravidade e Física
+
     this.vy += 0.48;
     if (this.vy > 14) this.vy = 14;
 
@@ -1189,19 +1189,19 @@ class Enemy {
   }
 }
 
-// ==========================================
-// 3. CHEFÃO TITÃ (MECHAGODZILLA DINÂMICO HD)
-// ==========================================
+
+
+
 class Boss {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.baseY = y;
-    this.width = 260; // Titã Imponente e Gigantesco
+    this.width = 260;
     this.height = 240;
-    // O primeiro titã precisa aguentar uma luta completa. Golpes comuns
-    // continuam respondendo imediatamente, enquanto ataques de execução não
-    // eliminam o chefe em poucos usos.
+
+
+
     this.hp = 21000;
     this.maxHp = 21000;
     this.flashTimer = 0;
@@ -1209,16 +1209,16 @@ class Boss {
     this.isDead = false;
     this.lastAttack = null;
 
-    // Máquina de Estados do MechaGodzilla
-    // 'INTRO', 'IDLE', 'WALK', 'RUSH', 'PREPARE_LASER', 'FIRE_LASER', 'RECOIL_LASER', 'MISSILE_SALVO', 'TITAN_STOMP', 'DYING'
+
+
     this.state = 'INTRO';
     this.stateTimer = 1.4;
     this.attackCooldown = 1.45;
 
-    // Movimentação, Física e Inércia - MELHORADA PARA SER MAIS FLUIDA!
+
     this.vx = 0;
     this.vy = 0;
-    this.facing = -1; // -1 = Esquerda (olhando para os jogadores), 1 = Direita
+    this.facing = -1;
     this.targetFacing = -1;
     this.turnTimer = 0;
     this.speed = 2.35;
@@ -1228,14 +1228,14 @@ class Boss {
     this.rushDamageTimer = 0;
     this.rushPulseTimer = 0;
 
-    // Animações Fluidas e Articulação - MUITO MAIS SUAVE!
+
     this.animTime = 0;
     this.bodyBob = 0;
-    this.targetBodyBob = 0; // Para interpolação suave
+    this.targetBodyBob = 0;
     this.bodyLean = 0;
-    this.targetBodyLean = 0; // Para interpolação suave
+    this.targetBodyLean = 0;
     this.headAngle = 0;
-    this.targetHeadAngle = 0; // Cabeça acompanha suavemente
+    this.targetHeadAngle = 0;
     this.cannonAngle = 0;
     this.spineGlow = 0.3;
     this.recoilX = 0;
@@ -1250,12 +1250,12 @@ class Boss {
     this.cinematicTilt = 0;
     this.hiddenByDragon = false;
 
-    // Sistema do Mega Raio Laser (Proton Scream)
+
     this.laserActive = false;
     this.laserTimer = 0;
     this.laserDamageCooldown = 0;
 
-    // Limites de locomoção na Arena do Egito
+
     this.minArenaX = 3800;
     this.maxArenaX = 5120;
   }
@@ -1264,8 +1264,8 @@ class Boss {
     this.animTime += dt;
     if (this.flashTimer > 0) this.flashTimer -= dt;
 
-    // Depois da destruição, só a cinemática controla a carcaça. Isso evita
-    // novas transições de fase/ataques enquanto o dragão entra em cena.
+
+
     if (this.isDead || this.state === 'DYING') {
       this.laserActive = false;
       return;
@@ -1278,21 +1278,21 @@ class Boss {
     this.impactTilt += (0 - this.impactTilt) * 7 * dt;
     this.impactOffsetY += (0 - this.impactOffsetY) * 11 * dt;
 
-    // Recoil suave retornando a zero
+
     this.recoilX += (0 - this.recoilX) * 5 * dt;
     
-    // INTERPOLAÇÃO SUAVE para movimentos mais fluidos e orgânicos!
+
     this.bodyBob += (this.targetBodyBob - this.bodyBob) * 8 * dt;
     this.bodyLean += (this.targetBodyLean - this.bodyLean) * 6 * dt;
     this.headAngle += (this.targetHeadAngle - this.headAngle) * 10 * dt;
 
-    // Fases de Fúria do Titã. A transição acontece uma única vez para ficar
-    // clara para o jogador, em vez de reiniciar efeitos a cada quadro.
+
+
     const hpRatio = this.hp / this.maxHp;
     const nextPhase = hpRatio < 0.35 ? 3 : (hpRatio < 0.7 ? 2 : 1);
     if (nextPhase > this.phase) this.enterPhase(nextPhase, game);
 
-    // Mirar a cabeça e canhão na direção do jogador mais próximo - COM SUAVIDADE!
+
     const targetP = game.getClosestPlayer(this.x + this.width / 2, this.y + this.height / 2);
     const distToTarget = (targetP.x + targetP.width / 2) - (this.x + this.width / 2);
     const absDist = Math.abs(distToTarget);
@@ -1300,18 +1300,18 @@ class Boss {
     this.targetFacing = distToTarget > 0 ? 1 : -1;
 
     const angleToTarget = Math.atan2((targetP.y + 20) - (this.y + 60), (targetP.x + 15) - (this.x + (this.facing === 1 ? this.width : 0)));
-    this.targetHeadAngle = Math.max(-0.45, Math.min(0.45, angleToTarget)); // Usar target ao invés de setar direto
-    this.cannonAngle = this.headAngle; // Usar o valor interpolado
+    this.targetHeadAngle = Math.max(-0.45, Math.min(0.45, angleToTarget));
+    this.cannonAngle = this.headAngle;
 
-    // Atualizar partículas de carregamento de energia
+
     this.updateChargeParticles(dt);
 
-    // ==========================================
-    // MÁQUINA DE ESTADOS & COMPORTAMENTO DO CHEFE
-    // ==========================================
+
+
+
     switch (this.state) {
       case 'INTRO':
-        // Entrada triunfal: pouso pesado com tremor e rugido
+
         this.spineGlow = 0.5 + Math.sin(this.animTime * 10) * 0.4;
         if (this.stateTimer <= 0) {
           game.triggerScreenShake(14, 0.5);
@@ -1325,11 +1325,11 @@ class Boss {
 
       case 'IDLE':
         this.vx = 0;
-        this.targetBodyBob = Math.sin(this.animTime * 3) * 4; // Respiração suave
+        this.targetBodyBob = Math.sin(this.animTime * 3) * 4;
         this.targetBodyLean = 0;
         this.spineGlow = 0.3 + Math.sin(this.animTime * 4) * 0.2;
 
-        // Virar suavemente se o jogador estiver do outro lado
+
         if (this.facing !== this.targetFacing) {
           this.turnTimer += dt;
           if (this.turnTimer > 0.35) {
@@ -1340,15 +1340,15 @@ class Boss {
           this.turnTimer = 0;
         }
 
-        // Escolher próximo movimento ao terminar o cooldown
+
         if (this.attackCooldown <= 0 && this.stateTimer <= 0) {
           this.decideNextAction(absDist, game);
         }
         break;
 
       case 'WALK': {
-        // Perseguição contínua: o Titã recalcula a direção durante a marcha,
-        // impedindo que ele continue andando para o lado errado do alvo.
+
+
         const chaseDirection = distToTarget >= 0 ? 1 : -1;
         this.facing = chaseDirection;
         this.targetFacing = chaseDirection;
@@ -1358,9 +1358,9 @@ class Boss {
         this.targetBodyLean = this.facing * (0.07 + walkGait * 0.035);
         this.spineGlow = 0.4 + Math.sin(this.animTime * 6) * 0.2;
 
-        // Passadas pesadas com tremor de tela e poeira
+
         this.stepTimer += dt;
-        if (this.stepTimer >= 0.32) { // Passos mais rápidos
+        if (this.stepTimer >= 0.32) {
           this.stepTimer = 0;
           this.stepCount++;
           game.triggerScreenShake(4, 0.15);
@@ -1369,15 +1369,15 @@ class Boss {
           game.spawnDust(footX, this.y + this.height - 5);
         }
 
-        // Limites da arena
+
         if ((this.facing === -1 && this.x <= this.minArenaX) || (this.facing === 1 && this.x >= this.maxArenaX)) {
           this.vx = 0;
           this.state = 'IDLE';
           this.stateTimer = 0.5;
         }
 
-        // Só interrompe a perseguição ao alcançar distância de combate. Se o
-        // jogador fugir, ele continua avançando em vez de voltar ao idle.
+
+
         if (absDist <= this.chaseDistance || this.stateTimer <= 0) {
           this.vx = 0;
           this.decideNextAction(absDist, game);
@@ -1386,8 +1386,8 @@ class Boss {
       }
 
       case 'RUSH': {
-        // Investida curta e muito rápida nas fases de fúria. É telegráfica
-        // pelo texto/efeito no começo, mas obriga o jogador a sair da linha.
+
+
         const rushDirection = this.rushDirection || this.facing;
         this.facing = rushDirection;
         const rushMultiplier = this.phase === 3 ? 5.1 : (this.phase === 2 ? 4.45 : 3.8);
@@ -1424,13 +1424,13 @@ class Boss {
       }
 
       case 'PREPARE_LASER':
-        // Carregamento de energia nos espinhos e boca (Anticipation)
+
         this.vx = 0;
-        this.targetBodyBob = -6; // Agacha mais para firmar
-        this.targetBodyLean = -this.facing * 0.15; // Inclina mais para trás
+        this.targetBodyBob = -6;
+        this.targetBodyLean = -this.facing * 0.15;
         this.spineGlow = 1.0 + (1 - this.stateTimer / 0.7) * 1.2;
 
-        // Gerar vórtice de partículas de plasma convergindo na boca
+
         if (Math.random() < 0.6) {
           const mouthX = this.x + (this.facing === 1 ? this.width + 10 : -10);
           const mouthY = this.y + 65;
@@ -1447,9 +1447,9 @@ class Boss {
         }
 
         if (this.stateTimer <= 0) {
-          // Disparar o Proton Scream!
+
           this.state = 'FIRE_LASER';
-          this.stateTimer = 1.3; // Duração do feixe contínuo
+          this.stateTimer = 1.3;
           this.laserActive = true;
           audio.playProtonBeam();
           game.addFloatingText(this.x + this.width / 2, this.y - 30, '⚡ PROTON SCREAM! ⚡', '#ff0033', 16);
@@ -1458,24 +1458,24 @@ class Boss {
         break;
 
       case 'FIRE_LASER':
-        // Feixe Laser Massivo Ativo
+
         this.vx = 0;
         this.laserActive = true;
         this.spineGlow = 2.0;
-        this.bodyBob = Math.sin(this.animTime * 30) * 2; // Vibração intensa
-        this.bodyLean = -this.facing * 0.14; // Recoil contínuo
+        this.bodyBob = Math.sin(this.animTime * 30) * 2;
+        this.bodyLean = -this.facing * 0.14;
         this.recoilX -= this.facing * 12 * dt;
 
-        // Tremer a tela continuamente durante o disparo
+
         game.triggerScreenShake(7.5, 0.15);
 
-        // Danificar jogadores atingidos pelo feixe contínuo
+
         if (this.laserDamageCooldown <= 0) {
           this.laserDamageCooldown = 0.12;
           this.checkLaserCollisions(game);
         }
 
-        // Fagulhas e impacto de plasma no chão
+
         if (Math.random() < 0.7) {
           const beamLen = 950;
           const hitX = this.x + (this.facing === 1 ? this.width + Math.random() * beamLen : -Math.random() * beamLen);
@@ -1491,13 +1491,13 @@ class Boss {
         break;
 
       case 'RECOIL_LASER':
-        // Recuperação e dissipação de calor/fumaça pelos exaustores
+
         this.laserActive = false;
         this.spineGlow = Math.max(0.3, this.stateTimer / 0.5);
         this.bodyBob = 0;
         this.bodyLean = 0;
 
-        // Liberar vapor de resfriamento
+
         if (Math.random() < 0.5) {
           game.spawnSmoke(this.x + (this.facing === 1 ? 30 : this.width - 30), this.y + 40, 10);
         }
@@ -1537,36 +1537,36 @@ class Boss {
         break;
     }
 
-    // Aplicar velocidade horizontal
+
     this.x += this.vx;
     this.x = Math.max(this.minArenaX, Math.min(this.maxArenaX, this.x));
   }
 
   decideNextAction(distToPlayer, game) {
-    // Escolhe a próxima tática com base na distância e fase
+
     const choices = [];
 
-    // À distância ele fecha o cerco. Ataques à distância existem para punir
-    // fuga, mas a prioridade é levar o combate até o jogador.
+
+
     if (distToPlayer > 440) {
       choices.push('WALK', 'WALK', 'WALK', 'MISSILE_SALVO');
     } else if (distToPlayer > this.chaseDistance) {
       choices.push('WALK', 'PREPARE_LASER', 'MISSILE_SALVO', 'WALK');
     } else {
-      // Muito perto: pisada sísmica devastadora ou laser
+
       choices.push('TITAN_STOMP', 'TITAN_STOMP', 'PREPARE_LASER');
     }
 
-    // A investida volta a ser uma assinatura do Titã já na fase 1. Nas
-    // fases seguintes ela aparece com mais frequência e alcance maior.
+
+
     if (distToPlayer > 180 && distToPlayer < 980) {
       choices.push('RUSH');
       if (this.phase >= 2) choices.push('RUSH', 'RUSH');
       if (this.phase === 3) choices.push('RUSH');
     }
 
-    // Evita repetir o mesmo ataque especial em sequência: a luta fica mais
-    // legível e o jogador sempre tem uma janela para reagir.
+
+
     let nextAction = choices[Math.floor(Math.random() * choices.length)];
     if (nextAction === this.lastAttack && choices.length > 1) {
       const alternatives = choices.filter(choice => choice !== this.lastAttack);
@@ -1576,8 +1576,8 @@ class Boss {
 
     if (nextAction === 'WALK') {
       this.state = 'WALK';
-      // Tempo suficiente para avançar de verdade; a distância de combate pode
-      // encerrar esse estado antes se o jogador estiver próximo.
+
+
       this.stateTimer = 2.8 + Math.random() * 1.4;
       this.stepTimer = 0;
     } else if (nextAction === 'RUSH') {
@@ -1643,7 +1643,7 @@ class Boss {
     game.triggerScreenShake(14, 0.45);
     game.addFloatingText(this.x + this.width / 2, this.y + this.height - 20, '💥 TITAN SEISMIC STOMP! 💥', '#ff3300', 15);
 
-    // Onda de choque que viaja pelo chão da arena em ambas as direções
+
     const waveCount = this.phase === 3 ? 16 : 13;
     for (let i = 0; i < waveCount; i++) {
       setTimeout(() => {
@@ -1658,7 +1658,7 @@ class Boss {
         this.damagePlayersNear(sx1, groundY, 64, stompDamage, game);
         this.damagePlayersNear(sx2, groundY, 64, stompDamage, game);
 
-        // Disparo secundário de plasma
+
         if (i % 3 === 0) {
           const cannonY = this.y + 90;
           const cannonX = this.x + (this.facing === 1 ? this.width + 10 : -10);
@@ -1680,7 +1680,7 @@ class Boss {
     const beamMinY = mouthY - beamHeight / 2;
     const beamMaxY = mouthY + beamHeight / 2;
 
-    // Verificar colisão com jogadores vivos
+
     game.players.forEach(p => {
       if (p.isDead || p.isInvulnerable) return;
       if (p.x + p.width > beamMinX && p.x < beamMaxX && p.y + p.height > beamMinY && p.y < beamMaxY) {
@@ -1689,7 +1689,7 @@ class Boss {
       }
     });
 
-    // Verificar colisão com o Slug
+
     game.slugs.forEach(s => {
       if (s.destroyed) return;
       if (s.x + s.width > beamMinX && s.x < beamMaxX && s.y + s.height > beamMinY && s.y < beamMaxY) {
@@ -1740,9 +1740,9 @@ class Boss {
   takeDamage(amount, arg2, arg3) {
     if (this.isDead) return;
     const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
-    // Execuções e ataques especiais chegam com números muito maiores que os
-    // tiros normais. Sem esta contenção, dois ou três especiais pulavam toda
-    // a luta do Mechagodzilla.
+
+
+
     const effectiveDamage = amount >= 300 ? Math.round(amount * 0.35) : Math.round(amount * 0.85);
     this.hp -= effectiveDamage;
     this.flashTimer = 0.08;
@@ -1782,7 +1782,7 @@ class Boss {
     }
     audio.playMechaRoar();
 
-    // Armazenar IDs dos timers para limpeza posterior (evita memory leak)
+
     if (g && !g.activeTimers) g.activeTimers = [];
     
     for (let i = 0; i < 10; i++) {
@@ -1794,7 +1794,7 @@ class Boss {
         }
       }, i * 110);
       
-      // Armazenar o ID do timer
+
       if (g && g.activeTimers) {
         g.activeTimers.push(timerId);
       }
@@ -1810,9 +1810,9 @@ class Boss {
   }
 }
 
-// ==========================================
-// 4. CINEMÁTICA FINAL — DRAGÃO TRICÉFALO
-// ==========================================
+
+
+
 class DragonCinematic {
   constructor(boss, game) {
     this.boss = boss;
@@ -1840,7 +1840,7 @@ class DragonCinematic {
   }
 
   update(dt, game) {
-    // Verificação de segurança: se não temos mais um boss válido, pular para DONE
+
     if (!this.boss || this.boss.hiddenByDragon) {
       if (typeof debugWarn !== 'undefined') debugWarn('Boss não encontrado no DragonCinematic, pulando para DONE');
       this.state = 'DONE';
@@ -1859,7 +1859,7 @@ class DragonCinematic {
 
     const boss = this.boss;
     
-    // Verificação adicional após atribuir boss
+
     if (!boss || typeof boss.x === 'undefined' || typeof boss.y === 'undefined') {
       if (typeof debugWarn !== 'undefined') debugWarn('Boss perdeu propriedades essenciais, finalizando cinemática');
       this.state = 'DONE';
@@ -1919,12 +1919,12 @@ class DragonCinematic {
         this.carrying = false;
         this.state = 'DONE';
         
-        // Limpar o estado da cinemática no game ANTES de spawnar o Ghidorah
+
         if (game) {
           game.cinematicActive = false;
           game.dragon = null;
           
-          // Spawna imediatamente o King Ghidorah Boss
+
           if (game.spawnGhidorahBoss) {
             if (typeof debugLog !== 'undefined') debugLog('Chamando spawnGhidorahBoss...');
             game.spawnGhidorahBoss();
@@ -1938,7 +1938,7 @@ class DragonCinematic {
   }
 
   attachBoss() {
-    if (!this.boss) return; // Proteção contra boss nulo
+    if (!this.boss) return;
     this.boss.cinematicX = this.x - (this.facing === 1 ? 70 : 30);
     this.boss.cinematicY = this.y + 35;
     this.boss.cinematicScale = 0.65;
@@ -1947,7 +1947,7 @@ class DragonCinematic {
   }
 
   setFallingBossPose(progress) {
-    if (!this.boss) return; // Proteção contra boss nulo
+    if (!this.boss) return;
     this.boss.cinematicX = this.boss.x;
     this.boss.cinematicY = this.boss.y + progress * 8;
     this.boss.cinematicScale = 1;
@@ -1956,9 +1956,9 @@ class DragonCinematic {
   }
 }
 
-// ==========================================
-// 4.5 CHEFÃO SUPREMO: KING GHIDORAH (DRAGÃO DOURADO TRICÉFALO)
-// ==========================================
+
+
+
 class KingGhidorahBoss {
   constructor(x, y) {
     this.x = x;
@@ -1978,7 +1978,7 @@ class KingGhidorahBoss {
     this.phaseLabels = ['TEMPESTADE DOURADA', 'SOBRECARGA GRAVITACIONAL', 'APOCALIPSE ANCESTRAL'];
     this.lastAttack = null;
 
-    // Estados de Combate: 'INTRO_LANDING', 'IDLE', 'BATTLE_STANCE', 'WALK', 'ROAR', 'GRAVITY_BEAMS', 'GROUND_SWEEP_BEAMS', 'GOLDEN_TORNADO', 'ENERGY_BURST', 'ASCEND', 'AERIAL_HOVER', 'AERIAL_SWOOP', 'HURT_STAGGER', 'DYING'
+
     this.state = 'INTRO_LANDING';
     this.stateTimer = 2.2;
     this.attackCooldown = 0.85;
@@ -2031,7 +2031,7 @@ class KingGhidorahBoss {
       return;
     }
 
-    // Fases de King Ghidorah
+
     const hpRatio = this.hp / this.maxHp;
     const nextPhase = hpRatio < 0.33 ? 3 : (hpRatio < 0.66 ? 2 : 1);
     if (nextPhase > this.phase) {
@@ -2046,9 +2046,9 @@ class KingGhidorahBoss {
       this.targetFacing = distToTarget >= 0 ? 1 : -1;
     }
 
-    // ==========================================
-    // MÁQUINA DE ESTADOS DO KING GHIDORAH
-    // ==========================================
+
+
+
     switch (this.state) {
       case 'INTRO_LANDING':
         this.isFlying = false;
@@ -2070,7 +2070,7 @@ class KingGhidorahBoss {
         this.vx = 0;
         this.bodyBob = Math.sin(this.animTime * 3) * 5;
 
-        // Virar suavemente para o jogador
+
         if (this.facing !== this.targetFacing) {
           this.turnTimer += dt;
           if (this.turnTimer > 0.2) {
@@ -2111,7 +2111,7 @@ class KingGhidorahBoss {
       case 'ROAR':
         this.vx = 0;
         this.bodyBob = Math.sin(this.animTime * 20) * 3;
-        // Invocação de relâmpagos do céu caindo perto dos jogadores
+
         if (Math.random() < 0.2) {
           const rx = targetP.x + (Math.random() - 0.5) * 300;
           const ry = targetP.y;
@@ -2179,14 +2179,14 @@ class KingGhidorahBoss {
         this.bodyBob = Math.sin(this.animTime * 25) * 6;
         game.triggerScreenShake(8, 0.15);
 
-        // Danificar quem tocar no vórtice
+
         if (this.tornadoDamageTimer <= 0) {
           this.tornadoDamageTimer = 0.12;
           this.damagePlayersNear(this.x + this.width / 2, this.y + this.height / 2, 130, this.phase === 3 ? 42 : 32, game);
           game.spawnDust(this.x + this.width / 2, this.groundY + this.height - 10);
         }
 
-        // Lançar projéteis de ciclone dourado
+
         if (Math.random() < 0.15) {
           const cycAngle = (Math.random() - 0.5) * 1.2;
           const cycSpeed = 8.0;
@@ -2239,7 +2239,7 @@ class KingGhidorahBoss {
         this.y = this.groundY - 220 + Math.sin(this.animTime * 4) * 25;
         this.facing = targetP.x > this.x ? 1 : -1;
 
-        // Bombardeio aéreo: dispara faíscas/raios gravitacionais para baixo
+
         if (Math.random() < (this.phase === 3 ? 0.28 : 0.18)) {
           this.isBombarding = true;
           const sx = this.x + this.width / 2 + (Math.random() - 0.5) * 80;
@@ -2255,7 +2255,7 @@ class KingGhidorahBoss {
         }
 
         if (this.stateTimer <= 0) {
-          // Rasante aéreo ou pouso
+
           if (Math.random() < 0.6) {
             this.executeAerialSwoop(game);
           } else {
@@ -2268,7 +2268,7 @@ class KingGhidorahBoss {
         const swoopDir = this.swoopDir || this.facing;
         this.facing = swoopDir;
         this.vx = swoopDir * (this.phase === 3 ? 12.0 : 10.0);
-        // Mergulha em curva e sobe
+
         const swoopProgress = 1 - Math.max(0, this.stateTimer / (this.maxSwoopTime || 1.3));
         this.y = (this.groundY - 220) + Math.sin(swoopProgress * Math.PI) * 190;
 
@@ -2298,7 +2298,7 @@ class KingGhidorahBoss {
         break;
     }
 
-    // Aplicar movimento e travar nos limites da arena
+
     this.x += this.vx;
     this.x = Math.max(this.minArenaX, Math.min(this.maxArenaX, this.x));
   }
@@ -2384,7 +2384,7 @@ class KingGhidorahBoss {
       if (this.phase >= 2) choices.push('GOLDEN_TORNADO', 'ASCEND');
       if (this.phase === 3) choices.push('ENERGY_BURST');
     } else {
-      // Muito perto
+
       choices.push('ENERGY_BURST', 'ROAR', 'GROUND_SWEEP', 'GRAVITY_BEAMS');
       if (this.phase >= 2) choices.push('GOLDEN_TORNADO', 'ENERGY_BURST');
     }
@@ -2506,7 +2506,7 @@ class KingGhidorahBoss {
     }
     audio.playGhidorahRoar();
 
-    // Cadeia massiva de supernovas douradas
+
     for (let i = 0; i < 14; i++) {
       setTimeout(() => {
         if (g && g.runId === finaleRunId && g.spawnExplosion) {
@@ -2519,16 +2519,16 @@ class KingGhidorahBoss {
       }, i * 110);
     }
 
-    // O motor controla a troca de arena para não reabrir chefes anteriores.
+
     if (g && g.completeGhidorahBattle) {
       g.completeGhidorahBattle(this);
     }
   }
 }
 
-// ==========================================
-// 4.6 CHEFÃO APOCALÍPTICO: KING KONG (TITÃ DE MANHATTAN)
-// ==========================================
+
+
+
 class KingKongBoss {
   constructor(x, y) {
     this.x = x;
@@ -2548,7 +2548,7 @@ class KingKongBoss {
     this.phaseLabels = ['FÚRIA URBANA', 'DESTRUIÇÃO TOTAL', 'APOCALIPSE PRIMORDIAL'];
     this.lastAttack = null;
 
-    // Estados: 'INTRO_ROAR', 'IDLE', 'WALK', 'RUN', 'ROAR_TAUNT', 'CHEST_POUND', 'PUNCH_COMBO', 'GROUND_SLAM', 'THROW_BOULDER', 'THROW_CAR', 'HURT', 'DYING'
+
     this.state = 'INTRO_ROAR';
     this.stateTimer = 2.5;
     this.attackCooldown = 0.7;
@@ -2587,7 +2587,7 @@ class KingKongBoss {
 
   update(dt, player, game) {
     this.animTime += dt;
-    this.animTimer = this.animTime; // Sincronizar com o renderer
+    this.animTimer = this.animTime;
     if (this.flashTimer > 0) this.flashTimer -= dt;
     if (this.stateTimer > 0) this.stateTimer -= dt;
     if (this.attackCooldown > 0) this.attackCooldown -= dt;
@@ -2597,7 +2597,7 @@ class KingKongBoss {
     this.impactTilt += (0 - this.impactTilt) * 7 * dt;
     this.recoilX += (0 - this.recoilX) * 6 * dt;
     
-    // Movimento orgânico de respiração e balanço (gorila vivo!)
+
     this.bodyBob = Math.sin(this.animTime * 2.5) * 3 + Math.cos(this.animTime * 1.8) * 2;
 
     if (this.isDead || this.state === 'DYING') {
@@ -2606,7 +2606,7 @@ class KingKongBoss {
       return;
     }
 
-    // Fases de King Kong baseadas em HP
+
     const hpRatio = this.hp / this.maxHp;
     const nextPhase = hpRatio < 0.30 ? 3 : (hpRatio < 0.65 ? 2 : 1);
     if (nextPhase > this.phase) {
@@ -2621,7 +2621,7 @@ class KingKongBoss {
       this.targetFacing = distToTarget >= 0 ? 1 : -1;
     }
 
-    // MÁQUINA DE ESTADOS DO KING KONG
+
     switch (this.state) {
       case 'INTRO_ROAR':
         this.bodyBob = Math.sin(this.animTime * 12) * 6;
@@ -2641,7 +2641,7 @@ class KingKongBoss {
         
         if (this.attackCooldown <= 0) {
           if (absDist < 190) {
-            // Perto: Ataque corpo a corpo devastador
+
             const rand = Math.random();
             if (rand < 0.45) {
               this.transition('PUNCH_COMBO');
@@ -2651,17 +2651,17 @@ class KingKongBoss {
               this.transition('CHEST_POUND');
             }
           } else if (absDist < 420) {
-            // Média distância: Mix de ataques agressivos
+
             const rand = Math.random();
-            if (rand < 0.35) {
+            if (rand < 0.4) {
               this.transition(this.isBerserker ? 'RUN' : 'WALK');
-            } else if (rand < 0.65) {
+            } else if (rand < 0.7) {
               this.transition('ROAR_TAUNT');
             } else {
-              this.transition('LEAP'); // Kong pode pular pra fechar distância!
+              this.transition('GROUND_SLAM');
             }
           } else {
-            // Longa distância: Arremesso variado
+
             const rand = Math.random();
             if (this.boulderCooldown <= 0 && rand < 0.5) {
               this.transition('THROW_BOULDER');
@@ -2678,9 +2678,9 @@ class KingKongBoss {
         this.stepTimer += dt;
         const walkSpeed = this.speed * (this.isBerserker ? 1.5 : 1);
         this.vx = this.targetFacing * walkSpeed;
-        this.bodyBob = Math.sin(this.animTime * 7) * 5; // Balanço mais natural
+        this.bodyBob = Math.sin(this.animTime * 7) * 5;
         
-        if (this.stepTimer >= 0.38) { // Passos um pouco mais rápidos
+        if (this.stepTimer >= 0.38) {
           this.stepTimer = 0;
           this.stepCount++;
           game.triggerScreenShake(5, 0.2);
@@ -2695,10 +2695,10 @@ class KingKongBoss {
 
       case 'RUN':
         this.stepTimer += dt;
-        this.vx = this.targetFacing * this.runSpeed * 1.15; // Corrida mais rápida!
-        this.bodyBob = Math.sin(this.animTime * 16) * 9; // Balanço intenso
+        this.vx = this.targetFacing * this.runSpeed * 1.15;
+        this.bodyBob = Math.sin(this.animTime * 16) * 9;
         
-        if (this.stepTimer >= 0.18) { // Passos mais rápidos
+        if (this.stepTimer >= 0.18) {
           this.stepTimer = 0;
           game.triggerScreenShake(8, 0.25);
           audio.playMechaStep();
@@ -2706,7 +2706,7 @@ class KingKongBoss {
           game.spawnSpark(this.x + (this.facing === 1 ? this.width : 0), this.y + this.height - 15);
         }
 
-        // Atropelar jogadores durante a corrida
+
         if (absDist < 120) {
           this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height * 0.6, 120, this.phase === 3 ? 50 : 40, game);
           game.triggerScreenShake(12, 0.3);
@@ -2718,7 +2718,7 @@ class KingKongBoss {
 
       case 'ROAR_TAUNT':
         this.vx = 0;
-        this.bodyBob = Math.sin(this.animTime * 18) * 10; // Rugido com mais movimento
+        this.bodyBob = Math.sin(this.animTime * 18) * 10;
         
         if (this.stateTimer <= 0) {
           audio.playKongRoar();
@@ -2726,7 +2726,7 @@ class KingKongBoss {
           game.cinematicFlash = 0.4;
           game.cinematicFlashColor = '#ff4400';
           game.addFloatingText(this.x + this.width / 2, this.y - 30, '🦍 ROAR OF THE PRIMAL KING! 🦍', '#ff3300', 16);
-          this.attackCooldown = 0.5; // Cooldown menor = mais agressivo
+          this.attackCooldown = 0.5;
           this.transition('IDLE');
         }
         break;
@@ -2743,7 +2743,7 @@ class KingKongBoss {
           game.cinematicFlashColor = '#ffaa00';
           this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height, 300, this.phase === 3 ? 55 : 42, game);
           
-          // Efeito de onda de choque sísmica em 360 graus
+
           for (let i = 0; i < 14; i++) {
             const angle = (Math.PI * 2 * i) / 14;
             const dist = 130;
@@ -2771,7 +2771,7 @@ class KingKongBoss {
           game.triggerScreenShake(10, 0.3);
           audio.playKongPunch();
           
-          // Dano frontal
+
           this.damageNearbyPlayers(punchX, punchY, 110, this.phase === 3 ? 42 : 32, game);
           
           for (let i = 0; i < 6; i++) {
@@ -2792,14 +2792,14 @@ class KingKongBoss {
         } else if (this.stateTimer > 0) {
           this.bodyBob = 0;
         } else {
-          // IMPACTO SÍSMICO TOTAL!
+
           audio.playKongSlam();
           game.triggerScreenShake(26, 0.7);
           game.cinematicFlash = 0.45;
           game.cinematicFlashColor = '#ff6600';
           this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height, 380, this.phase === 3 ? 60 : 48, game);
           
-          // Fissura de asfalto rachando para ambos os lados
+
           for (let i = 0; i < 22; i++) {
             const spreadDist = (i - 11) * 32;
             const shockX = this.x + this.width / 2 + spreadDist;
@@ -2816,7 +2816,7 @@ class KingKongBoss {
       case 'THROW_BOULDER':
         this.vx = 0;
         
-        if (this.stateTimer <= 0.45 && this.stateTimer > 0) {
+        if (this.stateTimer <= 0.45 && this.stateTimer > 0.35) {
           const throwX = this.x + (this.facing === 1 ? this.width + 25 : -25);
           const throwY = this.y + this.height * 0.35;
           const throwAngle = -0.55;
@@ -2852,7 +2852,6 @@ class KingKongBoss {
           
           audio.playKongThrow();
           this.boulderCooldown = 3.5;
-          this.stateTimer = 0;
         }
         
         if (this.stateTimer <= 0) {
@@ -2864,7 +2863,7 @@ class KingKongBoss {
       case 'THROW_CAR':
         this.vx = 0;
         
-        if (this.stateTimer <= 0.55 && this.stateTimer > 0) {
+        if (this.stateTimer <= 0.55 && this.stateTimer > 0.45) {
           const throwX = this.x + (this.facing === 1 ? this.width + 30 : -30);
           const throwY = this.y + this.height * 0.4;
           const throwAngle = -0.45 - Math.random() * 0.25;
@@ -2903,7 +2902,6 @@ class KingKongBoss {
           
           audio.playKongThrow();
           this.carThrowCooldown = 4.5;
-          this.stateTimer = 0;
         }
         
         if (this.stateTimer <= 0) {
@@ -2920,7 +2918,7 @@ class KingKongBoss {
         break;
     }
 
-    // Virar suavemente se necessário
+
     if (this.facing !== this.targetFacing) {
       this.turnTimer += dt;
       if (this.turnTimer >= 0.25) {
@@ -2929,7 +2927,7 @@ class KingKongBoss {
       }
     }
 
-    // Aplicar movimento e limites da arena de Manhattan
+
     this.x += this.vx * dt * 60;
     this.x = Math.max(this.minArenaX, Math.min(this.maxArenaX - this.width, this.x));
     this.y = this.groundY;
@@ -3022,7 +3020,7 @@ class KingKongBoss {
     }
     audio.playKongRoar();
 
-    // Cadeia épica de explosões e terremoto de derrota
+
     for (let i = 0; i < 20; i++) {
       setTimeout(() => {
         if (g && g.runId === finaleRunId && g.spawnExplosion) {
@@ -3035,16 +3033,16 @@ class KingKongBoss {
       }, i * 110);
     }
 
-    // A conclusão é centralizada no motor, que também bloqueia novos spawns.
+
     if (g && g.completeKongBattle) {
       g.completeKongBattle(this);
     }
   }
 }
 
-// ==========================================
-// 5. THE CYBER SLUG (MINI-TANQUE PILOTÁVEL)
-// ==========================================
+
+
+
 class SlugVehicle {
   constructor(x, y) {
     this.x = x;
@@ -3080,7 +3078,7 @@ class SlugVehicle {
       const bombPressed = isP2 ? input.isPressed('p2_bomb') : input.isPressed('bomb');
       const enterPressed = isP2 ? input.isPressed('p2_enter') : input.isPressed('enter');
 
-      // Movimentação
+
       if (moveLeft && !moveRight) {
         this.vx = -this.speed;
         this.facing = -1;
@@ -3091,7 +3089,7 @@ class SlugVehicle {
         this.vx = 0;
       }
 
-      // Pulo com amortecedores hidráulicos
+
       if (jumpPressed && this.onGround) {
         this.vy = this.jumpForce;
         this.onGround = false;
@@ -3099,10 +3097,10 @@ class SlugVehicle {
         game.spawnDust(this.x + this.width / 2, this.y + this.height);
       }
 
-      // Ângulo do Canhão
+
       this.cannonAngle = lookUp ? -0.4 : (lookDown ? 0.3 : 0);
 
-      // Disparo da Metralhadora Vulcan Dupla (Cadência Brutal)
+
       if (shootDown && this.shootCooldown <= 0) {
         this.shootCooldown = 0.07;
         audio.playShootHMG();
@@ -3113,7 +3111,7 @@ class SlugVehicle {
         game.triggerScreenShake(2, 0.05);
       }
 
-      // Disparo do Super Canhão de 120mm
+
       if (bombPressed && this.cannons > 0) {
         this.cannons--;
         audio.playSlugCannon();
@@ -3124,7 +3122,7 @@ class SlugVehicle {
         game.addFloatingText(this.x + 20, this.y - 15, 'CANNON!', '#ff7700');
       }
 
-      // Sair do Tanque
+
       if (enterPressed) {
         game.player.tryEnterSlug(game);
       }
@@ -3132,7 +3130,7 @@ class SlugVehicle {
       this.vx = 0;
     }
 
-    // Gravidade
+
     this.vy += this.gravity;
     if (this.vy > 14) this.vy = 14;
 
@@ -3150,7 +3148,7 @@ class SlugVehicle {
     game.spawnSpark(this.x + Math.random() * this.width, this.y + Math.random() * this.height);
 
     if (this.hp <= 0) {
-      // Destruição do Tanque & Ejeção do Jogador
+
       game.spawnExplosion(this.x + this.width / 2, this.y + this.height / 2, 50);
       audio.playExplosion(true);
       if (this.isOccupied) {
@@ -3167,9 +3165,9 @@ class SlugVehicle {
   }
 }
 
-// ==========================================
-// 5. REFÉM / PRISIONEIRO DE GUERRA (POW)
-// ==========================================
+
+
+
 class POW {
   constructor(x, y, rewardType = 'HMG') {
     this.x = x;
@@ -3186,7 +3184,7 @@ class POW {
 
   update(dt, player, game) {
     if (!this.rescued) {
-      // Checar se o jogador encostou ou disparou perto
+
       const dist = Math.hypot((player.x + player.width / 2) - (this.x + this.width / 2), (player.y + player.height / 2) - (this.y + this.height / 2));
       if (dist < 40) {
         this.free(game);
@@ -3195,16 +3193,16 @@ class POW {
       if (this.saluteTimer > 0) {
         this.saluteTimer -= dt;
         if (this.saluteTimer <= 0) {
-          // Soltar o item de recompensa
+
           game.pickups.push(new Pickup(this.x + 10, this.y + 10, this.rewardType));
         }
       } else {
-        // Correr para fora da tela
+
         this.x -= 3.5;
       }
     }
 
-    // Gravidade
+
     this.vy += 0.48;
     this.y += this.vy;
     game.resolveVerticalCollision(this);
@@ -3221,9 +3219,9 @@ class POW {
   }
 }
 
-// ==========================================
-// 6. PROJÉTEIS, GRANADAS E EXPLOSÕES
-// ==========================================
+
+
+
 class Projectile {
   constructor(x, y, vx, vy, type = 'bullet', damage = 20, isPlayer = true, radius = 4, life = 2.0, isHoming = false, hasGravity = false) {
     this.x = x;
@@ -3244,14 +3242,14 @@ class Projectile {
     this.life -= dt;
     if (this.life <= 0) return false;
 
-    // Física Parabólica para Granadas
+
     if (this.hasGravity) {
       this.vy += 0.45;
       this.rotation += 0.2;
       this.x += this.vx;
       this.y += this.vy;
 
-      // Colisão de granada com plataformas (quique)
+
       game.map.platforms.forEach(plat => {
         if (this.x > plat.x && this.x < plat.x + plat.width && this.y > plat.y && this.y < plat.y + plat.height) {
           this.y = plat.y - 2;
@@ -3264,7 +3262,7 @@ class Projectile {
       return true;
     }
 
-    // Míssil Teleguiado
+
     if (this.isHoming) {
       const target = this.isPlayer ? game.getClosestEnemy(this.x, this.y) : game.getClosestPlayer(this.x, this.y);
       if (target) {
@@ -3282,7 +3280,7 @@ class Projectile {
         this.vx = Math.cos(newAngle) * currentSpeed;
         this.vy = Math.sin(newAngle) * currentSpeed;
       }
-      // Rastro de fumaça de míssil
+
       game.spawnSmoke(this.x, this.y, 4);
     }
 
@@ -3292,9 +3290,9 @@ class Projectile {
   }
 }
 
-// ==========================================
-// 7. ITENS COLETÁVEIS (PICKUPS)
-// ==========================================
+
+
+
 class Pickup {
   constructor(x, y, type = 'HMG') {
     this.x = x;
@@ -3312,7 +3310,7 @@ class Pickup {
       case 'FLAME': this.icon = 'F'; this.color = '#f97316'; this.ammo = 80; break;
       case 'LASER': this.icon = 'L'; this.color = '#00ffff'; this.ammo = 100; break;
       case 'BOMB': this.icon = 'B'; this.color = '#e11d48'; this.ammo = 10; break;
-      default: this.icon = '★'; this.color = '#ffd700'; this.ammo = 0; break; // FOOD / BONUS
+      default: this.icon = '★'; this.color = '#ffd700'; this.ammo = 0; break;
     }
   }
 }

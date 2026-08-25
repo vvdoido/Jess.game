@@ -1,4 +1,4 @@
-// Sistema de Áudio e Voz Arcade Procedural com Web Audio API
+
 
 class SoundSystem {
   constructor() {
@@ -12,7 +12,7 @@ class SoundSystem {
     this.bgmInterval = null;
     this.tempo = 135;
     
-    // Suporte a sintetizador de voz para announcer
+
     this.speechSynth = window.speechSynthesis || null;
   }
 
@@ -52,7 +52,7 @@ class SoundSystem {
     return this.isMuted;
   }
 
-  // --- ANUNCIADOR DE VOZ CLÁSSICO METAL SLUG ---
+
   announce(text) {
     if (this.isMuted) return;
     try {
@@ -60,10 +60,10 @@ class SoundSystem {
         this.speechSynth.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.rate = 1.15;
-        utter.pitch = 0.75; // Voz mais grave, enérgica e militar
+        utter.pitch = 0.75;
         utter.volume = 1.0;
         
-        // Tentar selecionar voz masculina em inglês se disponível
+
         const voices = this.speechSynth.getVoices();
         const deepVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Male') || v.name.includes('David') || v.name.includes('George') || v.name.includes('Google US English')));
         if (deepVoice) utter.voice = deepVoice;
@@ -74,7 +74,7 @@ class SoundSystem {
       console.log("Announce error:", e);
     }
     
-    // Som secundário de sintetizador militar arcade
+
     this.playAnnounceJingle();
   }
 
@@ -97,7 +97,7 @@ class SoundSystem {
     osc.stop(now + 0.2);
   }
 
-  // --- EFEITOS SONOROS DE TIRO E COMBATE ---
+
 
   playShootPistol() {
     if (!this.ctx || this.isMuted) return;
@@ -368,7 +368,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Rugido Metálico de Kaiju com Modulação de Frequência e Ruído Distorcido
+
     for (let i = 0; i < 3; i++) {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -390,12 +390,12 @@ class SoundSystem {
     this.playNoise(0.4, 0.5, 1200, 'bandpass');
   }
 
-  // --- EFEITOS SONOROS DE KING GHIDORAH (DRAGÃO TRICÉFALO) ---
+
   playGhidorahRoar() {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Grito Triplo Elétrico das Três Cabeças Douradas (Acordes dissonantes e chiado cósmico)
+
     const baseFreqs = [520, 680, 840];
     baseFreqs.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
@@ -406,7 +406,7 @@ class SoundSystem {
       osc.frequency.setValueAtTime(freq, t);
       osc.frequency.exponentialRampToValueAtTime(140, t + 0.9);
 
-      // Vibrato rápido para efeito de grito alienígena elétrico
+
       const lfo = this.ctx.createOscillator();
       const lfoGain = this.ctx.createGain();
       lfo.frequency.setValueAtTime(28 + idx * 4, t);
@@ -432,7 +432,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Zumbido elétrico de alta voltagem contínuo
+
     for (let i = 0; i < 3; i++) {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -457,7 +457,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Turbilhão giratório de vento e eletricidade
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'triangle';
@@ -480,7 +480,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Supernova / Explosão Dourada em 360°
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
@@ -520,12 +520,12 @@ class SoundSystem {
     this.playNoise(0.6, 0.6, 1200, 'bandpass');
   }
 
-  // --- EFEITOS SONOROS DO KING KONG (FINAL BOSS DE NOVA YORK) ---
+
   playKongRoar() {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Rugido primata gutural grave e estrondoso
+
     const osc1 = this.ctx.createOscillator();
     const osc2 = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -560,7 +560,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Batidas percussivas no peito
+
     [0, 0.14, 0.28, 0.42].forEach(delay => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -647,7 +647,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Carga inicial do feixe
+
     const oscCharge = this.ctx.createOscillator();
     const gainCharge = this.ctx.createGain();
     oscCharge.type = 'sine';
@@ -660,7 +660,7 @@ class SoundSystem {
     oscCharge.start(now);
     oscCharge.stop(now + 0.25);
 
-    // Disparo contínuo do Laser Vermelho Atômico
+
     const oscBeam = this.ctx.createOscillator();
     const gainBeam = this.ctx.createGain();
     oscBeam.type = 'sawtooth';
@@ -680,7 +680,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Impacto sísmico grave de pata mecânica gigante
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
@@ -693,7 +693,7 @@ class SoundSystem {
     osc.start(now);
     osc.stop(now + 0.18);
 
-    // Ruído de atrito mecânico e poeira
+
     this.playNoise(0.12, 0.35, 300, 'lowpass');
   }
 
@@ -701,7 +701,7 @@ class SoundSystem {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // Tom agudo ascendente de conversão de energia quântica
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
@@ -784,10 +784,10 @@ class SoundSystem {
     const gain = this.ctx.createGain();
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(523.25, now); // C5
-    osc.frequency.setValueAtTime(659.25, now + 0.06); // E5
-    osc.frequency.setValueAtTime(783.99, now + 0.12); // G5
-    osc.frequency.setValueAtTime(1046.50, now + 0.18); // C6
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.06);
+    osc.frequency.setValueAtTime(783.99, now + 0.12);
+    osc.frequency.setValueAtTime(1046.50, now + 0.18);
 
     gain.gain.setValueAtTime(0.25, now);
     gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
@@ -874,7 +874,7 @@ class SoundSystem {
     });
   }
 
-  // Helper de Ruído Branco / Explosão
+
   playNoise(duration, volume, cutoff = 1000, filterType = 'lowpass') {
     if (!this.ctx || this.isMuted) return;
     const bufferSize = this.ctx.sampleRate * duration;
@@ -903,7 +903,7 @@ class SoundSystem {
     noise.start();
   }
 
-  // --- TRILHA SONORA DINÂMICA PROCEDURAL (ARCADE ACTION BGM) ---
+
   startBGM() {
     if (this.bgmPlaying || !this.ctx) return;
     this.bgmPlaying = true;
@@ -912,13 +912,13 @@ class SoundSystem {
     const bassNotes = [110, 110, 130.81, 146.83, 110, 110, 164.81, 146.83];
     const leadNotes = [220, 261.63, 293.66, 329.63, 392.00, 329.63, 293.66, 261.63];
 
-    const stepDuration = 60 / (this.tempo * 2); // semicolcheias
+    const stepDuration = 60 / (this.tempo * 2);
 
     this.bgmInterval = setInterval(() => {
       if (!this.bgmPlaying || !this.ctx || this.isMuted) return;
       const now = this.ctx.currentTime;
 
-      // Bassline forte e ritmado
+
       const bFreq = bassNotes[this.bgmStep % bassNotes.length];
       const bassOsc = this.ctx.createOscillator();
       const bassGain = this.ctx.createGain();
@@ -933,9 +933,9 @@ class SoundSystem {
       bassOsc.start(now);
       bassOsc.stop(now + stepDuration * 0.9);
 
-      // Kick & Snare rítmico
+
       if (this.bgmStep % 4 === 0) {
-        // Kick Drum
+
         const kickOsc = this.ctx.createOscillator();
         const kickGain = this.ctx.createGain();
         kickOsc.frequency.setValueAtTime(140, now);
@@ -947,11 +947,11 @@ class SoundSystem {
         kickOsc.start(now);
         kickOsc.stop(now + 0.1);
       } else if (this.bgmStep % 4 === 2) {
-        // Snare
+
         this.playNoise(0.08, 0.15, 1200, 'bandpass');
       }
 
-      // Melodia Arcade
+
       if (this.bgmStep % 2 === 0) {
         const lFreq = leadNotes[(Math.floor(this.bgmStep / 2)) % leadNotes.length];
         const leadOsc = this.ctx.createOscillator();
@@ -985,11 +985,11 @@ class SoundSystem {
       clearInterval(this.bgmInterval);
       this.bgmInterval = null;
     }
-    // Mantém bgmPlaying = true para poder resumir depois
+
   }
 
   resumeBGM() {
-    // Se estava tocando antes de pausar, retoma
+
     if (this.bgmPlaying && !this.bgmInterval) {
       const bassNotes = [110, 110, 130.81, 146.83, 110, 110, 164.81, 146.83];
       const leadNotes = [440, 493.88, 523.25, 587.33, 659.25, 587.33, 523.25, 493.88];
@@ -1047,5 +1047,5 @@ class SoundSystem {
   }
 }
 
-// Instância global de áudio
+
 const audio = new SoundSystem();
