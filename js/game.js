@@ -1,7 +1,7 @@
 // Motor Principal do Jogo: Loop, Câmera, Colisões, Spawner e Interface
 
 // Sistema de Debug - Desabilitar em produção para melhor performance
-const DEBUG = false; // Mude para true para ativar logs de debug
+const DEBUG = false;
 
 // Funções de log condicionais
 const debugLog = DEBUG ? console.log.bind(console) : () => {};
@@ -12,6 +12,7 @@ class InputManager {
   constructor() {
     this.keys = {};
     this.pressed = {};
+    this.gamepadKeys = {};
 
     window.addEventListener('keydown', (e) => {
       // Prevenir scroll padrão com setas e espaço
@@ -28,6 +29,13 @@ class InputManager {
       this.keys[e.code] = false;
     });
 
+    // Um toque interrompido por chamada, troca de aba ou gesto do sistema não
+    // pode deixar o personagem correndo ou atirando para sempre.
+    window.addEventListener('blur', () => this.reset());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.reset();
+    });
+
     // Touch Controls Setup
     this.initTouchControls();
   }
@@ -35,14 +43,14 @@ class InputManager {
   isDown(action) {
     switch (action) {
       // 1P Controls: WASD + J/K/L/E/R ou Touch/Gamepad
-      case 'left': return !!(this.keys['KeyA'] || this.keys['TouchLeft']);
-      case 'right': return !!(this.keys['KeyD'] || this.keys['TouchRight']);
-      case 'up': return !!(this.keys['KeyW'] || this.keys['TouchUp']);
-      case 'down': return !!(this.keys['KeyS'] || this.keys['TouchDown']);
-      case 'jump': return !!(this.keys['Space'] || this.keys['KeyJ'] || this.keys['TouchJump']);
-      case 'shoot': return !!(this.keys['KeyK'] || this.keys['KeyZ'] || this.keys['TouchShoot']);
-      case 'bomb': return !!(this.keys['KeyL'] || this.keys['KeyX'] || this.keys['TouchBomb']);
-      case 'enter': return !!(this.keys['KeyE'] || this.keys['KeyC'] || this.keys['TouchEnter']);
+      case 'left': return !!(this.keys['KeyA'] || this.keys['TouchLeft'] || this.gamepadKeys.left);
+      case 'right': return !!(this.keys['KeyD'] || this.keys['TouchRight'] || this.gamepadKeys.right);
+      case 'up': return !!(this.keys['KeyW'] || this.keys['TouchUp'] || this.gamepadKeys.up);
+      case 'down': return !!(this.keys['KeyS'] || this.keys['TouchDown'] || this.gamepadKeys.down);
+      case 'jump': return !!(this.keys['Space'] || this.keys['KeyJ'] || this.keys['TouchJump'] || this.gamepadKeys.jump);
+      case 'shoot': return !!(this.keys['KeyK'] || this.keys['KeyZ'] || this.keys['TouchShoot'] || this.gamepadKeys.shoot);
+      case 'bomb': return !!(this.keys['KeyL'] || this.keys['KeyX'] || this.keys['TouchBomb'] || this.gamepadKeys.bomb);
+      case 'enter': return !!(this.keys['KeyE'] || this.keys['KeyC'] || this.keys['TouchEnter'] || this.gamepadKeys.enter);
       case 'execution': return !!this.keys['KeyR'];
       case 'pause': return !!(this.keys['Escape'] || this.keys['KeyP']); // Pause com ESC ou P
 
@@ -63,10 +71,10 @@ class InputManager {
   isPressed(action) {
     switch (action) {
       // 1P
-      case 'jump': return !!(this.pressed['Space'] || this.pressed['KeyJ'] || this.pressed['TouchJump']);
-      case 'shoot': return !!(this.pressed['KeyK'] || this.pressed['KeyZ'] || this.pressed['TouchShoot']);
-      case 'bomb': return !!(this.pressed['KeyL'] || this.pressed['KeyX'] || this.pressed['TouchBomb']);
-      case 'enter': return !!(this.pressed['KeyE'] || this.pressed['KeyC'] || this.pressed['TouchEnter']);
+      case 'jump': return !!(this.pressed['Space'] || this.pressed['KeyJ'] || this.pressed['TouchJump'] || this.pressed['GamepadJump']);
+      case 'shoot': return !!(this.pressed['KeyK'] || this.pressed['KeyZ'] || this.pressed['TouchShoot'] || this.pressed['GamepadShoot']);
+      case 'bomb': return !!(this.pressed['KeyL'] || this.pressed['KeyX'] || this.pressed['TouchBomb'] || this.pressed['GamepadBomb']);
+      case 'enter': return !!(this.pressed['KeyE'] || this.pressed['KeyC'] || this.pressed['TouchEnter'] || this.pressed['GamepadEnter']);
       case 'execution': return !!this.pressed['KeyR'];
       case 'pause': return !!(this.pressed['Escape'] || this.pressed['KeyP']); // Pause pressed once
 
@@ -84,21 +92,36 @@ class InputManager {
     this.pressed = {};
   }
 
+  reset() {
+    this.keys = {};
+    this.gamepadKeys = {};
+    this.clearPressed();
+    document.querySelectorAll('#touch-controls .active').forEach(el => el.classList.remove('active'));
+  }
+
   initTouchControls() {
     const bindTouch = (id, key) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.addEventListener('touchstart', (e) => {
+      const press = (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
         e.preventDefault();
         this.keys[key] = true;
         this.pressed[key] = true;
         el.classList.add('active');
-      });
-      el.addEventListener('touchend', (e) => {
+        if (el.setPointerCapture) el.setPointerCapture(e.pointerId);
+      };
+      const release = (e) => {
         e.preventDefault();
         this.keys[key] = false;
         el.classList.remove('active');
-      });
+      };
+
+      el.addEventListener('pointerdown', press);
+      el.addEventListener('pointerup', release);
+      el.addEventListener('pointercancel', release);
+      el.addEventListener('lostpointercapture', release);
+      el.addEventListener('contextmenu', (e) => e.preventDefault());
     };
 
     bindTouch('btn-touch-left', 'TouchLeft');
@@ -113,29 +136,29 @@ class InputManager {
 
   updateGamepad() {
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    if (!gamepads || !gamepads[0]) return;
+    if (!gamepads || !gamepads[0]) {
+      this.gamepadKeys = {};
+      return;
+    }
     const gp = gamepads[0];
 
     // D-pad / Analógico
     const axX = gp.axes[0];
     const axY = gp.axes[1];
-    this.keys['KeyA'] = axX < -0.3 || gp.buttons[14]?.pressed;
-    this.keys['KeyD'] = axX > 0.3 || gp.buttons[15]?.pressed;
-    this.keys['KeyW'] = axY < -0.3 || gp.buttons[12]?.pressed;
-    this.keys['KeyS'] = axY > 0.3 || gp.buttons[13]?.pressed;
+    this.gamepadKeys.left = axX < -0.3 || gp.buttons[14]?.pressed;
+    this.gamepadKeys.right = axX > 0.3 || gp.buttons[15]?.pressed;
+    this.gamepadKeys.up = axY < -0.3 || gp.buttons[12]?.pressed;
+    this.gamepadKeys.down = axY > 0.3 || gp.buttons[13]?.pressed;
 
     // Botões de Ação
-    if (gp.buttons[0]?.pressed && !this.keys['Space']) this.pressed['Space'] = true; // A / X (Pulo)
-    this.keys['Space'] = gp.buttons[0]?.pressed;
-
-    if (gp.buttons[2]?.pressed && !this.keys['KeyK']) this.pressed['KeyK'] = true; // X / Quadrado (Tiro)
-    this.keys['KeyK'] = gp.buttons[2]?.pressed;
-
-    if (gp.buttons[1]?.pressed && !this.keys['KeyL']) this.pressed['KeyL'] = true; // B / Círculo (Granada)
-    this.keys['KeyL'] = gp.buttons[1]?.pressed;
-
-    if (gp.buttons[3]?.pressed && !this.keys['KeyE']) this.pressed['KeyE'] = true; // Y / Triângulo (Slug)
-    this.keys['KeyE'] = gp.buttons[3]?.pressed;
+    const updateGamepadAction = (name, isDown, pressedKey) => {
+      if (isDown && !this.gamepadKeys[name]) this.pressed[pressedKey] = true;
+      this.gamepadKeys[name] = !!isDown;
+    };
+    updateGamepadAction('jump', gp.buttons[0]?.pressed, 'GamepadJump');
+    updateGamepadAction('shoot', gp.buttons[2]?.pressed, 'GamepadShoot');
+    updateGamepadAction('bomb', gp.buttons[1]?.pressed, 'GamepadBomb');
+    updateGamepadAction('enter', gp.buttons[3]?.pressed, 'GamepadEnter');
   }
 }
 
@@ -159,6 +182,7 @@ class Game {
     this.state = 'START'; // 'START', 'PLAYING', 'GAMEOVER', 'VICTORY'
     this.activeTimers = []; // Array para armazenar IDs de timers e evitar memory leak
     this.isPaused = false; // Sistema de pause
+    this.runtimeError = null;
 
     // Modo de Jogo
     this.gameMode = '1P'; // '1P' ou '2P'
@@ -168,6 +192,9 @@ class Game {
     this.players = []; // Array de jogadores para suportar multiplayer
     this.enemies = [];
     this.boss = null;
+    // A ordem dos chefes é controlada em um único lugar. Isso evita que um
+    // chefe derrotado seja criado novamente quando a arena é liberada.
+    this.bossStage = 'MECHAGODZILLA';
     this.dragon = null;
     this.lightningEffects = [];
     this.cinematicActive = false;
@@ -230,6 +257,14 @@ class Game {
   }
 
   init() {
+    const resetFrameTime = () => {
+      this.lastTime = performance.now();
+      if (document.hidden) this.input.reset();
+    };
+    window.addEventListener('resize', resetFrameTime);
+    window.addEventListener('orientationchange', resetFrameTime);
+    document.addEventListener('visibilitychange', resetFrameTime);
+
     // Configuração do Seletor de Modo (1P / 2P)
     this.setupModeSelection();
     
@@ -315,31 +350,53 @@ class Game {
   }
 
   toggleFullscreen() {
-    const doc = document.documentElement;
-    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    // Melhor suporte para celulares e tablets
+    const elem = document.documentElement;
+    const isFullscreen = !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement ||
+      document.webkitIsFullScreen ||
+      document.mozFullScreen
+    );
 
     if (!isFullscreen) {
-      if (doc.requestFullscreen) {
-        doc.requestFullscreen().catch(() => {});
-      } else if (doc.webkitRequestFullscreen) {
-        doc.webkitRequestFullscreen();
-      } else if (doc.mozRequestFullScreen) {
-        doc.mozRequestFullScreen();
-      } else if (doc.msRequestFullscreen) {
-        doc.msRequestFullscreen();
-      }
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(() => {});
+      // Entrar em fullscreen
+      const requestFullscreen =
+        elem.requestFullscreen ||
+        elem.webkitRequestFullscreen ||
+        elem.webkitRequestFullScreen || // iOS Safari
+        elem.mozRequestFullScreen ||
+        elem.msRequestFullscreen;
+
+      if (requestFullscreen) {
+        requestFullscreen.call(elem).then(() => {
+          // Forçar orientação landscape em celulares
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {
+              console.log('Não foi possível travar orientação landscape');
+            });
+          }
+        }).catch((err) => {
+          console.log('Erro ao entrar em fullscreen:', err);
+        });
+      } else {
+        console.log('Fullscreen API não suportada neste dispositivo');
       }
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+      // Sair de fullscreen
+      const exitFullscreen =
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.webkitCancelFullScreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen;
+
+      if (exitFullscreen) {
+        exitFullscreen.call(document).catch((err) => {
+          console.log('Erro ao sair do fullscreen:', err);
+        });
       }
     }
   }
@@ -438,7 +495,8 @@ class Game {
 
   startGame() {
     this.runId++;
-    
+    this.runtimeError = null;
+
     // Limpar todos os timers ativos do jogo anterior (evita memory leak)
     if (this.activeTimers && this.activeTimers.length > 0) {
       this.activeTimers.forEach(timerId => clearTimeout(timerId));
@@ -488,6 +546,7 @@ class Game {
 
     this.enemies = [];
     this.boss = null;
+    this.bossStage = 'MECHAGODZILLA';
     this.dragon = null;
     this.lightningEffects = [];
     this.cinematicActive = false;
@@ -539,26 +598,41 @@ class Game {
   }
 
   gameLoop(currentTime) {
+    // Um erro inesperado não pode matar o requestAnimationFrame e deixar a
+    // página parecendo congelada. A missão fica em pausa e pode ser reiniciada.
+    if (this.runtimeError) {
+      requestAnimationFrame((t) => this.gameLoop(t));
+      return;
+    }
+
     const dt = Math.min((currentTime - this.lastTime) / 1000, 0.1);
     this.lastTime = currentTime;
-    this.time += dt;
+    try {
+      this.time += dt;
+      this.input.updateGamepad();
 
-    this.input.updateGamepad();
+      // Verificar se pause foi pressionado durante o jogo
+      if (this.state === 'PLAYING' && this.input.isPressed('pause')) {
+        this.togglePause();
+      }
 
-    // Verificar se pause foi pressionado durante o jogo
-    if (this.state === 'PLAYING' && this.input.isPressed('pause')) {
-      this.togglePause();
+      // Se está pausado, não atualizar o jogo, apenas renderizar
+      if (this.state === 'PLAYING' && !this.isPaused) {
+        this.update(dt);
+      }
+
+      this.render();
+    } catch (error) {
+      this.runtimeError = error;
+      this.isPaused = true;
+      this.input.reset();
+      debugError('Falha recuperável no loop do jogo:', error);
+      const pauseScreen = document.getElementById('pause-screen');
+      if (pauseScreen) pauseScreen.style.display = 'flex';
+    } finally {
+      this.input.clearPressed();
+      requestAnimationFrame((t) => this.gameLoop(t));
     }
-
-    // Se está pausado, não atualizar o jogo, apenas renderizar
-    if (this.state === 'PLAYING' && !this.isPaused) {
-      this.update(dt);
-    }
-
-    this.render();
-    this.input.clearPressed();
-
-    requestAnimationFrame((t) => this.gameLoop(t));
   }
 
   togglePause() {
@@ -669,8 +743,9 @@ class Game {
       e.update(dt, targetP, this);
     });
 
-    // 4. Checar Spawn do Chefão (MechaGodzilla Titan Boss)
-    if (!this.boss && this.map.bossSpawn && leadPlayerX > this.map.bossSpawn.triggerX && leadPlayerX < (this.map.finalBossSpawn ? this.map.finalBossSpawn.triggerX - 500 : 6000)) {
+    // A progressão de chefes não depende apenas da posição: cada encontro só
+    // pode nascer depois que o anterior tiver sido encerrado.
+    if (this.bossStage === 'MECHAGODZILLA' && !this.boss && this.map.bossSpawn && leadPlayerX > this.map.bossSpawn.triggerX) {
       this.boss = new Boss(this.map.bossSpawn.x, this.map.bossSpawn.y);
       audio.playBossWarning();
       audio.playMechaRoar();
@@ -679,8 +754,7 @@ class Game {
       this.addFloatingText(this.boss.x, this.boss.y - 30, '⚠️ WARNING! MECHAGODZILLA APEX TITAN! ⚠️', '#ff0033', 15);
     }
 
-    // 5. Checar Spawn do King Kong em Nova York (Boss Final Apocalíptico)
-    if (!this.boss && this.map.finalBossSpawn && leadPlayerX > this.map.finalBossSpawn.triggerX) {
+    if (this.bossStage === 'KONG' && !this.boss && this.map.finalBossSpawn && leadPlayerX > this.map.finalBossSpawn.triggerX) {
       this.boss = new KingKongBoss(this.map.finalBossSpawn.x, this.map.finalBossSpawn.y);
       audio.playBossWarning();
       audio.playKongRoar();
@@ -1241,6 +1315,7 @@ class Game {
     }
     
     debugLog('Iniciando cinemática do dragão...');
+    this.bossStage = 'TRANSITION_TO_GHIDORAH';
     this.cinematicActive = true;
     this.finaleElapsed = 0;
     this.projectiles = [];
@@ -1307,6 +1382,7 @@ class Game {
     this.cinematicActive = false;
     this.dragon = null;
     this.finaleElapsed = 0;
+    this.bossStage = 'GHIDORAH';
     
     // Remover invulnerabilidade dos jogadores
     this.players.forEach(player => {
@@ -1324,6 +1400,38 @@ class Game {
     }
     
     debugLog('King Ghidorah Boss spawned successfully at', spawnX, spawnY);
+  }
+
+  completeGhidorahBattle(ghidorah) {
+    if (this.bossStage !== 'GHIDORAH') return;
+
+    // Marcar a próxima etapa antes do intervalo de saída impede um novo
+    // Mechagodzilla caso a câmera seja atualizada nesse intervalo.
+    this.bossStage = 'KONG';
+    const completedRunId = this.runId;
+    const timerId = setTimeout(() => {
+      this.activeTimers = this.activeTimers.filter(id => id !== timerId);
+      if (this.runId !== completedRunId || this.state !== 'PLAYING') return;
+      if (this.boss === ghidorah) this.boss = null;
+      if (this.bossHud) this.bossHud.style.display = 'none';
+      this.addFloatingText(this.camera.x + 480, 120, '🗽 AVANCE PARA NOVA YORK! A BATALHA FINAL COMEÇA! 🗽', '#00ffcc', 18);
+      audio.announce('ADVANCE TO NEW YORK! FINAL MISSION');
+    }, 2200);
+    this.activeTimers.push(timerId);
+  }
+
+  completeKongBattle(kong) {
+    if (this.bossStage !== 'KONG') return;
+
+    this.bossStage = 'COMPLETE';
+    const completedRunId = this.runId;
+    const timerId = setTimeout(() => {
+      this.activeTimers = this.activeTimers.filter(id => id !== timerId);
+      if (this.runId === completedRunId && this.state === 'PLAYING' && this.boss === kong) {
+        this.missionComplete();
+      }
+    }, 2800);
+    this.activeTimers.push(timerId);
   }
 
   finishDragonFinale() {
@@ -1605,7 +1713,6 @@ class Game {
         renderer.drawPlayer(this.ctx, this.camera, p);
       }
     });
-
     // 8. Itens Coletáveis Pickups
     renderer.drawPickups(this.ctx, this.camera, this.pickups);
 

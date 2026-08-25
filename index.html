@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Cyber Classica: Neon Front - Arcade Action</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="apple-touch-icon" href="assets/favicon.svg">
@@ -297,20 +300,20 @@
     <div id="touch-controls">
       <div class="dpad">
         <div></div>
-        <div id="btn-touch-up" class="touch-btn">▲</div>
+        <button id="btn-touch-up" class="touch-btn" type="button" aria-label="Mover para cima">▲</button>
         <div></div>
-        <div id="btn-touch-left" class="touch-btn">◀</div>
+        <button id="btn-touch-left" class="touch-btn" type="button" aria-label="Mover para a esquerda">◀</button>
         <div></div>
-        <div id="btn-touch-right" class="touch-btn">▶</div>
+        <button id="btn-touch-right" class="touch-btn" type="button" aria-label="Mover para a direita">▶</button>
         <div></div>
-        <div id="btn-touch-down" class="touch-btn">▼</div>
+        <button id="btn-touch-down" class="touch-btn" type="button" aria-label="Mover para baixo">▼</button>
         <div></div>
       </div>
       <div class="action-buttons">
-        <div id="btn-touch-enter" class="touch-btn action-btn btn-enter">SLUG</div>
-        <div id="btn-touch-bomb" class="touch-btn action-btn btn-bomb">BOMB</div>
-        <div id="btn-touch-jump" class="touch-btn action-btn btn-jump">JUMP</div>
-        <div id="btn-touch-shoot" class="touch-btn action-btn btn-shoot">FIRE</div>
+        <button id="btn-touch-enter" class="touch-btn action-btn btn-enter" type="button">SLUG</button>
+        <button id="btn-touch-bomb" class="touch-btn action-btn btn-bomb" type="button">BOMB</button>
+        <button id="btn-touch-jump" class="touch-btn action-btn btn-jump" type="button">JUMP</button>
+        <button id="btn-touch-shoot" class="touch-btn action-btn btn-shoot" type="button">FIRE</button>
       </div>
     </div>
   </div>

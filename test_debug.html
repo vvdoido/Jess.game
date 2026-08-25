@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Teste de Carregamento dos Scripts</h1>
+    <div id="status"></div>
+    
+    <script>
+        const status = document.getElementById('status');
+        
+        // Teste 1: Carregar scripts
+        const scripts = [
+            'js/audio.js',
+            'js/renderer.js',
+            'js/entities.js',
+            'js/map.js',
+            'js/game.js'
+        ];
+        
+        let loaded = 0;
+        scripts.forEach(src => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => {
+                loaded++;
+                status.innerHTML += `<p style="color: green;">✓ ${src} carregado</p>`;
+                
+                if (loaded === scripts.length) {
+                    status.innerHTML += '<hr><h2>Testando Classes:</h2>';
+                    
+                    // Testar se as classes existem
+                    try {
+                        const testPlayer = new Player(0, 0, 'claudio', 0);
+                        status.innerHTML += '<p style="color: green;">✓ Player funcionando</p>';
+                    } catch (e) {
+                        status.innerHTML += `<p style="color: red;">✗ Player erro: ${e.message}</p>`;
+                    }
+                    
+                    try {
+                        const testRenderer = new Renderer();
+                        status.innerHTML += '<p style="color: green;">✓ Renderer funcionando</p>';
+                    } catch (e) {
+                        status.innerHTML += `<p style="color: red;">✗ Renderer erro: ${e.message}</p>`;
+                    }
+                    
+                    try {
+                        const testGame = new Game();
+                        status.innerHTML += '<p style="color: green;">✓ Game funcionando</p>';
+                    } catch (e) {
+                        status.innerHTML += `<p style="color: red;">✗ Game erro: ${e.message}</p>`;
+                    }
+                }
+            };
+            script.onerror = () => {
+                status.innerHTML += `<p style="color: red;">✗ Erro ao carregar ${src}</p>`;
+            };
+            document.body.appendChild(script);
+        });
+    </script>
+</body>
+</html>

@@ -2497,20 +2497,10 @@ class KingGhidorahBoss {
       }, i * 110);
     }
 
-    // Após derrotar Ghidorah, o jogador avança para Nova York e enfrenta King Kong!
-    setTimeout(() => {
-      if (g && g.runId === finaleRunId) {
-        // Destravar o boss para permitir que a câmera avance para Nova York
-        g.boss = null;
-        if (g.bossHud) g.bossHud.style.display = 'none';
-        
-        // Anúncio épico de avanço para a Batalha Final
-        if (g.addFloatingText) {
-          g.addFloatingText(g.camera.x + 480, 120, '🗽 AVANCE PARA NOVA YORK! A BATALHA FINAL COMEÇA! 🗽', '#00ffcc', 18);
-        }
-        audio.announce("ADVANCE TO NEW YORK! FINAL MISSION");
-      }
-    }, 2200);
+    // O motor controla a troca de arena para não reabrir chefes anteriores.
+    if (g && g.completeGhidorahBattle) {
+      g.completeGhidorahBattle(this);
+    }
   }
 }
 
@@ -3011,12 +3001,10 @@ class KingKongBoss {
       }, i * 110);
     }
 
-    // VITÓRIA SUPREMA FINAL!
-    setTimeout(() => {
-      if (g && g.runId === finaleRunId && g.missionComplete) {
-        g.missionComplete();
-      }
-    }, 2800);
+    // A conclusão é centralizada no motor, que também bloqueia novos spawns.
+    if (g && g.completeKongBattle) {
+      g.completeKongBattle(this);
+    }
   }
 }
 

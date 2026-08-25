@@ -63,67 +63,8 @@ class GameRenderer {
     });
 
     // Sprites Oficiais do King Kong (O Titã de Manhattan / Final Boss)
-    this.kongSprites = {
-      portrait: new Image(),
-      idle_1: new Image(),
-      idle_2: new Image(),
-      idle_3: new Image(),
-      idle_4: new Image(),
-      walk_1: new Image(),
-      walk_2: new Image(),
-      walk_3: new Image(),
-      walk_4: new Image(),
-      walk_5: new Image(),
-      walk_6: new Image(),
-      run_1: new Image(),
-      run_2: new Image(),
-      run_3: new Image(),
-      roar_1: new Image(),
-      roar_2: new Image(),
-      roar_3: new Image(),
-      roar_4: new Image(),
-      jump_1: new Image(),
-      jump_2: new Image(),
-      jump_3: new Image(),
-      jump_4: new Image(),
-      fall_1: new Image(),
-      fall_2: new Image(),
-      fall_3: new Image(),
-      fall_4: new Image(),
-      punch_1: new Image(),
-      punch_2: new Image(),
-      punch_3: new Image(),
-      punch_4: new Image(),
-      slam_1: new Image(),
-      slam_2: new Image(),
-      slam_3: new Image(),
-      grab_1: new Image(),
-      grab_2: new Image(),
-      grab_3: new Image(),
-      throw_1: new Image(),
-      throw_2: new Image(),
-      throw_3: new Image(),
-      boulder: new Image(),
-      hurt_1: new Image(),
-      hurt_2: new Image(),
-      hurt_3: new Image(),
-      death_1: new Image(),
-      death_2: new Image(),
-      death_3: new Image(),
-      victory: new Image(),
-      loaded: false
-    };
-    const kongKeys = Object.keys(this.kongSprites).filter(k => k !== 'loaded');
-    let loadedKongCount = 0;
-    kongKeys.forEach(k => {
-      this.kongSprites[k].src = `assets/kong/${k}.png`;
-      this.kongSprites[k].onload = () => {
-        loadedKongCount++;
-        if (loadedKongCount >= kongKeys.length) {
-          this.kongSprites.loaded = true;
-        }
-      };
-    });
+    // Sprites do King Kong - TEMPORARIAMENTE DESATIVADO (renderização procedural)
+    this.kongSprites = { loaded: true };
 
     // Partículas ambientais (Pétalas em Tóquio, Vaga-lumes no Brasil, Tempestade no Egito, Cinzas/Fagulhas em Nova York)
     this.ambientParticles = [];
@@ -1070,8 +1011,9 @@ class GameRenderer {
             tokyo: ['#4f107a', '#c026d3', '#240044'],
             brazil: ['#31572c', '#76a743', '#18351a'],
             europe: ['#475569', '#94a3b8', '#1e293b'],
-            egypt: ['#8f5c38', '#f6bd60', '#4a2f16']
-          }[objectBiome];
+            egypt: ['#8f5c38', '#f6bd60', '#4a2f16'],
+            newyork: ['#4b5563', '#9ca3af', '#1f2937']
+          }[objectBiome] || ['#4b5563', '#9ca3af', '#1f2937'];
           const bGrad = ctx.createLinearGradient(0, 0, obj.width, 0);
           bGrad.addColorStop(0, barrelColors[0]);
           bGrad.addColorStop(0.5, barrelColors[1]);
@@ -1087,9 +1029,9 @@ class GameRenderer {
           ctx.fill();
         } else {
           const crateColors = {
-            tokyo: '#1e3a5f', brazil: '#61482b', europe: '#4a5568', egypt: '#a66a3f'
+            tokyo: '#1e3a5f', brazil: '#61482b', europe: '#4a5568', egypt: '#a66a3f', newyork: '#3f4650'
           };
-          ctx.fillStyle = crateColors[objectBiome];
+          ctx.fillStyle = crateColors[objectBiome] || crateColors.newyork;
           ctx.fillRect(0, 0, obj.width, obj.height);
           ctx.strokeStyle = objectBiome === 'egypt' ? '#ffdf7a' : '#3d2b17';
           ctx.lineWidth = 3;
@@ -1154,7 +1096,7 @@ class GameRenderer {
       ctx.rotate(p.facing * 0.15);
       ctx.translate(p.facing * 8, -3);
     }
-    
+
     // Pose de arco para Jessica - MELHORADA!
     if (p.weapon === 'BOW' && charId === 'jessica' && isRunning) {
       ctx.rotate(p.facing * 0.06); // Leve inclinação ao correr com arco
@@ -3359,129 +3301,69 @@ class GameRenderer {
   // --- CHEFÃO SUPREMO FINAL: KING KONG (O REI DE MANHATTAN) ---
   drawKingKong(ctx, camera, boss) {
     if (!boss) return;
-    const s = this.kongSprites;
-    const isLoaded = s && s.loaded;
-
+    // RENDERIZAÇÃO PROCEDURAL TEMPORÁRIA (até termos as sprites)
     ctx.save();
-    const renderX = boss.cinematicX ?? boss.x;
-    const renderY = boss.cinematicY ?? boss.y;
-    const posX = renderX - camera.x + boss.width / 2 + (boss.recoilX || 0);
-    const posY = renderY - camera.y + boss.height / 2;
+    const renderX = (boss.cinematicX ?? boss.x) + boss.width / 2 + (boss.recoilX || 0);
+    const renderY = (boss.cinematicY ?? boss.y) + boss.height / 2 + (boss.bodyBob || 0);
+    const screenX = renderX - camera.x;
+    const screenY = renderY - camera.y;
 
-    ctx.translate(posX, posY);
-    ctx.rotate(boss.cinematicTilt || 0);
-    ctx.scale(boss.cinematicScale || 1, boss.cinematicScale || 1);
-    ctx.globalAlpha = boss.cinematicOpacity ?? 1;
+    ctx.translate(screenX, screenY);
+    ctx.scale(boss.facing, 1);
+    ctx.rotate(boss.impactTilt || 0);
 
     // Flash de dano
     if (boss.flashTimer > 0) {
-      ctx.filter = 'brightness(2.5) saturate(1.8)';
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = '#ff0000';
     }
 
-    // 1. Sombra Gigantesca no Asfalto de Manhattan
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    // Corpo do Kong (Gorila gigante)
+    ctx.fillStyle = '#3d2817';
+    ctx.fillRect(-80, -120, 160, 240); // Corpo
+
+    // Cabeça
+    ctx.fillStyle = '#2d1d0f';
     ctx.beginPath();
-    ctx.ellipse(0, boss.height / 2 - 8, boss.width / 2 + 25, 22, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -140, 60, 70, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Aura de Fúria / Berserker (Fase 3)
-    if (boss.phase === 3 || boss.isBerserker) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      ctx.shadowColor = '#ff2200';
-      ctx.shadowBlur = 28;
-      const auraPulse = Math.sin(this.time * 12) * 8;
-      ctx.fillStyle = 'rgba(255, 50, 0, 0.22)';
-      ctx.beginPath();
-      ctx.ellipse(0, -10, boss.width / 2 + 18 + auraPulse, boss.height / 2 + 18 + auraPulse, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
+    // Olhos (vermelhos quando em berserker)
+    ctx.fillStyle = boss.isBerserker ? '#ff0000' : '#ffcc00';
+    ctx.beginPath();
+    ctx.arc(-20, -150, 8, 0, Math.PI * 2);
+    ctx.arc(20, -150, 8, 0, Math.PI * 2);
+    ctx.fill();
 
-    ctx.save();
-    // Inverter direção visual
-    ctx.scale(boss.facing || -1, 1);
+    // Boca rugindo
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(0, -130, 15, 0, Math.PI);
+    ctx.fill();
 
-    // Micro-deslocamento dinâmico e respiração
-    const bob = boss.bodyBob || 0;
-    const tilt = boss.impactTilt || 0;
-    ctx.translate(0, bob);
-    if (tilt) ctx.rotate(tilt * (boss.facing || -1));
+    // Braços musculosos
+    ctx.fillStyle = '#3d2817';
+    ctx.fillRect(-100, -80, 40, 120); // Braço esquerdo
+    ctx.fillRect(60, -80, 40, 120); // Braço direito
 
-    // Seleção de Sprite de Alta Definição
-    let sprite = s.idle_1;
+    // Pernas
+    ctx.fillRect(-70, 60, 50, 100);
+    ctx.fillRect(20, 60, 50, 100);
 
-    if (isLoaded) {
-      const state = boss.state;
-      const animTime = boss.animTime || 0;
-      const timer = boss.stateTimer || 0;
-
-      if (state === 'INTRO_ROAR') {
-        const roarCycle = [s.roar_1, s.roar_2, s.roar_3, s.roar_4];
-        sprite = roarCycle[Math.floor(animTime * 6) % roarCycle.length] || s.roar_3;
-      } else if (state === 'IDLE') {
-        const idleCycle = [s.idle_1, s.idle_2, s.idle_3, s.idle_4, s.idle_3, s.idle_2];
-        sprite = idleCycle[Math.floor(animTime * 4.5) % idleCycle.length] || s.idle_1;
-      } else if (state === 'WALK') {
-        const walkCycle = [s.walk_1, s.walk_2, s.walk_3, s.walk_4, s.walk_5, s.walk_6];
-        sprite = walkCycle[Math.floor(animTime * 7) % walkCycle.length] || s.walk_1;
-      } else if (state === 'RUN') {
-        const runCycle = [s.run_1, s.run_2, s.run_3, s.run_2];
-        sprite = runCycle[Math.floor(animTime * 10) % runCycle.length] || s.run_1;
-      } else if (state === 'ROAR_TAUNT') {
-        const roarCycle = [s.roar_2, s.roar_3, s.roar_4, s.roar_3];
-        sprite = roarCycle[Math.floor(animTime * 8) % roarCycle.length] || s.roar_3;
-      } else if (state === 'CHEST_POUND') {
-        sprite = s.victory || s.roar_3;
-      } else if (state === 'PUNCH_COMBO') {
-        const punchCycle = [s.punch_1, s.punch_2, s.punch_3, s.punch_4];
-        sprite = punchCycle[Math.floor(animTime * 8) % punchCycle.length] || s.punch_2;
-      } else if (state === 'GROUND_SLAM') {
-        if (timer > 0.7) sprite = s.slam_1;
-        else if (timer > 0.25) sprite = s.slam_2;
-        else sprite = s.slam_3;
-      } else if (state === 'THROW_BOULDER' || state === 'THROW_CAR') {
-        if (timer > 0.6) sprite = s.throw_1;
-        else if (timer > 0.2) sprite = s.throw_2;
-        else sprite = s.throw_3;
-      } else if (state === 'HURT') {
-        const hurtCycle = [s.hurt_1, s.hurt_2, s.hurt_3];
-        sprite = hurtCycle[Math.floor(animTime * 9) % hurtCycle.length] || s.hurt_2;
-      } else if (state === 'DYING') {
-        if (timer > 1.6) sprite = s.death_1;
-        else if (timer > 0.8) sprite = s.death_2;
-        else sprite = s.death_3;
-      } else {
-        sprite = s.idle_1;
-      }
-
-      // Desenhar o Sprite renderizado
-      const sprScale = boss.spriteScale || 2.4;
-      const sw = (sprite.width || 80) * sprScale;
-      const sh = (sprite.height || 95) * sprScale;
-      ctx.drawImage(sprite, -sw / 2, -sh / 2 + (boss.height / 2 - sh / 2), sw, sh);
-
-      // Olhos Brilhantes Ameaçadores do King Kong (Fase 2 e 3)
-      if (boss.phase >= 2) {
-        const eyeX = 22;
-        const eyeY = -60 + (boss.bodyBob || 0);
-        ctx.fillStyle = boss.phase === 3 ? '#ff0000' : '#ff9900';
-        ctx.shadowColor = ctx.fillStyle;
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(eyeX, eyeY, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-
-    } else {
-      // Fallback
-      ctx.fillStyle = '#4a2810';
-      ctx.fillRect(-boss.width / 2, -boss.height / 2, boss.width, boss.height);
-    }
+    // Label do boss
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#8b4513';
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('KING KONG', 0, -180);
 
     ctx.restore();
-    ctx.restore();
+
+    // Sombra
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(screenX, renderY + 140, 80, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // --- DRAGÃO TRICÉFALO — CENA FINAL ORGÂNICA ---
