@@ -669,9 +669,35 @@ class Game {
       this.runtimeError = error;
       this.isPaused = true;
       this.input.reset();
-      debugError('Falha recuperável no loop do jogo:', error);
+      
+      // Log detalhado do erro para debug
+      debugError('=== ERRO CRÍTICO NO LOOP DO JOGO ===');
+      debugError('Mensagem:', error.message);
+      debugError('Stack:', error.stack);
+      debugError('Estado atual:', this.state);
+      debugError('Boss existe?', !!this.boss);
+      if (this.boss) {
+        debugError('Boss tipo:', this.boss.type || 'MECHAGODZILLA');
+        debugError('Boss morto?', this.boss.isDead);
+        debugError('Boss isGhidorah?', this.boss.isGhidorah);
+        debugError('Boss isKingKong?', this.boss.isKingKong);
+      }
+      debugError('Cinemática ativa?', this.cinematicActive);
+      debugError('Dragão existe?', !!this.dragon);
+      debugError('=====================================');
+      
       const pauseScreen = document.getElementById('pause-screen');
-      if (pauseScreen) pauseScreen.style.display = 'flex';
+      if (pauseScreen) {
+        pauseScreen.innerHTML = `
+          <h1 class="game-title-logo" style="color: #ff3333;">⚠️ ERRO NO JOGO</h1>
+          <p class="subtitle" style="color: #ffcc00;">Ocorreu um erro: ${error.message}</p>
+          <div class="menu-card">
+            <p style="color: #88a0c7; font-size: 10px;">Aperte F12 e veja o Console para mais detalhes</p>
+          </div>
+          <button onclick="location.reload()" class="btn-arcade">🔄 RECARREGAR PÁGINA</button>
+        `;
+        pauseScreen.style.display = 'flex';
+      }
     } finally {
       this.input.clearPressed();
       requestAnimationFrame((t) => this.gameLoop(t));
@@ -798,6 +824,11 @@ class Game {
     }
 
     if (this.bossStage === 'KONG' && !this.boss && this.map.finalBossSpawn && leadPlayerX > this.map.finalBossSpawn.triggerX) {
+      // Limpar qualquer flash cinematográfico residual da fase do Ghidorah
+      this.cinematicFlash = 0;
+      this.cinematicFlashColor = '#ffffff';
+      this.lightningEffects = [];
+      
       this.boss = new KingKongBoss(this.map.finalBossSpawn.x, this.map.finalBossSpawn.y);
       audio.playBossWarning();
       audio.playKongRoar();
@@ -822,17 +853,19 @@ class Game {
       }
     }
 
-    // A cinemática é atualizada pelo motor, não por timers soltos: assim as
-    // asas, a carcaça carregada e o mergulho respeitam cada frame do jogo.
-    if (this.dragon && this.dragon.state !== 'DONE') {
-      // Verificar se o boss ainda existe antes de atualizar o dragão
-      if (this.boss && !this.boss.isGhidorah) {
+    // A cinemática do dragão só deve ser atualizada se cinematicActive estiver true
+    // (isso evita conflitos com beginGhidorahTransition que não cria dragão)
+    if (this.cinematicActive && this.dragon && this.dragon.state !== 'DONE' && this.dragon.update) {
+      try {
+        // A cinemática é atualizada pelo motor, não por timers soltos
         this.dragon.update(dt, this);
-      } else if (!this.boss) {
-        // Se o boss foi removido, pular para o Ghidorah
-        debugWarn('Boss foi removido durante cinemática, spawnando Ghidorah');
+      } catch (dragonError) {
+        debugError('Erro ao atualizar dragão durante cinemática:', dragonError);
         this.dragon = null;
-        this.spawnGhidorahBoss();
+        this.cinematicActive = false;
+        if (!this.boss || !this.boss.isGhidorah) {
+          this.spawnGhidorahBoss();
+        }
       }
     }
 
@@ -944,6 +977,14 @@ class Game {
   updateProjectiles(dt) {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
+      
+      // Proteção contra projéteis undefined ou inválidos
+      if (!p || typeof p.update !== 'function') {
+        debugWarn(`Projétil inválido no índice ${i}, removendo`);
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+      
       const alive = p.update(dt, this);
       if (!alive) {
         if (p.type === 'grenade' || p.type === 'slug_cannon') {
@@ -1115,9 +1156,20 @@ class Game {
   updateFinaleCinematic(dt) {
     this.finaleElapsed += dt;
     
+    // Verificar se ainda temos um dragão válido
+    if (!this.dragon || !this.dragon.update) {
+      debugWarn('Dragão não encontrado ou inválido durante cinemática, forçando spawn do Ghidorah');
+      this.cinematicActive = false;
+      this.dragon = null;
+      this.spawnGhidorahBoss();
+      return;
+    }
+    
     // Verificar se ainda temos um boss válido antes de tentar atualizar o dragão
     if (!this.boss) {
       debugWarn('Boss não encontrado durante cinemática, forçando spawn do Ghidorah');
+      this.cinematicActive = false;
+      this.dragon = null;
       this.spawnGhidorahBoss();
       return;
     }
@@ -1128,6 +1180,8 @@ class Game {
       }
     } catch (error) {
       debugError('Falha na cinemática do dragão:', error);
+      this.cinematicActive = false;
+      this.dragon = null;
       this.spawnGhidorahBoss();
       return;
     }
@@ -1400,10 +1454,24 @@ class Game {
     // A antiga cena do dragão foi removida: ela era a origem do travamento
     // pós-morte. A troca mantém apenas impacto visual curto e segue o jogo.
     this.bossStage = 'TRANSITION_TO_GHIDORAH';
-    this.cinematicActive = false;
-    this.dragon = null;
+    
+    // IMPORTANTE: Verificar se existe dragon ANTES de limpar referências
+    const hasDragonCinematic = this.dragon && this.dragon.state !== 'DONE';
+    
+    if (!hasDragonCinematic) {
+      // Não há cinemática do dragão, podemos limpar tudo
+      this.cinematicActive = false;
+      this.dragon = null;
+      if (this.boss === defeatedBoss) this.boss = null;
+    } else {
+      // Há cinemática do dragão ativa, manter referências mas marcar como escondido
+      debugLog('Mantendo referência do boss para cinemática do dragão');
+      if (this.boss === defeatedBoss) {
+        this.boss.hiddenByDragon = true;
+      }
+    }
+    
     this.projectiles = [];
-    if (this.boss === defeatedBoss) this.boss = null;
     if (this.bossHud) this.bossHud.style.display = 'none';
 
     const x = defeatedBoss ? defeatedBoss.x + defeatedBoss.width / 2 : this.camera.x + this.canvas.width * 0.7;
@@ -1829,3 +1897,4 @@ window.addEventListener('DOMContentLoaded', () => {
   window.gameEngine = new Game();
   window.game = window.gameEngine;
 });
+

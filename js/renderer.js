@@ -63,8 +63,49 @@ class GameRenderer {
     });
 
     // Sprites Oficiais do King Kong (O Titã de Manhattan / Final Boss)
-    // Sprites do King Kong - TEMPORARIAMENTE DESATIVADO (renderização procedural)
-    this.kongSprites = { loaded: true };
+    this.kongSprites = {
+      idle: [],
+      walk: [],
+      run: [],
+      punch: [],
+      slam: [],
+      throw: [],
+      roar: [],
+      hurt: [],
+      death: [],
+      jump: [],
+      loaded: false
+    };
+    
+    // Carregar sprites do Kong
+    const kongStates = ['idle', 'walk', 'run', 'punch', 'slam', 'throw', 'roar', 'hurt', 'death', 'jump'];
+    const kongFrameCounts = { idle: 4, walk: 6, run: 3, punch: 4, slam: 3, throw: 3, roar: 4, hurt: 3, death: 3, jump: 4 };
+    
+    let kongLoadCount = 0;
+    const totalKongFrames = Object.values(kongFrameCounts).reduce((a, b) => a + b, 0);
+    
+    kongStates.forEach(state => {
+      const frameCount = kongFrameCounts[state];
+      for (let i = 1; i <= frameCount; i++) {
+        const img = new Image();
+        img.onload = () => {
+          kongLoadCount++;
+          if (kongLoadCount === totalKongFrames) {
+            this.kongSprites.loaded = true;
+            console.log('✅ King Kong sprites carregados!');
+          }
+        };
+        img.onerror = () => {
+          console.warn(`⚠️ Erro ao carregar kong/${state}_${i}.png`);
+          kongLoadCount++;
+          if (kongLoadCount === totalKongFrames) {
+            this.kongSprites.loaded = true;
+          }
+        };
+        img.src = `assets/kong/${state}_${i}.png`;
+        this.kongSprites[state].push(img);
+      }
+    });
 
     // Partículas ambientais (Pétalas em Tóquio, Vaga-lumes no Brasil, Tempestade no Egito, Cinzas/Fagulhas em Nova York)
     this.ambientParticles = [];
@@ -3301,68 +3342,128 @@ class GameRenderer {
   // --- CHEFÃO SUPREMO FINAL: KING KONG (O REI DE MANHATTAN) ---
   drawKingKong(ctx, camera, boss) {
     if (!boss) return;
-    // RENDERIZAÇÃO PROCEDURAL TEMPORÁRIA (até termos as sprites)
-    ctx.save();
-    const renderX = (boss.cinematicX ?? boss.x) + boss.width / 2 + (boss.recoilX || 0);
-    const renderY = (boss.cinematicY ?? boss.y) + boss.height / 2 + (boss.bodyBob || 0);
+    
+    const renderX = (boss.cinematicX ?? boss.x) + (boss.recoilX || 0);
+    const renderY = (boss.cinematicY ?? boss.y) + (boss.bodyBob || 0);
     const screenX = renderX - camera.x;
     const screenY = renderY - camera.y;
-
-    ctx.translate(screenX, screenY);
-    ctx.scale(boss.facing, 1);
-    ctx.rotate(boss.impactTilt || 0);
-
-    // Flash de dano
-    if (boss.flashTimer > 0) {
-      ctx.globalAlpha = 0.5;
-      ctx.fillStyle = '#ff0000';
-    }
-
-    // Corpo do Kong (Gorila gigante)
-    ctx.fillStyle = '#3d2817';
-    ctx.fillRect(-80, -120, 160, 240); // Corpo
-
-    // Cabeça
-    ctx.fillStyle = '#2d1d0f';
-    ctx.beginPath();
-    ctx.ellipse(0, -140, 60, 70, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Olhos (vermelhos quando em berserker)
-    ctx.fillStyle = boss.isBerserker ? '#ff0000' : '#ffcc00';
-    ctx.beginPath();
-    ctx.arc(-20, -150, 8, 0, Math.PI * 2);
-    ctx.arc(20, -150, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Boca rugindo
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(0, -130, 15, 0, Math.PI);
-    ctx.fill();
-
-    // Braços musculosos
-    ctx.fillStyle = '#3d2817';
-    ctx.fillRect(-100, -80, 40, 120); // Braço esquerdo
-    ctx.fillRect(60, -80, 40, 120); // Braço direito
-
-    // Pernas
-    ctx.fillRect(-70, 60, 50, 100);
-    ctx.fillRect(20, 60, 50, 100);
-
-    // Label do boss
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#8b4513';
-    ctx.font = 'bold 12px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('KING KONG', 0, -180);
-
-    ctx.restore();
 
     // Sombra
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.beginPath();
-    ctx.ellipse(screenX, renderY + 140, 80, 20, 0, 0, Math.PI * 2);
+    ctx.ellipse(screenX + boss.width / 2, screenY + boss.height + 10, boss.width * 0.4, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(screenX, screenY);
+
+    // Flash de dano
+    if (boss.flashTimer > 0) {
+      ctx.globalAlpha = 0.7 + Math.sin(boss.flashTimer * 30) * 0.3;
+      ctx.filter = 'brightness(2) saturate(0.3)';
+    }
+
+    // Selecionar sprite baseado no estado
+    let spriteArray = this.kongSprites.idle;
+    let frameIndex = 0;
+    
+    if (this.kongSprites.loaded) {
+      switch (boss.state) {
+        case 'WALK':
+          spriteArray = this.kongSprites.walk;
+          frameIndex = Math.floor((boss.animTimer || 0) * 8) % spriteArray.length;
+          break;
+        case 'PUNCH_COMBO':
+        case 'PUNCH_LEFT':
+        case 'PUNCH_RIGHT':
+          spriteArray = this.kongSprites.punch;
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 10), spriteArray.length - 1);
+          break;
+        case 'GROUND_SLAM':
+          spriteArray = this.kongSprites.slam;
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 8), spriteArray.length - 1);
+          break;
+        case 'THROW_BOULDER':
+        case 'THROW_CAR':
+          spriteArray = this.kongSprites.throw;
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 7), spriteArray.length - 1);
+          break;
+        case 'CHEST_POUND':
+        case 'BERSERKER_ROAR':
+          spriteArray = this.kongSprites.roar;
+          frameIndex = Math.floor((boss.stateTimer || 0) * 6) % spriteArray.length;
+          break;
+        case 'HURT':
+          spriteArray = this.kongSprites.hurt;
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 8), spriteArray.length - 1);
+          break;
+        case 'DYING':
+          spriteArray = this.kongSprites.death;
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 5), spriteArray.length - 1);
+          break;
+        case 'LEAP':
+          spriteArray = this.kongSprites.jump;
+          frameIndex = Math.floor((boss.stateTimer || 0) * 6) % spriteArray.length;
+          break;
+        case 'RUN':
+          spriteArray = this.kongSprites.run;
+          frameIndex = Math.floor((boss.animTimer || 0) * 12) % spriteArray.length;
+          break;
+        default: // IDLE
+          spriteArray = this.kongSprites.idle;
+          frameIndex = Math.floor((boss.animTimer || 0) * 4) % spriteArray.length;
+          break;
+      }
+
+      const sprite = spriteArray[frameIndex];
+      if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+        const spriteScale = boss.spriteScale || 2.0;
+        const w = sprite.width * spriteScale;
+        const h = sprite.height * spriteScale;
+        
+        ctx.save();
+        ctx.translate(boss.width / 2, boss.height / 2);
+        ctx.scale(boss.facing, 1);
+        ctx.rotate(boss.impactTilt || 0);
+        ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+        ctx.restore();
+      } else {
+        // Fallback se sprite não carregou
+        this.drawKongFallback(ctx, boss);
+      }
+    } else {
+      // Fallback enquanto carrega
+      this.drawKongFallback(ctx, boss);
+    }
+
+    ctx.restore();
+
+    // Nome do boss
+    ctx.fillStyle = '#8b4513';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.strokeText('KING KONG', screenX + boss.width / 2, screenY - 15);
+    ctx.fillText('KING KONG', screenX + boss.width / 2, screenY - 15);
+  }
+  
+  // Renderização de fallback simples para Kong
+  drawKongFallback(ctx, boss) {
+    ctx.fillStyle = '#3d2817';
+    ctx.fillRect(boss.width * 0.2, boss.height * 0.1, boss.width * 0.6, boss.height * 0.8);
+    
+    // Cabeça
+    ctx.fillStyle = '#2d1d0f';
+    ctx.beginPath();
+    ctx.arc(boss.width / 2, boss.height * 0.15, boss.width * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Olhos
+    ctx.fillStyle = boss.isBerserker ? '#ff0000' : '#ffcc00';
+    ctx.beginPath();
+    ctx.arc(boss.width * 0.4, boss.height * 0.12, 6, 0, Math.PI * 2);
+    ctx.arc(boss.width * 0.6, boss.height * 0.12, 6, 0, Math.PI * 2);
     ctx.fill();
   }
 

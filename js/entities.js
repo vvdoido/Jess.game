@@ -63,7 +63,7 @@ class Player {
       // Claudio: Nordic Warrior & Wielder of the Leviathan Axe
       this.speed = 5.2; // Mais rápido e ágil
       this.grenades = 15;
-      this.meleeDamage = 220; // Dano ÉPICO de Machado
+      this.meleeDamage = 350; // Dano DEVASTADOR de Machado (aumentado para compensar luta corpo a corpo)
       this.meleeRange = 75; // Alcance estendido
       this.hasWarPaint = true;
       this.weapon = 'AXE'; // Claudio empunha o Machado Nórdico!
@@ -78,6 +78,9 @@ class Player {
       this.ammo = 180;
       this.pickupMultiplier = 1.35;
       this.bowCombo = 0;
+      this.damageResistance = 0.75; // Resistência aumentada (recebe 25% menos dano)
+      this.maxHp = 120; // HP aumentado de 100 para 120
+      this.hp = 120; // Iniciar com HP cheio
     } else if (this.characterId === 'marco') {
       // Marco: Burst Fire (Maior cadência de tiro)
       this.speed = 4.2;
@@ -1838,7 +1841,7 @@ class DragonCinematic {
 
   update(dt, game) {
     // Verificação de segurança: se não temos mais um boss válido, pular para DONE
-    if (!this.boss) {
+    if (!this.boss || this.boss.hiddenByDragon) {
       if (typeof debugWarn !== 'undefined') debugWarn('Boss não encontrado no DragonCinematic, pulando para DONE');
       this.state = 'DONE';
       if (game && game.spawnGhidorahBoss) {
@@ -1855,6 +1858,17 @@ class DragonCinematic {
     this.headPhase += dt * 5;
 
     const boss = this.boss;
+    
+    // Verificação adicional após atribuir boss
+    if (!boss || typeof boss.x === 'undefined' || typeof boss.y === 'undefined') {
+      if (typeof debugWarn !== 'undefined') debugWarn('Boss perdeu propriedades essenciais, finalizando cinemática');
+      this.state = 'DONE';
+      if (game && game.spawnGhidorahBoss) {
+        game.spawnGhidorahBoss();
+      }
+      return;
+    }
+    
     const easeOut = t => 1 - Math.pow(1 - Math.min(1, t), 3);
 
     if (this.state === 'APPROACH') {
@@ -2538,6 +2552,7 @@ class KingKongBoss {
     this.state = 'INTRO_ROAR';
     this.stateTimer = 2.5;
     this.attackCooldown = 0.7;
+    this.animTimer = 0; // Para animação de sprites
 
     this.vx = 0;
     this.vy = 0;
@@ -2571,6 +2586,7 @@ class KingKongBoss {
 
   update(dt, player, game) {
     this.animTime += dt;
+    this.animTimer = this.animTime; // Sincronizar com o renderer
     if (this.flashTimer > 0) this.flashTimer -= dt;
     if (this.stateTimer > 0) this.stateTimer -= dt;
     if (this.attackCooldown > 0) this.attackCooldown -= dt;
