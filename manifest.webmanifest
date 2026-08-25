@@ -2,7 +2,7 @@
   "name": "Cyber Classica: Neon Front",
   "short_name": "Cyber Classica",
   "description": "Jogo arcade de ação tático em estilo retrô com gráficos neon cyberpunk",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#08090d",

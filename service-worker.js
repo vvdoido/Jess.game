@@ -1,19 +1,19 @@
 const CACHE_NAME = 'cyber-classica-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/game.js',
-  '/js/entities.js',
-  '/js/renderer.js',
-  '/js/audio.js',
-  '/js/map.js',
-  '/manifest.webmanifest',
-  '/assets/favicon.svg',
-  '/assets/icon-180x180.png',
-  '/assets/icon-192x192.png',
-  '/assets/icon-512x512.png',
-  '/assets/cyber-classica-home.png'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/game.js',
+  './js/entities.js',
+  './js/renderer.js',
+  './js/audio.js',
+  './js/map.js',
+  './manifest.webmanifest',
+  './assets/favicon.svg',
+  './assets/icon-180x180.png',
+  './assets/icon-192x192.png',
+  './assets/icon-512x512.png',
+  './assets/cyber-classica-home.png'
 ];
 
 self.addEventListener('install', event => {
