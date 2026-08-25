@@ -679,7 +679,7 @@ class Player {
     game.addFloatingText(this.x, this.y - 25, '🏹 CHUVA DE FLECHAS! 🏹', '#00d9ff', 15);
 
     // Dispara 10 flechas de plasma do céu caindo em leque
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 6; i++) {
       setTimeout(() => {
         const arrowX = this.x - 100 + i * 50;
         game.projectiles.push(new Projectile(arrowX, -30, (Math.random() - 0.5) * 2, 16, 'arrow', 60, true, 8, 1.5));
@@ -1196,10 +1196,11 @@ class Boss {
     this.baseY = y;
     this.width = 260; // Titã Imponente e Gigantesco
     this.height = 240;
-    // Vida calibrada para uma luta de chefe: ataques especiais ainda causam
-    // impacto, mas não encerram a batalha em poucos segundos.
-    this.hp = 7600;
-    this.maxHp = 7600;
+    // O primeiro titã precisa aguentar uma luta completa. Golpes comuns
+    // continuam respondendo imediatamente, enquanto ataques de execução não
+    // eliminam o chefe em poucos usos.
+    this.hp = 21000;
+    this.maxHp = 21000;
     this.flashTimer = 0;
     this.phase = 1;
     this.isDead = false;
@@ -1209,7 +1210,7 @@ class Boss {
     // 'INTRO', 'IDLE', 'WALK', 'RUSH', 'PREPARE_LASER', 'FIRE_LASER', 'RECOIL_LASER', 'MISSILE_SALVO', 'TITAN_STOMP', 'DYING'
     this.state = 'INTRO';
     this.stateTimer = 1.4;
-    this.attackCooldown = 2.0;
+    this.attackCooldown = 1.45;
 
     // Movimentação, Física e Inércia - MELHORADA PARA SER MAIS FLUIDA!
     this.vx = 0;
@@ -1707,13 +1708,14 @@ class Boss {
   }
 
   damagePlayersNear(x, y, radius, damage, game) {
+    const titanDamage = Math.round(damage * (this.phase === 3 ? 1.22 : 1.12));
     game.players.forEach(player => {
       if (player.isDead || player.isInvulnerable) return;
       const target = player.inSlug && player.slugRef ? player.slugRef : player;
       const centerX = target.x + target.width / 2;
       const centerY = target.y + target.height / 2;
       if (Math.hypot(centerX - x, centerY - y) <= radius) {
-        player.takeDamage(damage, game);
+        player.takeDamage(titanDamage, game);
         game.spawnDust(centerX, target.y + target.height);
       }
     });
@@ -1735,9 +1737,13 @@ class Boss {
   takeDamage(amount, arg2, arg3) {
     if (this.isDead) return;
     const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
-    this.hp -= amount;
+    // Execuções e ataques especiais chegam com números muito maiores que os
+    // tiros normais. Sem esta contenção, dois ou três especiais pulavam toda
+    // a luta do Mechagodzilla.
+    const effectiveDamage = amount >= 300 ? Math.round(amount * 0.35) : Math.round(amount * 0.85);
+    this.hp -= effectiveDamage;
     this.flashTimer = 0.08;
-    const impactStrength = Math.min(1, amount / 360);
+    const impactStrength = Math.min(1, effectiveDamage / 360);
     this.recoilX += (this.facing === -1 ? 3 : -3) * (1 + impactStrength * 1.8);
     this.impactWobble = Math.min(1.2, this.impactWobble + impactStrength);
     this.impactTilt += -this.facing * impactStrength * 0.13;
@@ -1774,7 +1780,7 @@ class Boss {
     audio.playMechaRoar();
 
     // Armazenar IDs dos timers para limpeza posterior (evita memory leak)
-    if (!g.activeTimers) g.activeTimers = [];
+    if (g && !g.activeTimers) g.activeTimers = [];
     
     for (let i = 0; i < 10; i++) {
       const timerId = setTimeout(() => {
@@ -1791,8 +1797,8 @@ class Boss {
       }
     }
 
-    if (g && g.startDragonFinale) {
-      g.startDragonFinale(this);
+    if (g && g.beginGhidorahTransition) {
+      g.beginGhidorahTransition(this);
     } else if (g && g.spawnGhidorahBoss) {
       g.spawnGhidorahBoss();
     } else if (g && g.missionComplete) {
@@ -1948,8 +1954,8 @@ class KingGhidorahBoss {
     this.height = 250;
     this.spriteScale = 1.7;
 
-    this.hp = 9500;
-    this.maxHp = 9500;
+    this.hp = 26000;
+    this.maxHp = 26000;
     this.flashTimer = 0;
     this.phase = 1;
     this.isDead = false;
@@ -1961,7 +1967,7 @@ class KingGhidorahBoss {
     // Estados de Combate: 'INTRO_LANDING', 'IDLE', 'BATTLE_STANCE', 'WALK', 'ROAR', 'GRAVITY_BEAMS', 'GROUND_SWEEP_BEAMS', 'GOLDEN_TORNADO', 'ENERGY_BURST', 'ASCEND', 'AERIAL_HOVER', 'AERIAL_SWOOP', 'HURT_STAGGER', 'DYING'
     this.state = 'INTRO_LANDING';
     this.stateTimer = 2.2;
-    this.attackCooldown = 1.2;
+    this.attackCooldown = 0.85;
 
     this.vx = 0;
     this.vy = 0;
@@ -2428,13 +2434,14 @@ class KingGhidorahBoss {
   }
 
   damagePlayersNear(x, y, radius, damage, game) {
+    const titanDamage = Math.round(damage * (this.phase === 3 ? 1.22 : 1.12));
     game.players.forEach(player => {
       if (player.isDead || player.isInvulnerable) return;
       const target = player.inSlug && player.slugRef ? player.slugRef : player;
       const cx = target.x + target.width / 2;
       const cy = target.y + target.height / 2;
       if (Math.hypot(cx - x, cy - y) <= radius) {
-        player.takeDamage(damage, game);
+        player.takeDamage(titanDamage, game);
         game.spawnDust(cx, target.y + target.height);
       }
     });
@@ -2453,7 +2460,8 @@ class KingGhidorahBoss {
   takeDamage(amount, arg2, arg3) {
     if (this.isDead) return;
     const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
-    this.hp -= amount;
+    const effectiveDamage = amount >= 300 ? Math.round(amount * 0.42) : Math.round(amount * 0.82);
+    this.hp -= effectiveDamage;
     this.flashTimer = 0.08;
     this.recoilX += (this.facing === -1 ? 2.5 : -2.5);
 
@@ -2516,8 +2524,8 @@ class KingKongBoss {
     this.height = 270;
     this.spriteScale = 2.2;
 
-    this.hp = 12000;
-    this.maxHp = 12000;
+    this.hp = 32000;
+    this.maxHp = 32000;
     this.flashTimer = 0;
     this.phase = 1;
     this.isDead = false;
@@ -2529,7 +2537,7 @@ class KingKongBoss {
     // Estados: 'INTRO_ROAR', 'IDLE', 'WALK', 'RUN', 'ROAR_TAUNT', 'CHEST_POUND', 'PUNCH_COMBO', 'GROUND_SLAM', 'THROW_BOULDER', 'THROW_CAR', 'HURT', 'DYING'
     this.state = 'INTRO_ROAR';
     this.stateTimer = 2.5;
-    this.attackCooldown = 1.0;
+    this.attackCooldown = 0.7;
 
     this.vx = 0;
     this.vy = 0;
@@ -2925,13 +2933,14 @@ class KingKongBoss {
   }
 
   damageNearbyPlayers(x, y, radius, damage, game) {
+    const titanDamage = Math.round(damage * (this.phase === 3 ? 1.28 : 1.15));
     game.players.forEach(player => {
       if (player.isDead || player.isInvulnerable) return;
       const target = player.inSlug && player.slugRef ? player.slugRef : player;
       const cx = target.x + target.width / 2;
       const cy = target.y + target.height / 2;
       if (Math.hypot(cx - x, cy - y) <= radius) {
-        player.takeDamage(damage, game);
+        player.takeDamage(titanDamage, game);
         game.spawnDust(cx, target.y + target.height);
       }
     });
@@ -2952,7 +2961,8 @@ class KingKongBoss {
   takeDamage(amount, arg2, arg3) {
     if (this.isDead) return;
     const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
-    this.hp -= amount;
+    const effectiveDamage = amount >= 300 ? Math.round(amount * 0.4) : Math.round(amount * 0.8);
+    this.hp -= effectiveDamage;
     this.flashTimer = 0.08;
     this.recoilX += (this.facing === -1 ? 3 : -3);
 

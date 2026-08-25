@@ -772,9 +772,10 @@ class Game {
         this.boss.update(dt, targetP, this);
       }
 
-      // Salvaguarda: Se o MechaGodzilla foi derrotado e a cinemática ainda não iniciou, dispara agora
+      // Compatibilidade com sessões antigas: a transição atual é direta e
+      // não cria mais a cinemática do dragão.
       if (this.boss.isDead && !this.boss.isGhidorah && !this.boss.isKingKong && !this.cinematicActive && !this.dragon) {
-        this.startDragonFinale(this.boss);
+        this.beginGhidorahTransition(this.boss);
       }
     }
 
@@ -1323,6 +1324,22 @@ class Game {
       player.isInvulnerable = true;
       player.vx = 0;
     });
+
+    // A cinemática é decorativa: a continuação da missão não pode depender
+    // de um sprite, áudio ou frame específico terminar corretamente.
+    const transitionRunId = this.runId;
+    const transitionTimer = setTimeout(() => {
+      this.activeTimers = this.activeTimers.filter(id => id !== transitionTimer);
+      if (
+        this.runId === transitionRunId &&
+        this.state === 'PLAYING' &&
+        this.bossStage === 'TRANSITION_TO_GHIDORAH' &&
+        (!this.boss || !this.boss.isGhidorah)
+      ) {
+        this.spawnGhidorahBoss();
+      }
+    }, 1900);
+    this.activeTimers.push(transitionTimer);
     
     try {
       this.dragon = new DragonCinematic(boss, this);
@@ -1332,6 +1349,36 @@ class Game {
       // Se falhar, spawnar Ghidorah diretamente
       this.spawnGhidorahBoss();
     }
+  }
+
+  beginGhidorahTransition(defeatedBoss) {
+    if (this.bossStage !== 'MECHAGODZILLA' || this.state !== 'PLAYING') return;
+
+    // A antiga cena do dragão foi removida: ela era a origem do travamento
+    // pós-morte. A troca mantém apenas impacto visual curto e segue o jogo.
+    this.bossStage = 'TRANSITION_TO_GHIDORAH';
+    this.cinematicActive = false;
+    this.dragon = null;
+    this.projectiles = [];
+    if (this.boss === defeatedBoss) this.boss = null;
+    if (this.bossHud) this.bossHud.style.display = 'none';
+
+    const x = defeatedBoss ? defeatedBoss.x + defeatedBoss.width / 2 : this.camera.x + this.canvas.width * 0.7;
+    const y = defeatedBoss ? defeatedBoss.y + defeatedBoss.height / 2 : this.canvas.height * 0.45;
+    this.triggerScreenShake(18, 0.45);
+    this.cinematicFlash = 0.4;
+    this.cinematicFlashColor = '#ff5500';
+    this.addFloatingText(x, y - 120, '⚡ KING GHIDORAH SE APROXIMA! ⚡', '#ffd700', 17);
+    audio.playBossWarning();
+    audio.playGhidorahRoar();
+
+    const transitionRunId = this.runId;
+    const timerId = setTimeout(() => {
+      this.activeTimers = this.activeTimers.filter(id => id !== timerId);
+      if (this.runId !== transitionRunId || this.state !== 'PLAYING' || this.bossStage !== 'TRANSITION_TO_GHIDORAH') return;
+      this.spawnGhidorahBoss();
+    }, 850);
+    this.activeTimers.push(timerId);
   }
 
   startGhidorahBossTransition() {
