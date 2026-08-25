@@ -1734,7 +1734,7 @@ class Boss {
 
   takeDamage(amount, arg2, arg3) {
     if (this.isDead) return;
-    const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || null));
+    const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
     this.hp -= amount;
     this.flashTimer = 0.08;
     const impactStrength = Math.min(1, amount / 360);
@@ -1763,7 +1763,7 @@ class Boss {
     this.cinematicScale = 1;
     this.cinematicOpacity = 1;
     this.cinematicTilt = this.facing * 0.035;
-    const g = game || window.game;
+    const g = game || window.game || window.gameEngine;
     const finaleRunId = g ? g.runId : null;
     if (g && g.players) {
       g.players.forEach(p => { p.score += 50000; });
@@ -1773,26 +1773,30 @@ class Boss {
     }
     audio.playMechaRoar();
 
-    // A carcaça sofre uma pane em cadeia antes de ser recolhida pelo dragão.
-    // Menos explosões preservam o corpo para a transição cinematográfica.
+    // Armazenar IDs dos timers para limpeza posterior (evita memory leak)
+    if (!g.activeTimers) g.activeTimers = [];
+    
     for (let i = 0; i < 10; i++) {
-      setTimeout(() => {
-        // Timers pertencem a esta partida. Eles não podem vazar uma explosão
-        // para uma nova missão após o jogador apertar "jogar novamente".
-        if (g && g.runId === finaleRunId && (g.state === 'PLAYING' || g.cinematicActive) && g.spawnExplosion) {
+      const timerId = setTimeout(() => {
+        if (g && g.runId === finaleRunId && g.spawnExplosion) {
           g.spawnExplosion(this.x + Math.random() * this.width, this.y + Math.random() * this.height, 65 + Math.random() * 45);
           audio.playExplosion(true);
           if (g.triggerScreenShake) g.triggerScreenShake(11, 0.3);
         }
       }, i * 110);
+      
+      // Armazenar o ID do timer
+      if (g && g.activeTimers) {
+        g.activeTimers.push(timerId);
+      }
     }
 
     if (g && g.startDragonFinale) {
       g.startDragonFinale(this);
-    } else {
-      setTimeout(() => {
-        if (g && g.missionComplete) g.missionComplete();
-      }, 2400);
+    } else if (g && g.spawnGhidorahBoss) {
+      g.spawnGhidorahBoss();
+    } else if (g && g.missionComplete) {
+      g.missionComplete();
     }
   }
 }
@@ -1806,9 +1810,9 @@ class DragonCinematic {
     this.state = 'APPROACH';
     this.stateTime = 0;
     this.totalTime = 0;
-    this.x = boss.x + 720;
-    this.y = boss.y - 200;
-    this.scale = 1.05;
+    this.x = boss.x + 450;
+    this.y = boss.y - 250;
+    this.scale = 1.2;
     this.facing = -1;
     this.bank = 0;
     this.wingPhase = 0;
@@ -1816,8 +1820,6 @@ class DragonCinematic {
     this.headPhase = 0;
     this.carrying = false;
     this.sweepHit = false;
-    this.impactDone = false;
-    this.impactPulses = 0;
     this.originX = this.x;
     this.originY = this.y;
     this.game = game;
@@ -1829,62 +1831,52 @@ class DragonCinematic {
   }
 
   update(dt, game) {
+    // Verificação de segurança: se não temos mais um boss válido, pular para DONE
+    if (!this.boss) {
+      if (typeof debugWarn !== 'undefined') debugWarn('Boss não encontrado no DragonCinematic, pulando para DONE');
+      this.state = 'DONE';
+      if (game && game.spawnGhidorahBoss) {
+        game.spawnGhidorahBoss();
+      }
+      return;
+    }
+    
     this.stateTime += dt;
     this.totalTime += dt;
-    const wingSpeed = this.state === 'CARRY' || this.state === 'RETURN' || this.state === 'SWEEP' ? 13 : 8;
+    const wingSpeed = this.state === 'CARRY' ? 14 : 10;
     this.wingPhase += dt * wingSpeed;
-    this.tailPhase += dt * 5;
-    this.headPhase += dt * 4;
+    this.tailPhase += dt * 6;
+    this.headPhase += dt * 5;
 
     const boss = this.boss;
     const easeOut = t => 1 - Math.pow(1 - Math.min(1, t), 3);
 
     if (this.state === 'APPROACH') {
       this.facing = -1;
-      this.bank += (0.05 - this.bank) * Math.min(1, dt * 5);
-      const progress = easeOut(this.stateTime / 1.15);
-      this.x = this.originX + ((boss.x + 420) - this.originX) * progress;
-      this.y = this.originY + ((boss.y - 150) - this.originY) * progress + Math.sin(this.wingPhase) * 13;
-      this.scale = 1.05 + progress * 0.12;
+      this.bank = 0.12;
+      const progress = easeOut(this.stateTime / 0.55);
+      this.x = this.originX + ((boss.x + 20) - this.originX) * progress;
+      this.y = this.originY + ((boss.y - 60) - this.originY) * progress;
       this.setFallingBossPose(progress);
-      if (this.stateTime >= 1.15) {
-        audio.playMechaRoar();
-        game.addFloatingText(boss.x + boss.width / 2, boss.y - 115, '🐉 UMA PRESENÇA ANCESTRAL DESCEU! 🐉', '#ffe066', 14);
+      if (this.stateTime >= 0.55) {
+        audio.playGhidorahRoar();
+        game.triggerDragonClawStrike(boss);
         this.originX = this.x;
         this.originY = this.y;
-        this.transition('SWEEP');
+        this.transition('GRAB');
       }
-      return;
-    }
-
-    if (this.state === 'SWEEP') {
-      // Rasante de garra: o dragão passa rente à carcaça antes de segurá-la.
-      this.facing = -1;
-      this.bank += (0.23 - this.bank) * Math.min(1, dt * 9);
-      const progress = easeOut(this.stateTime / 0.7);
-      this.x = this.originX + ((boss.x + 135) - this.originX) * progress;
-      this.y = this.originY + ((boss.y - 35) - this.originY) * progress + Math.sin(this.wingPhase * 1.6) * 8;
-      this.scale = 1.16 + progress * 0.1;
-      this.setFallingBossPose(1);
-      if (!this.sweepHit && this.stateTime >= 0.25) {
-        this.sweepHit = true;
-        game.triggerDragonClawStrike(boss);
-      }
-      if (this.stateTime >= 0.7) this.transition('GRAB');
       return;
     }
 
     if (this.state === 'GRAB') {
       this.facing = -1;
-      this.bank += (-0.04 - this.bank) * Math.min(1, dt * 7);
-      this.y = boss.y - 105 + Math.sin(this.wingPhase * 0.7) * 7;
-      this.x = boss.x + 135;
-      this.scale = 1.17 + Math.sin(this.wingPhase) * 0.025;
-      if (this.stateTime > 0.22) this.carrying = true;
-      if (this.carrying) this.attachBoss();
-      if (this.stateTime >= 0.72) {
-        game.triggerScreenShake(11, 0.32);
-        game.addFloatingText(this.x, this.y - 125, '⚡ O DRAGÃO RECLAMA O TITÃ! ⚡', '#fff1a8', 14);
+      this.y = boss.y - 60 + Math.sin(this.wingPhase * 0.7) * 5;
+      this.x = boss.x + 20;
+      this.carrying = true;
+      this.attachBoss();
+      if (this.stateTime >= 0.35) {
+        game.triggerScreenShake(12, 0.3);
+        game.addFloatingText(this.x + 50, this.y - 60, '⚡ O DRAGÃO RECLAMA O TITÃ! ⚡', '#ffd700', 16);
         this.originX = this.x;
         this.originY = this.y;
         this.transition('CARRY');
@@ -1893,91 +1885,1138 @@ class DragonCinematic {
     }
 
     if (this.state === 'CARRY') {
-      // O dragão faz a curva e carrega o Mecha para a direita, de frente para
-      // a direção do voo, em vez de deslizar de costas.
       this.facing = 1;
-      this.bank += (-0.14 - this.bank) * Math.min(1, dt * 6);
-      const progress = easeOut(this.stateTime / 1.15);
-      this.x = this.originX + 650 * progress;
-      this.y = this.originY - 280 * progress + Math.sin(this.wingPhase) * 12;
-      this.scale = 1.17 - progress * 0.16;
+      this.bank = -0.15;
+      const progress = easeOut(this.stateTime / 0.85);
+      this.x = this.originX + 750 * progress;
+      this.y = this.originY - 350 * progress;
       this.attachBoss();
-      if (this.stateTime >= 1.15) {
-        boss.hiddenByDragon = true;
+      if (this.stateTime >= 0.85) {
+        if (typeof debugLog !== 'undefined') debugLog('Dragão terminou de carregar o MechaGodzilla, preparando King Ghidorah...');
+        if (boss) {
+          boss.hiddenByDragon = true;
+        }
         this.carrying = false;
-        this.originX = game.camera.x + game.canvas.width + 360;
-        this.originY = 120;
-        this.transition('RETURN');
-      }
-      return;
-    }
-
-    if (this.state === 'RETURN') {
-      const progress = easeOut(this.stateTime / 1.05);
-      const targetX = game.camera.x + game.canvas.width * 0.53;
-      const targetY = 255;
-      this.x = this.originX + (targetX - this.originX) * progress;
-      this.y = this.originY + (targetY - this.originY) * progress;
-      // Crescer durante o mergulho cria a sensação de salto em direção à tela.
-      this.scale = 0.92 + progress * 1.9;
-      this.facing = -1;
-      this.bank += (0.16 - this.bank) * Math.min(1, dt * 6);
-      if (this.stateTime >= 1.05) {
-        this.transition('IMPACT');
-      }
-      return;
-    }
-
-    if (this.state === 'IMPACT') {
-      this.bank += (0 - this.bank) * Math.min(1, dt * 9);
-      this.scale = 2.82 + Math.sin(this.stateTime * 20) * 0.07;
-      this.y = 255 + Math.sin(this.wingPhase * 0.5) * 4;
-      if (!this.impactDone) {
-        this.impactDone = true;
-        game.triggerDragonImpact(this.x, this.y, 760);
-        this.impactPulses = 1;
-      }
-      const wantedPulses = Math.min(4, Math.floor(this.stateTime / 0.18) + 1);
-      while (this.impactPulses < wantedPulses) {
-        game.triggerDragonAftershock(this.x, this.y, this.impactPulses);
-        this.impactPulses++;
-      }
-      if (this.stateTime >= 0.95) this.transition('ASCEND');
-      return;
-    }
-
-    if (this.state === 'ASCEND') {
-      this.bank += (-0.1 - this.bank) * Math.min(1, dt * 4);
-      this.y -= 330 * dt;
-      this.x += 150 * dt;
-      this.scale = Math.max(0.7, this.scale - 0.7 * dt);
-      if (this.stateTime >= 1.15) {
         this.state = 'DONE';
-        // Centraliza a saída da cinemática para limpar os efeitos e garantir
-        // que a tela de vitória sempre apareça, mesmo após um impacto pesado.
-        if (game.finishDragonFinale) game.finishDragonFinale();
-        else game.missionComplete();
+        
+        // Limpar o estado da cinemática no game ANTES de spawnar o Ghidorah
+        if (game) {
+          game.cinematicActive = false;
+          game.dragon = null;
+          
+          // Spawna imediatamente o King Ghidorah Boss
+          if (game.spawnGhidorahBoss) {
+            if (typeof debugLog !== 'undefined') debugLog('Chamando spawnGhidorahBoss...');
+            game.spawnGhidorahBoss();
+          } else {
+            if (typeof debugError !== 'undefined') debugError('game.spawnGhidorahBoss não encontrado!');
+          }
+        }
       }
+      return;
     }
   }
 
   attachBoss() {
-    this.boss.cinematicX = this.x - 130;
-    // A posição é o canto superior do sprite; manter o centro próximo às
-    // patas evita que a carcaça pareça flutuar abaixo do dragão.
-    this.boss.cinematicY = this.y - 20;
-    this.boss.cinematicScale = 0.58;
-    this.boss.cinematicOpacity = 0.94;
-    this.boss.cinematicTilt = -this.facing * 0.16 + Math.sin(this.wingPhase * 0.5) * 0.04;
+    if (!this.boss) return; // Proteção contra boss nulo
+    this.boss.cinematicX = this.x - (this.facing === 1 ? 70 : 30);
+    this.boss.cinematicY = this.y + 35;
+    this.boss.cinematicScale = 0.65;
+    this.boss.cinematicOpacity = 0.92;
+    this.boss.cinematicTilt = this.facing * 0.28;
   }
 
   setFallingBossPose(progress) {
-    const bob = Math.sin(this.wingPhase * 0.7) * (3 + progress * 4);
-    this.boss.cinematicX = this.boss.x + Math.sin(this.tailPhase) * 3;
-    this.boss.cinematicY = this.boss.y + 6 + bob;
+    if (!this.boss) return; // Proteção contra boss nulo
+    this.boss.cinematicX = this.boss.x;
+    this.boss.cinematicY = this.boss.y + progress * 8;
     this.boss.cinematicScale = 1;
-    this.boss.cinematicOpacity = 0.88;
-    this.boss.cinematicTilt = this.boss.facing * (0.05 + progress * 0.18);
+    this.boss.cinematicOpacity = 0.9;
+    this.boss.cinematicTilt = this.boss.facing * 0.15;
+  }
+}
+
+// ==========================================
+// 4.5 CHEFÃO SUPREMO: KING GHIDORAH (DRAGÃO DOURADO TRICÉFALO)
+// ==========================================
+class KingGhidorahBoss {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.groundY = y;
+    this.width = 250;
+    this.height = 250;
+    this.spriteScale = 1.7;
+
+    this.hp = 9500;
+    this.maxHp = 9500;
+    this.flashTimer = 0;
+    this.phase = 1;
+    this.isDead = false;
+    this.isGhidorah = true;
+    this.type = 'GHIDORAH';
+    this.phaseLabels = ['TEMPESTADE DOURADA', 'SOBRECARGA GRAVITACIONAL', 'APOCALIPSE ANCESTRAL'];
+    this.lastAttack = null;
+
+    // Estados de Combate: 'INTRO_LANDING', 'IDLE', 'BATTLE_STANCE', 'WALK', 'ROAR', 'GRAVITY_BEAMS', 'GROUND_SWEEP_BEAMS', 'GOLDEN_TORNADO', 'ENERGY_BURST', 'ASCEND', 'AERIAL_HOVER', 'AERIAL_SWOOP', 'HURT_STAGGER', 'DYING'
+    this.state = 'INTRO_LANDING';
+    this.stateTimer = 2.2;
+    this.attackCooldown = 1.2;
+
+    this.vx = 0;
+    this.vy = 0;
+    this.facing = -1;
+    this.targetFacing = -1;
+    this.turnTimer = 0;
+    this.speed = 3.0;
+    this.chaseDistance = 260;
+    this.stepTimer = 0;
+    this.stepCount = 0;
+
+    this.isFlying = false;
+    this.isLanding = false;
+    this.isBombarding = false;
+    this.sweepStage = 1;
+    this.maxSweepTime = 1.8;
+    this.maxBurstTime = 1.2;
+    this.tornadoDamageTimer = 0;
+    this.gravityBeamDamageCooldown = 0;
+
+    this.animTime = 0;
+    this.bodyBob = 0;
+    this.impactTilt = 0;
+    this.recoilX = 0;
+    this.cinematicScale = 1;
+    this.cinematicOpacity = 1;
+    this.cinematicTilt = 0;
+
+    this.minArenaX = 3800;
+    this.maxArenaX = 5120;
+  }
+
+  update(dt, player, game) {
+    this.animTime += dt;
+    if (this.flashTimer > 0) this.flashTimer -= dt;
+    if (this.stateTimer > 0) this.stateTimer -= dt;
+    if (this.attackCooldown > 0) this.attackCooldown -= dt;
+    if (this.gravityBeamDamageCooldown > 0) this.gravityBeamDamageCooldown -= dt;
+    if (this.tornadoDamageTimer > 0) this.tornadoDamageTimer -= dt;
+
+    this.impactTilt += (0 - this.impactTilt) * 7 * dt;
+    this.recoilX += (0 - this.recoilX) * 6 * dt;
+
+    if (this.isDead || this.state === 'DYING') {
+      this.vx = 0;
+      this.vy = 0;
+      return;
+    }
+
+    // Fases de King Ghidorah
+    const hpRatio = this.hp / this.maxHp;
+    const nextPhase = hpRatio < 0.33 ? 3 : (hpRatio < 0.66 ? 2 : 1);
+    if (nextPhase > this.phase) {
+      this.enterPhase(nextPhase, game);
+    }
+
+    const targetP = game.getClosestPlayer(this.x + this.width / 2, this.y + this.height / 2);
+    const distToTarget = (targetP.x + targetP.width / 2) - (this.x + this.width / 2);
+    const absDist = Math.abs(distToTarget);
+
+    if (this.state !== 'AERIAL_SWOOP' && this.state !== 'GOLDEN_TORNADO') {
+      this.targetFacing = distToTarget >= 0 ? 1 : -1;
+    }
+
+    // ==========================================
+    // MÁQUINA DE ESTADOS DO KING GHIDORAH
+    // ==========================================
+    switch (this.state) {
+      case 'INTRO_LANDING':
+        this.isFlying = false;
+        this.bodyBob = Math.sin(this.animTime * 15) * 4;
+        if (this.stateTimer <= 0) {
+          audio.playGhidorahRoar();
+          game.triggerScreenShake(18, 0.6);
+          game.cinematicFlash = 0.5;
+          game.cinematicFlashColor = '#ffd700';
+          game.addFloatingText(this.x + this.width / 2, this.y - 45, '👑 KING GHIDORAH: O TITÃ ANCESTRAL! 👑', '#ffd700', 17);
+          this.state = 'ROAR';
+          this.stateTimer = 1.4;
+          this.attackCooldown = 0.8;
+        }
+        break;
+
+      case 'IDLE':
+      case 'BATTLE_STANCE':
+        this.vx = 0;
+        this.bodyBob = Math.sin(this.animTime * 3) * 5;
+
+        // Virar suavemente para o jogador
+        if (this.facing !== this.targetFacing) {
+          this.turnTimer += dt;
+          if (this.turnTimer > 0.2) {
+            this.facing = this.targetFacing;
+            this.turnTimer = 0;
+          }
+        } else {
+          this.turnTimer = 0;
+        }
+
+        if (this.attackCooldown <= 0 && this.stateTimer <= 0) {
+          this.decideNextAction(absDist, game);
+        }
+        break;
+
+      case 'WALK': {
+        const chaseDir = distToTarget >= 0 ? 1 : -1;
+        this.facing = chaseDir;
+        this.vx = chaseDir * this.speed * (this.phase === 3 ? 1.4 : (this.phase === 2 ? 1.2 : 1.0));
+        this.bodyBob = Math.sin(this.animTime * 8) * 6;
+
+        this.stepTimer += dt;
+        if (this.stepTimer >= 0.28) {
+          this.stepTimer = 0;
+          this.stepCount++;
+          game.triggerScreenShake(4, 0.12);
+          audio.playMechaStep();
+          game.spawnDust(this.x + (this.stepCount % 2 === 0 ? 50 : this.width - 50), this.groundY + this.height - 10);
+        }
+
+        if (absDist <= this.chaseDistance || this.stateTimer <= 0) {
+          this.vx = 0;
+          this.decideNextAction(absDist, game);
+        }
+        break;
+      }
+
+      case 'ROAR':
+        this.vx = 0;
+        this.bodyBob = Math.sin(this.animTime * 20) * 3;
+        // Invocação de relâmpagos do céu caindo perto dos jogadores
+        if (Math.random() < 0.2) {
+          const rx = targetP.x + (Math.random() - 0.5) * 300;
+          const ry = targetP.y;
+          game.addLightningBolt(rx + (Math.random() - 0.5) * 100, 0, rx, ry);
+          game.spawnExplosion(rx, ry, 25);
+          this.damagePlayersNear(rx, ry, 60, 25, game);
+        }
+        if (this.stateTimer <= 0) {
+          this.state = 'BATTLE_STANCE';
+          this.stateTimer = 0.5;
+          this.attackCooldown = 1.0;
+        }
+        break;
+
+      case 'GRAVITY_BEAMS':
+        this.vx = 0;
+        this.bodyBob = Math.sin(this.animTime * 35) * 2;
+        this.recoilX -= this.facing * 14 * dt;
+        game.triggerScreenShake(7, 0.1);
+
+        if (this.gravityBeamDamageCooldown <= 0) {
+          this.gravityBeamDamageCooldown = 0.1;
+          this.checkGravityBeamCollisions(game);
+        }
+
+        if (Math.random() < 0.7) {
+          const hitX = this.x + (this.facing === 1 ? this.width + Math.random() * 950 : -Math.random() * 950);
+          game.spawnSpark(hitX, this.y + 60 + (Math.random() - 0.5) * 30);
+        }
+
+        if (this.stateTimer <= 0) {
+          this.state = 'BATTLE_STANCE';
+          this.stateTimer = 0.6;
+          this.attackCooldown = this.phase === 3 ? 1.2 : 2.0;
+        }
+        break;
+
+      case 'GROUND_SWEEP_BEAMS':
+        this.vx = 0;
+        const sweepProgress = 1 - Math.max(0, this.stateTimer / this.maxSweepTime);
+        if (sweepProgress < 0.33) this.sweepStage = 1;
+        else if (sweepProgress < 0.66) this.sweepStage = 2;
+        else this.sweepStage = 3;
+
+        game.triggerScreenShake(6, 0.1);
+        const sweepImpactX = this.x + (this.facing === 1 ? 70 : -70) + (this.facing || -1) * (150 + sweepProgress * 700);
+        const sweepImpactY = this.groundY + this.height - 15;
+
+        if (Math.random() < 0.6) {
+          game.spawnExplosion(sweepImpactX + (Math.random() - 0.5) * 40, sweepImpactY, 30);
+          this.damagePlayersNear(sweepImpactX, sweepImpactY, 75, this.phase === 3 ? 38 : 30, game);
+        }
+
+        if (this.stateTimer <= 0) {
+          this.state = 'BATTLE_STANCE';
+          this.stateTimer = 0.5;
+          this.attackCooldown = 1.8;
+        }
+        break;
+
+      case 'GOLDEN_TORNADO': {
+        const tornadoDir = this.tornadoDir || this.facing;
+        this.facing = tornadoDir;
+        this.vx = tornadoDir * 7.5;
+        this.bodyBob = Math.sin(this.animTime * 25) * 6;
+        game.triggerScreenShake(8, 0.15);
+
+        // Danificar quem tocar no vórtice
+        if (this.tornadoDamageTimer <= 0) {
+          this.tornadoDamageTimer = 0.12;
+          this.damagePlayersNear(this.x + this.width / 2, this.y + this.height / 2, 130, this.phase === 3 ? 42 : 32, game);
+          game.spawnDust(this.x + this.width / 2, this.groundY + this.height - 10);
+        }
+
+        // Lançar projéteis de ciclone dourado
+        if (Math.random() < 0.15) {
+          const cycAngle = (Math.random() - 0.5) * 1.2;
+          const cycSpeed = 8.0;
+          game.projectiles.push(new Projectile(
+            this.x + this.width / 2, this.y + this.height / 2,
+            Math.cos(cycAngle) * cycSpeed * tornadoDir, Math.sin(cycAngle) * cycSpeed,
+            'laser', this.phase === 3 ? 35 : 28, false, 5, 2.5
+          ));
+        }
+
+        if (this.stateTimer <= 0 || (tornadoDir === -1 && this.x <= this.minArenaX) || (tornadoDir === 1 && this.x >= this.maxArenaX)) {
+          this.vx = 0;
+          this.state = 'BATTLE_STANCE';
+          this.stateTimer = 0.6;
+          this.attackCooldown = 1.5;
+        }
+        break;
+      }
+
+      case 'ENERGY_BURST': {
+        this.vx = 0;
+        const burstProgress = 1 - Math.max(0, this.stateTimer / this.maxBurstTime);
+        const curRadius = burstProgress * 380;
+        this.damagePlayersNear(this.x + this.width / 2, this.y + this.height / 2, curRadius, this.phase === 3 ? 55 : 45, game);
+
+        if (this.stateTimer <= 0) {
+          this.state = 'BATTLE_STANCE';
+          this.stateTimer = 0.7;
+          this.attackCooldown = 2.0;
+        }
+        break;
+      }
+
+      case 'ASCEND':
+        this.vx = 0;
+        this.isFlying = true;
+        this.y -= 140 * dt;
+        this.bodyBob = Math.sin(this.animTime * 12) * 3;
+        game.triggerScreenShake(5, 0.1);
+        if (this.y <= this.groundY - 220 || this.stateTimer <= 0) {
+          this.y = this.groundY - 220;
+          this.state = 'AERIAL_HOVER';
+          this.stateTimer = 3.5;
+        }
+        break;
+
+      case 'AERIAL_HOVER':
+        this.isFlying = true;
+        this.vx = (targetP.x > this.x ? 1 : -1) * 2.2;
+        this.y = this.groundY - 220 + Math.sin(this.animTime * 4) * 25;
+        this.facing = targetP.x > this.x ? 1 : -1;
+
+        // Bombardeio aéreo: dispara faíscas/raios gravitacionais para baixo
+        if (Math.random() < (this.phase === 3 ? 0.28 : 0.18)) {
+          this.isBombarding = true;
+          const sx = this.x + this.width / 2 + (Math.random() - 0.5) * 80;
+          const sy = this.y + this.height * 0.7;
+          const angle = Math.atan2(targetP.y - sy, targetP.x - sx);
+          game.projectiles.push(new Projectile(
+            sx, sy, Math.cos(angle) * 7.5, Math.sin(angle) * 7.5,
+            'rocket', this.phase === 3 ? 45 : 35, false, 6, 3.0, true
+          ));
+          audio.playShootRocket();
+        } else {
+          this.isBombarding = false;
+        }
+
+        if (this.stateTimer <= 0) {
+          // Rasante aéreo ou pouso
+          if (Math.random() < 0.6) {
+            this.executeAerialSwoop(game);
+          } else {
+            this.landGround(game);
+          }
+        }
+        break;
+
+      case 'AERIAL_SWOOP': {
+        const swoopDir = this.swoopDir || this.facing;
+        this.facing = swoopDir;
+        this.vx = swoopDir * (this.phase === 3 ? 12.0 : 10.0);
+        // Mergulha em curva e sobe
+        const swoopProgress = 1 - Math.max(0, this.stateTimer / (this.maxSwoopTime || 1.3));
+        this.y = (this.groundY - 220) + Math.sin(swoopProgress * Math.PI) * 190;
+
+        game.triggerScreenShake(9, 0.12);
+        this.damagePlayersNear(this.x + this.width / 2, this.y + this.height * 0.7, 140, this.phase === 3 ? 60 : 48, game);
+
+        if (this.stateTimer <= 0 || (swoopDir === -1 && this.x <= this.minArenaX) || (swoopDir === 1 && this.x >= this.maxArenaX)) {
+          this.landGround(game);
+        }
+        break;
+      }
+
+      case 'HURT_STAGGER':
+        this.vx = 0;
+        if (this.stateTimer <= 0) {
+          this.state = 'BATTLE_STANCE';
+          this.stateTimer = 0.4;
+          this.attackCooldown = 0.8;
+        }
+        break;
+
+      case 'DYING':
+        this.vx = 0;
+        this.vy = 0;
+        this.y = this.groundY;
+        this.isFlying = false;
+        break;
+    }
+
+    // Aplicar movimento e travar nos limites da arena
+    this.x += this.vx;
+    this.x = Math.max(this.minArenaX, Math.min(this.maxArenaX, this.x));
+  }
+
+  landGround(game) {
+    this.isFlying = false;
+    this.y = this.groundY;
+    this.vx = 0;
+    this.state = 'BATTLE_STANCE';
+    this.stateTimer = 0.6;
+    this.attackCooldown = 1.0;
+    game.triggerScreenShake(12, 0.3);
+    audio.playExplosion(true);
+    game.spawnDust(this.x + this.width / 2, this.groundY + this.height - 10);
+  }
+
+  executeGravityBeams(game) {
+    this.state = 'GRAVITY_BEAMS';
+    this.stateTimer = this.phase === 3 ? 1.6 : 1.3;
+    audio.playGravityBeams();
+    game.triggerScreenShake(8, 0.3);
+    game.addFloatingText(this.x + this.width / 2, this.y - 35, '⚡ GRAVITY BEAMS! ⚡', '#ffd700', 16);
+  }
+
+  executeGroundSweep(game) {
+    this.state = 'GROUND_SWEEP_BEAMS';
+    this.maxSweepTime = 1.6;
+    this.stateTimer = 1.6;
+    audio.playGravityBeams();
+    game.addFloatingText(this.x + this.width / 2, this.y - 35, '🔥 VARREDURA TRÍPLICE! 🔥', '#ffaa00', 15);
+  }
+
+  executeGoldenTornado(game) {
+    this.state = 'GOLDEN_TORNADO';
+    this.stateTimer = 1.4;
+    this.tornadoDir = this.targetFacing;
+    this.facing = this.tornadoDir;
+    this.tornadoDamageTimer = 0;
+    audio.playGhidorahTornado();
+    game.triggerScreenShake(10, 0.35);
+    game.addFloatingText(this.x + this.width / 2, this.y - 35, '🌪️ GOLDEN HURRICANE! 🌪️', '#ffd700', 16);
+  }
+
+  executeEnergyBurst(game) {
+    this.state = 'ENERGY_BURST';
+    this.maxBurstTime = 1.1;
+    this.stateTimer = 1.1;
+    audio.playGhidorahBurst();
+    game.triggerScreenShake(16, 0.5);
+    game.cinematicFlash = 0.45;
+    game.cinematicFlashColor = '#ffd700';
+    game.addFloatingText(this.x + this.width / 2, this.y - 45, '💥 GOLDEN SUPERNOVA! 💥', '#ffea00', 17);
+  }
+
+  executeAscend(game) {
+    this.state = 'ASCEND';
+    this.stateTimer = 1.0;
+    this.isFlying = true;
+    audio.playGhidorahAscend();
+    game.triggerScreenShake(9, 0.3);
+    game.addFloatingText(this.x + this.width / 2, this.y - 35, '🚀 DECOLAGEM TITÂNICA! 🚀', '#ffe066', 15);
+  }
+
+  executeAerialSwoop(game) {
+    this.state = 'AERIAL_SWOOP';
+    this.maxSwoopTime = 1.3;
+    this.stateTimer = 1.3;
+    this.swoopDir = this.targetFacing;
+    this.facing = this.swoopDir;
+    audio.playGhidorahRoar();
+    game.triggerScreenShake(12, 0.35);
+    game.addFloatingText(this.x + this.width / 2, this.y - 35, '⚡ RASANTE DOURADO! ⚡', '#ffd700', 16);
+  }
+
+  decideNextAction(distToPlayer, game) {
+    const choices = [];
+
+    if (distToPlayer > 480) {
+      choices.push('WALK', 'WALK', 'GRAVITY_BEAMS', 'ASCEND');
+      if (this.phase >= 2) choices.push('GOLDEN_TORNADO', 'GROUND_SWEEP');
+    } else if (distToPlayer > this.chaseDistance) {
+      choices.push('WALK', 'GRAVITY_BEAMS', 'GROUND_SWEEP', 'ROAR');
+      if (this.phase >= 2) choices.push('GOLDEN_TORNADO', 'ASCEND');
+      if (this.phase === 3) choices.push('ENERGY_BURST');
+    } else {
+      // Muito perto
+      choices.push('ENERGY_BURST', 'ROAR', 'GROUND_SWEEP', 'GRAVITY_BEAMS');
+      if (this.phase >= 2) choices.push('GOLDEN_TORNADO', 'ENERGY_BURST');
+    }
+
+    let nextAction = choices[Math.floor(Math.random() * choices.length)];
+    if (nextAction === this.lastAttack && choices.length > 1) {
+      const alt = choices.filter(c => c !== this.lastAttack);
+      nextAction = alt[Math.floor(Math.random() * alt.length)];
+    }
+    this.lastAttack = nextAction;
+
+    if (nextAction === 'WALK') {
+      this.state = 'WALK';
+      this.stateTimer = 2.0 + Math.random() * 1.0;
+      this.stepTimer = 0;
+    } else if (nextAction === 'GRAVITY_BEAMS') {
+      this.executeGravityBeams(game);
+    } else if (nextAction === 'GROUND_SWEEP') {
+      this.executeGroundSweep(game);
+    } else if (nextAction === 'GOLDEN_TORNADO') {
+      this.executeGoldenTornado(game);
+    } else if (nextAction === 'ENERGY_BURST') {
+      this.executeEnergyBurst(game);
+    } else if (nextAction === 'ASCEND') {
+      this.executeAscend(game);
+    } else if (nextAction === 'ROAR') {
+      this.state = 'ROAR';
+      this.stateTimer = 1.3;
+      audio.playGhidorahRoar();
+      game.triggerScreenShake(12, 0.4);
+      game.addFloatingText(this.x + this.width / 2, this.y - 35, '👑 RUGIDO DEVASTADOR! 👑', '#ffd700', 16);
+    }
+  }
+
+  checkGravityBeamCollisions(game) {
+    const mouthX = this.x + (this.facing === 1 ? this.width + 10 : -10);
+    const mouthY = this.y + 60;
+    const beamLength = 1100;
+    const beamHeight = 65;
+
+    const bMinX = this.facing === 1 ? mouthX : mouthX - beamLength;
+    const bMaxX = this.facing === 1 ? mouthX + beamLength : mouthX;
+    const bMinY = mouthY - beamHeight / 2;
+    const bMaxY = mouthY + beamHeight / 2;
+
+    game.players.forEach(p => {
+      if (p.isDead || p.isInvulnerable) return;
+      if (p.x + p.width > bMinX && p.x < bMaxX && p.y + p.height > bMinY && p.y < bMaxY) {
+        p.takeDamage(this.phase === 3 ? 36 : 30, game);
+        game.spawnBlood(p.x + p.width / 2, p.y + p.height / 2);
+      }
+    });
+
+    game.slugs.forEach(s => {
+      if (s.destroyed) return;
+      if (s.x + s.width > bMinX && s.x < bMaxX && s.y + s.height > bMinY && s.y < bMaxY) {
+        s.takeDamage(22, game);
+        game.spawnSpark(s.x + s.width / 2, s.y + s.height / 2);
+      }
+    });
+  }
+
+  damagePlayersNear(x, y, radius, damage, game) {
+    game.players.forEach(player => {
+      if (player.isDead || player.isInvulnerable) return;
+      const target = player.inSlug && player.slugRef ? player.slugRef : player;
+      const cx = target.x + target.width / 2;
+      const cy = target.y + target.height / 2;
+      if (Math.hypot(cx - x, cy - y) <= radius) {
+        player.takeDamage(damage, game);
+        game.spawnDust(cx, target.y + target.height);
+      }
+    });
+  }
+
+  enterPhase(phase, game) {
+    this.phase = phase;
+    this.speed = phase === 3 ? 4.4 : 3.6;
+    this.attackCooldown = 0.6;
+    game.triggerScreenShake(phase === 3 ? 16 : 10, 0.4);
+    audio.playGhidorahRoar();
+    const label = phase === 3 ? '⚡ APOCALIPSE ANCESTRAL! ⚡' : '🌩️ SOBRECARGA GRAVITACIONAL! 🌩️';
+    game.addFloatingText(this.x + this.width / 2, this.y - 45, label, phase === 3 ? '#ffcc00' : '#ffd700', 17);
+  }
+
+  takeDamage(amount, arg2, arg3) {
+    if (this.isDead) return;
+    const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
+    this.hp -= amount;
+    this.flashTimer = 0.08;
+    this.recoilX += (this.facing === -1 ? 2.5 : -2.5);
+
+    if (game && game.spawnSpark) {
+      game.spawnSpark(this.x + Math.random() * this.width, this.y + Math.random() * this.height);
+    }
+
+    if (this.hp <= 0) {
+      this.die(game);
+    }
+  }
+
+  die(game) {
+    if (this.isDead && this.state === 'DYING') return;
+    this.isDead = true;
+    this.state = 'DYING';
+    this.hp = 0;
+    this.isFlying = false;
+    this.y = this.groundY;
+
+    const g = game || window.game || window.gameEngine;
+    const finaleRunId = g ? g.runId : null;
+    if (g && g.players) {
+      g.players.forEach(p => { p.score += 100000; });
+    }
+    if (g && g.addFloatingText) {
+      g.addFloatingText(this.x + this.width / 2, this.y - 35, '👑 KING GHIDORAH DERROTADO! +100000 👑', '#ffd700', 20);
+    }
+    audio.playGhidorahRoar();
+
+    // Cadeia massiva de supernovas douradas
+    for (let i = 0; i < 14; i++) {
+      setTimeout(() => {
+        if (g && g.runId === finaleRunId && g.spawnExplosion) {
+          const ex = this.x + Math.random() * this.width;
+          const ey = this.y + Math.random() * this.height;
+          g.spawnExplosion(ex, ey, 75 + Math.random() * 50);
+          audio.playExplosion(true);
+          if (g.triggerScreenShake) g.triggerScreenShake(14, 0.35);
+        }
+      }, i * 110);
+    }
+
+    // Após derrotar Ghidorah, o jogador avança para Nova York e enfrenta King Kong!
+    setTimeout(() => {
+      if (g && g.runId === finaleRunId) {
+        // Destravar o boss para permitir que a câmera avance para Nova York
+        g.boss = null;
+        if (g.bossHud) g.bossHud.style.display = 'none';
+        
+        // Anúncio épico de avanço para a Batalha Final
+        if (g.addFloatingText) {
+          g.addFloatingText(g.camera.x + 480, 120, '🗽 AVANCE PARA NOVA YORK! A BATALHA FINAL COMEÇA! 🗽', '#00ffcc', 18);
+        }
+        audio.announce("ADVANCE TO NEW YORK! FINAL MISSION");
+      }
+    }, 2200);
+  }
+}
+
+// ==========================================
+// 4.6 CHEFÃO APOCALÍPTICO: KING KONG (TITÃ DE MANHATTAN)
+// ==========================================
+class KingKongBoss {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.groundY = y;
+    this.width = 210;
+    this.height = 270;
+    this.spriteScale = 2.2;
+
+    this.hp = 12000;
+    this.maxHp = 12000;
+    this.flashTimer = 0;
+    this.phase = 1;
+    this.isDead = false;
+    this.isKingKong = true;
+    this.type = 'KINGKONG';
+    this.phaseLabels = ['FÚRIA URBANA', 'DESTRUIÇÃO TOTAL', 'APOCALIPSE PRIMORDIAL'];
+    this.lastAttack = null;
+
+    // Estados: 'INTRO_ROAR', 'IDLE', 'WALK', 'RUN', 'ROAR_TAUNT', 'CHEST_POUND', 'PUNCH_COMBO', 'GROUND_SLAM', 'THROW_BOULDER', 'THROW_CAR', 'HURT', 'DYING'
+    this.state = 'INTRO_ROAR';
+    this.stateTimer = 2.5;
+    this.attackCooldown = 1.0;
+
+    this.vx = 0;
+    this.vy = 0;
+    this.facing = -1;
+    this.targetFacing = -1;
+    this.turnTimer = 0;
+    this.speed = 3.2;
+    this.runSpeed = 6.4;
+    this.chaseDistance = 210;
+    this.stepTimer = 0;
+    this.stepCount = 0;
+    this.comboCount = 0;
+    this.maxCombo = 3;
+
+    this.isBerserker = false;
+    this.boulderCooldown = 0;
+    this.carThrowCooldown = 0;
+
+    this.animTime = 0;
+    this.bodyBob = 0;
+    this.impactTilt = 0;
+    this.recoilX = 0;
+    this.eyeGlow = 0;
+    this.cinematicScale = 1;
+    this.cinematicOpacity = 1;
+    this.cinematicTilt = 0;
+
+    this.minArenaX = 5200;
+    this.maxArenaX = 7150;
+  }
+
+  update(dt, player, game) {
+    this.animTime += dt;
+    if (this.flashTimer > 0) this.flashTimer -= dt;
+    if (this.stateTimer > 0) this.stateTimer -= dt;
+    if (this.attackCooldown > 0) this.attackCooldown -= dt;
+    if (this.boulderCooldown > 0) this.boulderCooldown -= dt;
+    if (this.carThrowCooldown > 0) this.carThrowCooldown -= dt;
+
+    this.impactTilt += (0 - this.impactTilt) * 7 * dt;
+    this.recoilX += (0 - this.recoilX) * 6 * dt;
+
+    if (this.isDead || this.state === 'DYING') {
+      this.vx = 0;
+      this.vy = 0;
+      return;
+    }
+
+    // Fases de King Kong baseadas em HP
+    const hpRatio = this.hp / this.maxHp;
+    const nextPhase = hpRatio < 0.30 ? 3 : (hpRatio < 0.65 ? 2 : 1);
+    if (nextPhase > this.phase) {
+      this.enterPhase(nextPhase, game);
+    }
+
+    const targetP = game.getClosestPlayer(this.x + this.width / 2, this.y + this.height / 2);
+    const distToTarget = (targetP.x + targetP.width / 2) - (this.x + this.width / 2);
+    const absDist = Math.abs(distToTarget);
+
+    if (this.state !== 'THROW_BOULDER' && this.state !== 'THROW_CAR') {
+      this.targetFacing = distToTarget >= 0 ? 1 : -1;
+    }
+
+    // MÁQUINA DE ESTADOS DO KING KONG
+    switch (this.state) {
+      case 'INTRO_ROAR':
+        this.bodyBob = Math.sin(this.animTime * 12) * 6;
+        if (this.stateTimer <= 0) {
+          audio.playKongRoar();
+          game.triggerScreenShake(22, 0.8);
+          game.cinematicFlash = 0.5;
+          game.cinematicFlashColor = '#ff3300';
+          game.addFloatingText(this.x + this.width / 2, this.y - 40, '🦍 KING KONG - O REI DE MANHATTAN! 🦍', '#ff4400', 18);
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'IDLE':
+        this.vx = 0;
+        this.bodyBob = Math.sin(this.animTime * 6) * 3;
+        
+        if (this.attackCooldown <= 0) {
+          if (absDist < 190) {
+            // Perto: Ataque corpo a corpo devastador
+            const rand = Math.random();
+            if (rand < 0.45) {
+              this.transition('PUNCH_COMBO');
+            } else if (rand < 0.8) {
+              this.transition('GROUND_SLAM');
+            } else {
+              this.transition('CHEST_POUND');
+            }
+          } else if (absDist < 420) {
+            // Média distância: Investida ou Rugido de Fúria
+            if (Math.random() < 0.75) {
+              this.transition(this.isBerserker ? 'RUN' : 'WALK');
+            } else {
+              this.transition('ROAR_TAUNT');
+            }
+          } else {
+            // Longa distância: Arremesso de Pedregulhos e Táxis
+            if (this.boulderCooldown <= 0 && Math.random() < 0.6) {
+              this.transition('THROW_BOULDER');
+            } else if (this.carThrowCooldown <= 0) {
+              this.transition('THROW_CAR');
+            } else {
+              this.transition(this.isBerserker ? 'RUN' : 'WALK');
+            }
+          }
+        }
+        break;
+
+      case 'WALK':
+        this.stepTimer += dt;
+        const walkSpeed = this.speed * (this.isBerserker ? 1.4 : 1);
+        this.vx = this.targetFacing * walkSpeed;
+        this.bodyBob = Math.sin(this.animTime * 8) * 4;
+        
+        if (this.stepTimer >= 0.42) {
+          this.stepTimer = 0;
+          this.stepCount++;
+          game.triggerScreenShake(4, 0.18);
+          audio.playMechaStep();
+          game.spawnDust(this.x + (this.facing === 1 ? 40 : this.width - 40), this.y + this.height - 5);
+        }
+
+        if (absDist < 170 || this.stateTimer <= 0) {
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'RUN':
+        this.stepTimer += dt;
+        this.vx = this.targetFacing * this.runSpeed;
+        this.bodyBob = Math.sin(this.animTime * 14) * 7;
+        
+        if (this.stepTimer >= 0.22) {
+          this.stepTimer = 0;
+          game.triggerScreenShake(7, 0.22);
+          audio.playMechaStep();
+          game.spawnDust(this.x + this.width / 2, this.y + this.height - 5);
+          game.spawnSpark(this.x + (this.facing === 1 ? this.width : 0), this.y + this.height - 15);
+        }
+
+        // Atropelar jogadores durante a corrida
+        if (absDist < 120) {
+          this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height * 0.6, 120, this.phase === 3 ? 45 : 35, game);
+          game.triggerScreenShake(12, 0.3);
+          this.transition('PUNCH_COMBO');
+        } else if (this.stateTimer <= 0) {
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'ROAR_TAUNT':
+        this.vx = 0;
+        this.bodyBob = Math.sin(this.animTime * 16) * 8;
+        
+        if (this.stateTimer <= 0) {
+          audio.playKongRoar();
+          game.triggerScreenShake(15, 0.5);
+          game.cinematicFlash = 0.35;
+          game.cinematicFlashColor = '#ff4400';
+          game.addFloatingText(this.x + this.width / 2, this.y - 30, '🦍 ROAR OF THE PRIMAL KING! 🦍', '#ff3300', 16);
+          this.attackCooldown = 0.7;
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'CHEST_POUND':
+        this.vx = 0;
+        this.bodyBob = Math.sin(this.animTime * 28) * 6;
+        
+        if (this.stateTimer <= 0) {
+          audio.playKongChestPound();
+          audio.playKongSlam();
+          game.triggerScreenShake(20, 0.6);
+          game.cinematicFlash = 0.4;
+          game.cinematicFlashColor = '#ffaa00';
+          this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height, 300, this.phase === 3 ? 55 : 42, game);
+          
+          // Efeito de onda de choque sísmica em 360 graus
+          for (let i = 0; i < 14; i++) {
+            const angle = (Math.PI * 2 * i) / 14;
+            const dist = 130;
+            game.spawnExplosion(
+              this.x + this.width / 2 + Math.cos(angle) * dist,
+              this.y + this.height - 20 + Math.sin(angle) * dist * 0.3,
+              35
+            );
+          }
+          
+          this.attackCooldown = 1.4;
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'PUNCH_COMBO':
+        this.vx = this.targetFacing * 1.5;
+        
+        const comboTime = 1.8 - this.stateTimer;
+        if (comboTime > 0.35 * this.comboCount && this.comboCount < this.maxCombo) {
+          this.comboCount++;
+          const punchX = this.x + (this.facing === 1 ? this.width + 10 : -10);
+          const punchY = this.y + this.height * 0.45;
+          
+          game.triggerScreenShake(10, 0.3);
+          audio.playKongPunch();
+          
+          // Dano frontal
+          this.damageNearbyPlayers(punchX, punchY, 110, this.phase === 3 ? 42 : 32, game);
+          
+          for (let i = 0; i < 6; i++) {
+            game.spawnSpark(punchX + this.facing * (20 + i * 12), punchY + (Math.random() - 0.5) * 35);
+          }
+        }
+        
+        if (this.stateTimer <= 0) {
+          this.comboCount = 0;
+          this.attackCooldown = 1.0;
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'GROUND_SLAM':
+        if (this.stateTimer > 0.7) {
+          this.bodyBob = -18 + (1.4 - this.stateTimer) * 28;
+        } else if (this.stateTimer > 0) {
+          this.bodyBob = 0;
+        } else {
+          // IMPACTO SÍSMICO TOTAL!
+          audio.playKongSlam();
+          game.triggerScreenShake(26, 0.7);
+          game.cinematicFlash = 0.45;
+          game.cinematicFlashColor = '#ff6600';
+          this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height, 380, this.phase === 3 ? 60 : 48, game);
+          
+          // Fissura de asfalto rachando para ambos os lados
+          for (let i = 0; i < 22; i++) {
+            const spreadDist = (i - 11) * 32;
+            const shockX = this.x + this.width / 2 + spreadDist;
+            const shockY = this.y + this.height - 10;
+            game.spawnExplosion(shockX, shockY, 40 + Math.random() * 25);
+            game.spawnDust(shockX, shockY);
+          }
+          
+          this.attackCooldown = 1.8;
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'THROW_BOULDER':
+        this.vx = 0;
+        
+        if (this.stateTimer <= 0.45 && this.stateTimer > 0) {
+          const throwX = this.x + (this.facing === 1 ? this.width + 25 : -25);
+          const throwY = this.y + this.height * 0.35;
+          const throwAngle = -0.55;
+          const throwSpeed = Math.min(18, 13 + absDist / 55);
+          
+          game.projectiles.push({
+            x: throwX,
+            y: throwY,
+            vx: Math.cos(throwAngle) * throwSpeed * this.facing,
+            vy: Math.sin(throwAngle) * throwSpeed,
+            width: 38,
+            height: 38,
+            damage: this.phase === 3 ? 55 : 45,
+            type: 'boulder',
+            isPlayer: false,
+            life: 4.0,
+            gravity: 0.55,
+            update: function(dt, g) {
+              this.vy += this.gravity * dt * 60;
+              this.x += this.vx * dt * 60;
+              this.y += this.vy * dt * 60;
+              this.life -= dt;
+              
+              if (this.y >= g.canvas.height - 90) {
+                g.spawnExplosion(this.x, this.y, 65);
+                audio.playExplosion(true);
+                g.triggerScreenShake(10, 0.3);
+                return false;
+              }
+              return this.life > 0;
+            }
+          });
+          
+          audio.playKongThrow();
+          this.boulderCooldown = 3.5;
+          this.stateTimer = 0;
+        }
+        
+        if (this.stateTimer <= 0) {
+          this.attackCooldown = 1.0;
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'THROW_CAR':
+        this.vx = 0;
+        
+        if (this.stateTimer <= 0.55 && this.stateTimer > 0) {
+          const throwX = this.x + (this.facing === 1 ? this.width + 30 : -30);
+          const throwY = this.y + this.height * 0.4;
+          const throwAngle = -0.45 - Math.random() * 0.25;
+          const throwSpeed = 16;
+          
+          game.projectiles.push({
+            x: throwX,
+            y: throwY,
+            vx: Math.cos(throwAngle) * throwSpeed * this.facing,
+            vy: Math.sin(throwAngle) * throwSpeed,
+            width: 54,
+            height: 30,
+            damage: this.phase === 3 ? 65 : 52,
+            type: 'car',
+            isPlayer: false,
+            life: 5.0,
+            rotation: 0,
+            rotationSpeed: (Math.random() - 0.5) * 9,
+            gravity: 0.5,
+            update: function(dt, g) {
+              this.vy += this.gravity * dt * 60;
+              this.x += this.vx * dt * 60;
+              this.y += this.vy * dt * 60;
+              this.rotation += this.rotationSpeed * dt;
+              this.life -= dt;
+              
+              if (this.y >= g.canvas.height - 90) {
+                g.spawnExplosion(this.x, this.y, 60);
+                audio.playExplosion(true);
+                g.triggerScreenShake(11, 0.35);
+                return false;
+              }
+              return this.life > 0;
+            }
+          });
+          
+          audio.playKongThrow();
+          this.carThrowCooldown = 4.5;
+          this.stateTimer = 0;
+        }
+        
+        if (this.stateTimer <= 0) {
+          this.attackCooldown = 1.0;
+          this.transition('IDLE');
+        }
+        break;
+
+      case 'HURT':
+        this.vx = this.facing * -2;
+        if (this.stateTimer <= 0) {
+          this.transition('IDLE');
+        }
+        break;
+    }
+
+    // Virar suavemente se necessário
+    if (this.facing !== this.targetFacing) {
+      this.turnTimer += dt;
+      if (this.turnTimer >= 0.25) {
+        this.facing = this.targetFacing;
+        this.turnTimer = 0;
+      }
+    }
+
+    // Aplicar movimento e limites da arena de Manhattan
+    this.x += this.vx * dt * 60;
+    this.x = Math.max(this.minArenaX, Math.min(this.maxArenaX - this.width, this.x));
+    this.y = this.groundY;
+  }
+
+  transition(newState) {
+    this.state = newState;
+    this.stateTimer = this.getStateDuration(newState);
+  }
+
+  getStateDuration(state) {
+    switch (state) {
+      case 'INTRO_ROAR': return 2.5;
+      case 'WALK': return 2.4;
+      case 'RUN': return 1.9;
+      case 'ROAR_TAUNT': return 1.7;
+      case 'CHEST_POUND': return 1.6;
+      case 'PUNCH_COMBO': return 1.7;
+      case 'GROUND_SLAM': return 1.4;
+      case 'THROW_BOULDER': return 1.1;
+      case 'THROW_CAR': return 1.0;
+      case 'HURT': return 0.35;
+      default: return 1.0;
+    }
+  }
+
+  damageNearbyPlayers(x, y, radius, damage, game) {
+    game.players.forEach(player => {
+      if (player.isDead || player.isInvulnerable) return;
+      const target = player.inSlug && player.slugRef ? player.slugRef : player;
+      const cx = target.x + target.width / 2;
+      const cy = target.y + target.height / 2;
+      if (Math.hypot(cx - x, cy - y) <= radius) {
+        player.takeDamage(damage, game);
+        game.spawnDust(cx, target.y + target.height);
+      }
+    });
+  }
+
+  enterPhase(phase, game) {
+    this.phase = phase;
+    this.speed = phase === 3 ? 4.5 : 3.6;
+    this.runSpeed = phase === 3 ? 7.8 : 6.6;
+    this.isBerserker = phase === 3;
+    this.attackCooldown = 0.4;
+    game.triggerScreenShake(phase === 3 ? 24 : 14, 0.6);
+    audio.playKongRoar();
+    const label = phase === 3 ? '🦍 APOCALIPSE PRIMORDIAL! 🦍' : '💥 KONG ENFURECIDO! 💥';
+    game.addFloatingText(this.x + this.width / 2, this.y - 50, label, phase === 3 ? '#ff0000' : '#ff5500', 19);
+  }
+
+  takeDamage(amount, arg2, arg3) {
+    if (this.isDead) return;
+    const game = (arg2 && typeof arg2 === 'object' && arg2.spawnSpark) ? arg2 : (arg3 && typeof arg3 === 'object' && arg3.spawnSpark ? arg3 : (window.game || window.gameEngine || null));
+    this.hp -= amount;
+    this.flashTimer = 0.08;
+    this.recoilX += (this.facing === -1 ? 3 : -3);
+
+    if (game && game.spawnSpark) {
+      game.spawnSpark(this.x + Math.random() * this.width, this.y + Math.random() * this.height);
+    }
+
+    if (amount > 50 && Math.random() < 0.25) {
+      audio.playKongPunch();
+      if (this.state === 'IDLE' || this.state === 'WALK') {
+        this.transition('HURT');
+      }
+    }
+
+    if (this.hp <= 0) {
+      this.die(game);
+    }
+  }
+
+  die(game) {
+    if (this.isDead && this.state === 'DYING') return;
+    this.isDead = true;
+    this.state = 'DYING';
+    this.hp = 0;
+
+    const g = game || window.game || window.gameEngine;
+    const finaleRunId = g ? g.runId : null;
+    if (g && g.players) {
+      g.players.forEach(p => { p.score += 150000; });
+    }
+    if (g && g.addFloatingText) {
+      g.addFloatingText(this.x + this.width / 2, this.y - 45, '👑 KING KONG DERROTADO! +150000 👑', '#ffaa00', 22);
+    }
+    audio.playKongRoar();
+
+    // Cadeia épica de explosões e terremoto de derrota
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        if (g && g.runId === finaleRunId && g.spawnExplosion) {
+          const ex = this.x + Math.random() * this.width;
+          const ey = this.y + Math.random() * this.height;
+          g.spawnExplosion(ex, ey, 85 + Math.random() * 65);
+          audio.playExplosion(true);
+          if (g.triggerScreenShake) g.triggerScreenShake(16, 0.4);
+        }
+      }, i * 110);
+    }
+
+    // VITÓRIA SUPREMA FINAL!
+    setTimeout(() => {
+      if (g && g.runId === finaleRunId && g.missionComplete) {
+        g.missionComplete();
+      }
+    }, 2800);
   }
 }
 

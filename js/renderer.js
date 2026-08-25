@@ -26,7 +26,106 @@ class GameRenderer {
       this.mechaSprites.loaded = true;
     };
 
-    // Partículas ambientais (Pétalas de Sakura em Tóquio, Vaga-lumes no Brasil, Poeira/Areia no Egito)
+    // Sprites Oficiais de King Ghidorah (O Dragão Dourado Tricéfalo)
+    this.ghidorahSprites = {
+      roaring_stand: new Image(),
+      fly_1: new Image(),
+      fly_2: new Image(),
+      fly_3: new Image(),
+      front_glide: new Image(),
+      walk_1: new Image(),
+      walk_2: new Image(),
+      gravity_beam: new Image(),
+      swoop_1: new Image(),
+      battle_pose: new Image(),
+      ground_beam_1: new Image(),
+      ground_beam_2: new Image(),
+      ground_beam_3: new Image(),
+      swoop_2: new Image(),
+      hit_flip: new Image(),
+      energy_burst: new Image(),
+      tornado: new Image(),
+      crouch_hurt: new Image(),
+      dead: new Image(),
+      ascend_blast: new Image(),
+      loaded: false
+    };
+    const ghidorahKeys = Object.keys(this.ghidorahSprites).filter(k => k !== 'loaded');
+    let loadedGhidorahCount = 0;
+    ghidorahKeys.forEach(k => {
+      this.ghidorahSprites[k].src = `assets/ghidorah/${k}.png`;
+      this.ghidorahSprites[k].onload = () => {
+        loadedGhidorahCount++;
+        if (loadedGhidorahCount >= ghidorahKeys.length) {
+          this.ghidorahSprites.loaded = true;
+        }
+      };
+    });
+
+    // Sprites Oficiais do King Kong (O Titã de Manhattan / Final Boss)
+    this.kongSprites = {
+      portrait: new Image(),
+      idle_1: new Image(),
+      idle_2: new Image(),
+      idle_3: new Image(),
+      idle_4: new Image(),
+      walk_1: new Image(),
+      walk_2: new Image(),
+      walk_3: new Image(),
+      walk_4: new Image(),
+      walk_5: new Image(),
+      walk_6: new Image(),
+      run_1: new Image(),
+      run_2: new Image(),
+      run_3: new Image(),
+      roar_1: new Image(),
+      roar_2: new Image(),
+      roar_3: new Image(),
+      roar_4: new Image(),
+      jump_1: new Image(),
+      jump_2: new Image(),
+      jump_3: new Image(),
+      jump_4: new Image(),
+      fall_1: new Image(),
+      fall_2: new Image(),
+      fall_3: new Image(),
+      fall_4: new Image(),
+      punch_1: new Image(),
+      punch_2: new Image(),
+      punch_3: new Image(),
+      punch_4: new Image(),
+      slam_1: new Image(),
+      slam_2: new Image(),
+      slam_3: new Image(),
+      grab_1: new Image(),
+      grab_2: new Image(),
+      grab_3: new Image(),
+      throw_1: new Image(),
+      throw_2: new Image(),
+      throw_3: new Image(),
+      boulder: new Image(),
+      hurt_1: new Image(),
+      hurt_2: new Image(),
+      hurt_3: new Image(),
+      death_1: new Image(),
+      death_2: new Image(),
+      death_3: new Image(),
+      victory: new Image(),
+      loaded: false
+    };
+    const kongKeys = Object.keys(this.kongSprites).filter(k => k !== 'loaded');
+    let loadedKongCount = 0;
+    kongKeys.forEach(k => {
+      this.kongSprites[k].src = `assets/kong/${k}.png`;
+      this.kongSprites[k].onload = () => {
+        loadedKongCount++;
+        if (loadedKongCount >= kongKeys.length) {
+          this.kongSprites.loaded = true;
+        }
+      };
+    });
+
+    // Partículas ambientais (Pétalas em Tóquio, Vaga-lumes no Brasil, Tempestade no Egito, Cinzas/Fagulhas em Nova York)
     this.ambientParticles = [];
     for (let i = 0; i < 40; i++) {
       this.ambientParticles.push({
@@ -310,14 +409,16 @@ class GameRenderer {
   }
 
   // --- CENÁRIO PARALLAX DINÂMICO MULTI-PAÍSES (TÓQUIO -> BRASIL -> EUROPA -> EGITO) ---
+  // --- CENÁRIO PARALLAX DINÂMICO MULTI-PAÍSES (TÓQUIO -> BRASIL -> EUROPA -> EGITO -> NOVA YORK) ---
   drawParallaxBackground(ctx, camera, canvasWidth, canvasHeight, mapWidth) {
     ctx.save();
     const camX = camera.x;
 
     // Determinar bioma predominante pelo camX
-    // 0 -> 1300: Tóquio | 1300 -> 2500: Brasil | 2500 -> 3700: Europa | 3700+: Egito (Pirâmides)
+    // 0 -> 1300: Tóquio | 1300 -> 2500: Brasil | 2500 -> 3700: Europa | 3700 -> 5000: Egito | 5000+: Nova York (Manhattan)
     let region = 'tokyo';
-    if (camX > 3500) region = 'egypt';
+    if (camX > 4800) region = 'newyork';
+    else if (camX > 3500) region = 'egypt';
     else if (camX > 2300) region = 'europe';
     else if (camX > 1100) region = 'brazil';
 
@@ -345,19 +446,26 @@ class GameRenderer {
       skyGrad.addColorStop(0.7, '#182b45');
       skyGrad.addColorStop(0.9, '#243e61');
       skyGrad.addColorStop(1, '#3a5d8c');
-    } else {
+    } else if (region === 'egypt') {
       // Egito: MANHÃ DOURADA NO DESERTO com Sol Nascente
-      skyGrad.addColorStop(0, '#ffd89b'); // Amarelo suave do amanhecer
-      skyGrad.addColorStop(0.35, '#ff8a5a'); // Laranja do sol nascente
-      skyGrad.addColorStop(0.65, '#ff6b45'); // Vermelho alaranjado
-      skyGrad.addColorStop(0.85, '#d4855b'); // Tom quente de areia
-      skyGrad.addColorStop(1, '#c49060'); // Areia dourada no horizonte
+      skyGrad.addColorStop(0, '#ffd89b');
+      skyGrad.addColorStop(0.35, '#ff8a5a');
+      skyGrad.addColorStop(0.65, '#ff6b45');
+      skyGrad.addColorStop(0.85, '#d4855b');
+      skyGrad.addColorStop(1, '#c49060');
+    } else {
+      // Nova York: CÉU APOCALÍPTICO VERMELHO SANGUE / TEMPESTADE DE FOGO E CINZAS
+      skyGrad.addColorStop(0, '#0a0208');
+      skyGrad.addColorStop(0.25, '#220410');
+      skyGrad.addColorStop(0.55, '#4a0b18');
+      skyGrad.addColorStop(0.8, '#8c1616');
+      skyGrad.addColorStop(1, '#ff3300');
     }
 
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // 2. CORPO CELESTE (Sol de Tóquio, Pôr-do-sol no Brasil, Lua Cheia na Europa ou Lua de Ouro no Egito)
+    // 2. CORPO CELESTE (Sol de Tóquio, Pôr-do-sol no Brasil, Lua Cheia na Europa, Pirâmides do Egito ou Empire State em Nova York)
     const celX = canvasWidth * 0.7 - (camX % 1300) * 0.05;
     const celY = 95;
 
@@ -381,7 +489,6 @@ class GameRenderer {
       ctx.lineTo(celX + 160, canvasHeight - 120);
       ctx.closePath();
       ctx.fill();
-      // Neve no topo do Monte Fuji
       ctx.fillStyle = '#ff66aa';
       ctx.beginPath();
       ctx.moveTo(celX - 35, celY + 45);
@@ -403,7 +510,7 @@ class GameRenderer {
       ctx.arc(celX, celY, 80, 0, Math.PI * 2);
       ctx.fill();
 
-      // Montanhas Tropicais (Perfil do Pão de Açúcar / Corcovado)
+      // Montanhas Tropicais
       ctx.fillStyle = '#0f241a';
       ctx.beginPath();
       ctx.arc(celX - 80, canvasHeight - 40, 130, Math.PI, 0);
@@ -422,50 +529,43 @@ class GameRenderer {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Silhueta da Torre Eiffel ao Fundo
+      // Silhueta da Torre Eiffel
       ctx.fillStyle = '#0d1522';
       ctx.beginPath();
       ctx.moveTo(celX - 45, canvasHeight - 110);
       ctx.lineTo(celX - 5, celY + 50);
-      ctx.lineTo(celX, celY + 10); // Ponta da torre
+      ctx.lineTo(celX, celY + 10);
       ctx.lineTo(celX + 5, celY + 50);
       ctx.lineTo(celX + 45, canvasHeight - 110);
       ctx.closePath();
       ctx.fill();
 
-    } else {
-      // Egito: SOL DOURADO DA MANHÃ com Brilho Intenso & Três Grandes Pirâmides de Gizé
-      
-      // SOL DOURADO BRILHANTE do amanhecer
+    } else if (region === 'egypt') {
+      // Egito: Pirâmides de Gizé
       const sunGrad = ctx.createRadialGradient(celX, celY, 20, celX, celY, 80);
-      sunGrad.addColorStop(0, '#ffffff'); // Centro branco brilhante
-      sunGrad.addColorStop(0.3, '#ffeb3b'); // Amarelo intenso
-      sunGrad.addColorStop(0.6, '#ff9800'); // Laranja
-      sunGrad.addColorStop(1, 'rgba(255, 152, 0, 0)'); // Fade transparente
+      sunGrad.addColorStop(0, '#ffffff');
+      sunGrad.addColorStop(0.3, '#ffeb3b');
+      sunGrad.addColorStop(0.6, '#ff9800');
+      sunGrad.addColorStop(1, 'rgba(255, 152, 0, 0)');
       ctx.fillStyle = sunGrad;
       ctx.beginPath();
       ctx.arc(celX, celY, 80, 0, Math.PI * 2);
       ctx.fill();
       
-      // Núcleo do sol
       ctx.fillStyle = '#fff9e6';
       ctx.beginPath();
       ctx.arc(celX, celY, 42, 0, Math.PI * 2);
       ctx.fill();
 
-      // AS TRÊS GRANDES PIRÂMIDES DE GIZÉ (Quéops, Quéfren e Miquerinos) - MAIORES!
       const pyrParallax = (camX - 3500) * 0.15;
-
-      // Pirâmide 1 (Grande Pirâmide de Quéops) - GIGANTE!
       const p1x = 240 - pyrParallax;
-      ctx.fillStyle = '#2a1f15'; // Sombra mais escura
+      ctx.fillStyle = '#2a1f15';
       ctx.beginPath();
-      ctx.moveTo(p1x - 280, canvasHeight - 80); // Base mais larga
-      ctx.lineTo(p1x, canvasHeight - 420); // Mais alta
+      ctx.moveTo(p1x - 280, canvasHeight - 80);
+      ctx.lineTo(p1x, canvasHeight - 420);
       ctx.lineTo(p1x + 280, canvasHeight - 80);
       ctx.closePath();
       ctx.fill();
-      // Face iluminada pelo SOL da manhã (dourado quente)
       ctx.fillStyle = '#d4a373';
       ctx.beginPath();
       ctx.moveTo(p1x, canvasHeight - 420);
@@ -473,19 +573,7 @@ class GameRenderer {
       ctx.lineTo(p1x, canvasHeight - 80);
       ctx.closePath();
       ctx.fill();
-      // Capstone Dourado Brilhante no Topo
-      ctx.fillStyle = '#ffd700';
-      ctx.shadowColor = '#ffaa00';
-      ctx.shadowBlur = 15;
-      ctx.beginPath();
-      ctx.moveTo(p1x - 30, canvasHeight - 390);
-      ctx.lineTo(p1x, canvasHeight - 420);
-      ctx.lineTo(p1x + 30, canvasHeight - 390);
-      ctx.closePath();
-      ctx.fill();
-      ctx.shadowBlur = 0;
 
-      // Pirâmide 2 (Quéfren) - GRANDE!
       const p2x = 580 - pyrParallax;
       ctx.fillStyle = '#24190f';
       ctx.beginPath();
@@ -502,17 +590,77 @@ class GameRenderer {
       ctx.closePath();
       ctx.fill();
 
-      // A Grande Esfinge de Gizé esculpida no horizonte
-      const spx = 760 - pyrParallax;
-      ctx.fillStyle = '#2b1a0e';
+    } else {
+      // Nova York: LUA DE SANGUE ECLIPSADA & O EMPIRE STATE BUILDING EM CHAMAS
+      const moonGrad = ctx.createRadialGradient(celX, celY, 15, celX, celY, 85);
+      moonGrad.addColorStop(0, '#fff0d0');
+      moonGrad.addColorStop(0.3, '#ff2200');
+      moonGrad.addColorStop(0.7, '#880000');
+      moonGrad.addColorStop(1, 'rgba(120, 0, 0, 0)');
+      ctx.fillStyle = moonGrad;
       ctx.beginPath();
-      // Corpo de leão e cabeça de faraó
-      ctx.fillRect(spx - 70, canvasHeight - 190, 140, 90);
-      ctx.arc(spx - 30, canvasHeight - 210, 32, 0, Math.PI * 2);
+      ctx.arc(celX, celY, 85, 0, Math.PI * 2);
       ctx.fill();
-      // Olhos dourados brilhantes da Esfinge
-      ctx.fillStyle = '#ffcc00';
-      ctx.fillRect(spx - 42, canvasHeight - 214, 5, 3);
+
+      // Silhueta do EMPIRE STATE BUILDING no fundo distante
+      const nyParallax = (camX - 5000) * 0.12;
+      const esbX = 420 - nyParallax;
+      
+      ctx.fillStyle = '#140810';
+      // Base do Empire State
+      ctx.fillRect(esbX - 55, canvasHeight - 360, 110, 280);
+      // Nível intermediário
+      ctx.fillRect(esbX - 38, canvasHeight - 450, 76, 95);
+      // Nível superior
+      ctx.fillRect(esbX - 22, canvasHeight - 510, 44, 65);
+      // Pináculo / Antena com sinalizador vermelho
+      ctx.fillRect(esbX - 4, canvasHeight - 570, 8, 65);
+      ctx.fillRect(esbX - 1.5, canvasHeight - 595, 3, 28);
+
+      // Luz vermelha pulsante da antena do Empire State
+      const beaconGlow = Math.sin(this.time * 6) > 0 ? 1 : 0.2;
+      ctx.fillStyle = `rgba(255, 0, 0, ${beaconGlow})`;
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.arc(esbX, canvasHeight - 596, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Silhueta do Chrysler Building ao lado
+      const chryX = 720 - nyParallax;
+      ctx.fillStyle = '#11060e';
+      ctx.fillRect(chryX - 40, canvasHeight - 380, 80, 300);
+      ctx.fillRect(chryX - 25, canvasHeight - 460, 50, 85);
+      // Arcos Deco do Chrysler
+      ctx.beginPath();
+      ctx.moveTo(chryX - 20, canvasHeight - 460);
+      ctx.lineTo(chryX, canvasHeight - 530);
+      ctx.lineTo(chryX + 20, canvasHeight - 460);
+      ctx.closePath();
+      ctx.fill();
+
+      // Holofotes Militares de Manhattan cruzando o céu
+      for (let s = 0; s < 3; s++) {
+        const sweepAngle = Math.sin(this.time * 1.5 + s * 1.8) * 0.4 - 0.2;
+        const beamBaseX = 200 + s * 300 - nyParallax;
+        ctx.save();
+        ctx.translate(beamBaseX, canvasHeight - 80);
+        ctx.rotate(sweepAngle);
+        const beamGrad = ctx.createLinearGradient(0, 0, 0, -500);
+        beamGrad.addColorStop(0, 'rgba(255, 230, 150, 0.25)');
+        beamGrad.addColorStop(0.5, 'rgba(255, 200, 100, 0.12)');
+        beamGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(-15, 0);
+        ctx.lineTo(-70, -500);
+        ctx.lineTo(70, -500);
+        ctx.lineTo(15, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
     }
 
     // 3. CAMADA MIDGROUND DINÂMICA (Parallax 0.3)
@@ -526,7 +674,6 @@ class GameRenderer {
         const bh = 180 + Math.sin(i * 9) * 70;
         ctx.fillRect(bx, canvasHeight - bh - 100, 75, bh);
 
-        // Telhado de pagode com beirais curvos
         if (i % 2 === 0) {
           ctx.fillStyle = '#ff0055';
           ctx.beginPath();
@@ -537,7 +684,6 @@ class GameRenderer {
           ctx.fill();
         }
 
-        // Placas de Neon em Kanji (東京, 龍, サイバー)
         ctx.fillStyle = (i % 3 === 0) ? '#00d9ff' : ((i % 3 === 1) ? '#ff0055' : '#ffff00');
         ctx.font = '10px sans-serif';
         ctx.fillText(i % 2 === 0 ? '東京' : 'ネオン', bx + 18, canvasHeight - bh - 50);
@@ -545,16 +691,12 @@ class GameRenderer {
       }
 
     } else if (region === 'brazil') {
-      // Palmeiras Tropicais, Folhagens da Selva & Cachoeiras
+      // Palmeiras Tropicais
       ctx.fillStyle = '#12261a';
       for (let i = -100; i < canvasWidth + 200; i += 130) {
         const tx = ((i - midP) % (canvasWidth + 250) + canvasWidth + 250) % (canvasWidth + 250) - 100;
         const th = 150 + Math.sin(i * 11) * 50;
-
-        // Tronco da palmeira
         ctx.fillRect(tx + 28, canvasHeight - th - 100, 14, th);
-
-        // Copa de palmeira exuberante
         ctx.fillStyle = '#1b4028';
         ctx.beginPath();
         ctx.arc(tx + 35, canvasHeight - th - 105, 45, 0, Math.PI * 2);
@@ -563,22 +705,18 @@ class GameRenderer {
       }
 
     } else if (region === 'europe') {
-      // Catedrais Góticas com Torres Pontiagudas & Vitrais
+      // Catedrais Góticas
       ctx.fillStyle = '#181d2e';
       for (let i = -100; i < canvasWidth + 200; i += 140) {
         const cx = ((i - midP) % (canvasWidth + 250) + canvasWidth + 250) % (canvasWidth + 250) - 100;
         const ch = 160 + Math.sin(i * 5) * 60;
         ctx.fillRect(cx, canvasHeight - ch - 100, 90, ch);
-
-        // Torre Gótica
         ctx.beginPath();
         ctx.moveTo(cx, canvasHeight - ch - 100);
         ctx.lineTo(cx + 45, canvasHeight - ch - 160);
         ctx.lineTo(cx + 90, canvasHeight - ch - 100);
         ctx.closePath();
         ctx.fill();
-
-        // Vitral circular âmbar iluminado
         ctx.fillStyle = '#ffaa00';
         ctx.beginPath();
         ctx.arc(cx + 45, canvasHeight - ch - 60, 14, 0, Math.PI * 2);
@@ -586,29 +724,71 @@ class GameRenderer {
         ctx.fillStyle = '#181d2e';
       }
 
-    } else {
-      // Egito: Dunas Onduladas de Areia Dourada & Pilares dos Faraós
+    } else if (region === 'egypt') {
+      // Egito: Dunas Onduladas
       ctx.fillStyle = '#422814';
       for (let i = -100; i < canvasWidth + 200; i += 180) {
         const dx = ((i - midP) % (canvasWidth + 300) + canvasWidth + 300) % (canvasWidth + 300) - 100;
-        // Dunas suaves
         ctx.beginPath();
         ctx.moveTo(dx, canvasHeight - 100);
         ctx.quadraticCurveTo(dx + 90, canvasHeight - 190, dx + 180, canvasHeight - 100);
         ctx.fill();
-
-        // Obeliscos Egípcios no horizonte
         if (i % 2 === 0) {
           ctx.fillStyle = '#5c381c';
           ctx.beginPath();
           ctx.moveTo(dx + 75, canvasHeight - 100);
           ctx.lineTo(dx + 82, canvasHeight - 240);
-          ctx.lineTo(dx + 85, canvasHeight - 255); // Ponta piramidal
+          ctx.lineTo(dx + 85, canvasHeight - 255);
           ctx.lineTo(dx + 88, canvasHeight - 240);
           ctx.lineTo(dx + 95, canvasHeight - 100);
           ctx.closePath();
           ctx.fill();
           ctx.fillStyle = '#422814';
+        }
+      }
+
+    } else {
+      // Nova York: ARRANHA-CÉUS EM RUÍNAS COM PLACAS NEON PISCANDO E VIGAS TORTAS
+      ctx.fillStyle = '#1c0c14';
+      for (let i = -100; i < canvasWidth + 250; i += 135) {
+        const nx = ((i - midP) % (canvasWidth + 300) + canvasWidth + 300) % (canvasWidth + 300) - 100;
+        const nh = 210 + Math.sin(i * 7) * 75;
+
+        // Prédio comercial em ruínas
+        ctx.fillRect(nx, canvasHeight - nh - 90, 95, nh);
+
+        // Janelas acesas e quebradas
+        for (let row = 0; row < nh - 40; row += 22) {
+          for (let col = 8; col < 80; col += 18) {
+            const isLit = (Math.sin(i + row * 3 + col) > 0.3);
+            if (isLit) {
+              ctx.fillStyle = (Math.random() < 0.1 && Math.sin(this.time * 15 + i) > 0) ? '#ff0033' : '#ffaa33';
+              ctx.fillRect(nx + col, canvasHeight - nh - 75 + row, 10, 12);
+              ctx.fillStyle = '#1c0c14';
+            }
+          }
+        }
+
+        // Letreiros luminosos quebrados ("BROADWAY", "HOTEL", "NYC", "CYBER")
+        const signs = ['NYC', 'EMPIRE', 'HOTEL', 'BROADWAY'];
+        const signText = signs[Math.abs(i) % signs.length];
+        const blink = Math.sin(this.time * 8 + i) > -0.2;
+        if (blink) {
+          ctx.fillStyle = (i % 2 === 0) ? '#ff2200' : '#00ffff';
+          ctx.shadowColor = ctx.fillStyle;
+          ctx.shadowBlur = 12;
+          ctx.font = 'bold 9px "Press Start 2P", monospace';
+          ctx.fillText(signText, nx + 12, canvasHeight - nh - 100);
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#1c0c14';
+        }
+
+        // Fumaça saindo do topo dos prédios em chamas
+        if (i % 2 === 0) {
+          ctx.fillStyle = 'rgba(60, 20, 20, 0.4)';
+          ctx.beginPath();
+          ctx.arc(nx + 45 + Math.sin(this.time * 2 + i) * 15, canvasHeight - nh - 110, 22, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
     }
@@ -620,13 +800,11 @@ class GameRenderer {
       ctx.rotate(p.rot);
 
       if (region === 'tokyo') {
-        // Pétalas de Sakura Rosas
         ctx.fillStyle = 'rgba(255, 180, 210, 0.75)';
         ctx.beginPath();
         ctx.ellipse(0, 0, p.size * 1.5, p.size, 0, 0, Math.PI * 2);
         ctx.fill();
       } else if (region === 'brazil') {
-        // Vaga-lumes Tropicais Verde-limão
         ctx.fillStyle = 'rgba(160, 255, 60, 0.85)';
         ctx.shadowColor = '#a0ff3c';
         ctx.shadowBlur = 6;
@@ -634,15 +812,22 @@ class GameRenderer {
         ctx.arc(0, 0, p.size * 0.8, 0, Math.PI * 2);
         ctx.fill();
       } else if (region === 'europe') {
-        // Névoa / Fagulhas de Tochas Medievais
         ctx.fillStyle = 'rgba(255, 180, 60, 0.6)';
         ctx.beginPath();
         ctx.arc(0, 0, p.size * 0.7, 0, Math.PI * 2);
         ctx.fill();
-      } else {
-        // Tempestade de Areia Dourada do Deserto do Egito
+      } else if (region === 'egypt') {
         ctx.fillStyle = 'rgba(255, 204, 102, 0.7)';
         ctx.fillRect(0, 0, p.size * 1.2, p.size * 0.8);
+      } else {
+        // Nova York: CINZAS, BRASAS E FAGULHAS INCANDESCENTES DO APOCALIPSE
+        const isEmber = Math.random() < 0.4;
+        ctx.fillStyle = isEmber ? '#ff4400' : 'rgba(180, 160, 160, 0.65)';
+        if (isEmber) {
+          ctx.shadowColor = '#ff2200';
+          ctx.shadowBlur = 6;
+        }
+        ctx.fillRect(0, 0, p.size * 1.1, p.size * 0.9);
       }
 
       ctx.restore();
@@ -715,7 +900,7 @@ class GameRenderer {
             ctx.strokeRect(x + 15, plat.y + 20, 30, 20);
           }
 
-        } else {
+        } else if (biome === 'egypt') {
           // ARENA DO EGITO: Blocos Maciços de Calcário e Arenito Dourado das Pirâmides
           const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
           gGrad.addColorStop(0, '#d4a373');
@@ -733,15 +918,13 @@ class GameRenderer {
           ctx.lineWidth = 3;
           for (let x = plat.x; x < plat.x + plat.width; x += 85) {
             ctx.strokeRect(x, plat.y, 85, 40);
-            // Símbolos de hieróglifos dourados entalhados nas pedras
             ctx.fillStyle = '#ffdf7a';
             ctx.font = '10px sans-serif';
             ctx.fillText('𓀀 𓃠 𓆃', x + 15, plat.y + 26);
           }
 
-          // Tochas / Taças de Fogo Sagrado do Faraó iluminando a arena
+          // Tochas de Fogo Sagrado do Faraó iluminando a arena
           for (let tx = plat.x + 80; tx < plat.x + plat.width; tx += 360) {
-            // Suporte de bronze dourado
             ctx.fillStyle = '#8f5c38';
             ctx.fillRect(tx - 6, plat.y - 45, 12, 45);
             ctx.fillStyle = '#ffcc00';
@@ -749,7 +932,6 @@ class GameRenderer {
             ctx.arc(tx, plat.y - 45, 14, 0, Math.PI);
             ctx.fill();
 
-            // Chamas ardentes animadas
             const flameH = 18 + Math.sin(this.time * 12 + tx) * 5;
             ctx.fillStyle = '#ff3300';
             ctx.beginPath();
@@ -760,8 +942,52 @@ class GameRenderer {
             ctx.fill();
             ctx.fillStyle = '#ffcc00';
             ctx.beginPath();
-            ctx.arc(tx, plat.y - 50, 7, 0, Math.PI * 2);
+            ctx.moveTo(tx - 6, plat.y - 48);
+            ctx.lineTo(tx, plat.y - 52 - flameH * 0.6);
+            ctx.lineTo(tx + 6, plat.y - 48);
+            ctx.closePath();
             ctx.fill();
+          }
+
+        } else {
+          // NOVA YORK APOCALÍPTICA: Asfalto Rachado com Escombros e Faixas de Trânsito Amarelas
+          const gGrad = ctx.createLinearGradient(0, plat.y, 0, plat.y + plat.height);
+          gGrad.addColorStop(0, '#2a2d35');
+          gGrad.addColorStop(0.3, '#1a1c22');
+          gGrad.addColorStop(1, '#0d0e12');
+          ctx.fillStyle = gGrad;
+          ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+
+          // Rachaduras no asfalto
+          ctx.strokeStyle = '#0a0b0f';
+          ctx.lineWidth = 3;
+          for (let x = plat.x; x < plat.x + plat.width; x += 120) {
+            ctx.beginPath();
+            ctx.moveTo(x, plat.y);
+            ctx.lineTo(x + 40, plat.y + 20);
+            ctx.lineTo(x + 50, plat.y + 40);
+            ctx.stroke();
+          }
+
+          // Faixas amarelas de trânsito desgastadas
+          ctx.fillStyle = 'rgba(255, 204, 0, 0.4)';
+          for (let x = plat.x; x < plat.x + plat.width; x += 60) {
+            ctx.fillRect(x, plat.y + 10, 30, 4);
+          }
+
+          // Manchas de óleo e sangue
+          ctx.fillStyle = 'rgba(50, 20, 20, 0.6)';
+          for (let x = plat.x + 40; x < plat.x + plat.width; x += 180) {
+            ctx.beginPath();
+            ctx.arc(x, plat.y + 25, 8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Detritos e escombros de concreto
+          ctx.fillStyle = '#3d4149';
+          for (let x = plat.x + 100; x < plat.x + plat.width; x += 250) {
+            ctx.fillRect(x, plat.y, 15, 8);
+            ctx.fillRect(x + 20, plat.y, 8, 6);
           }
         }
 
@@ -774,7 +1000,7 @@ class GameRenderer {
           ctx.fillStyle = '#ff3344';
           ctx.fillRect(plat.x, plat.y, plat.width, 4);
 
-          // Lanternas vermelhas de papel (Chōchin) penduradas
+          // Lanternas vermelhas de papel penduradas
           ctx.fillStyle = '#ff0033';
           ctx.beginPath();
           ctx.arc(plat.x + 25, plat.y + plat.height + 12, 9, 0, Math.PI * 2);
@@ -788,7 +1014,7 @@ class GameRenderer {
           // Ponte rústica de troncos de madeira e cipós
           ctx.fillStyle = '#5c3a21';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
-          ctx.strokeStyle = '#2b7a4b'; // Cipós verdes
+          ctx.strokeStyle = '#2b7a4b';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.moveTo(plat.x, plat.y);
@@ -796,13 +1022,13 @@ class GameRenderer {
           ctx.stroke();
 
         } else if (biome === 'europe') {
-          // Passarela de pedra de castelo medieval com parapeito
+          // Passarela de pedra de castelo medieval
           ctx.fillStyle = '#3f495a';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
           ctx.fillStyle = '#60728c';
           ctx.fillRect(plat.x, plat.y, plat.width, 4);
 
-        } else {
+        } else if (biome === 'egypt') {
           // Passarela sagrada de arenito egípcio com relevos
           ctx.fillStyle = '#c68b59';
           ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
@@ -811,6 +1037,22 @@ class GameRenderer {
           ctx.fillStyle = '#5e3c1e';
           ctx.font = '8px sans-serif';
           ctx.fillText('𓇯 𓈖 𓊪 𓋹', plat.x + 20, plat.y + 14);
+
+        } else {
+          // NOVA YORK: Vigas de Aço I-Beam Industriais e Concreto Armado com Vergalhões
+          ctx.fillStyle = '#7f1d1d'; // Aço enferrujado
+          ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+          ctx.fillStyle = '#991b1b';
+          ctx.fillRect(plat.x, plat.y, plat.width, 4);
+          ctx.fillRect(plat.x, plat.y + plat.height - 4, plat.width, 4);
+          
+          // Rebites de aço industriais
+          ctx.fillStyle = '#1f2937';
+          for (let rx = plat.x + 10; rx < plat.x + plat.width; rx += 25) {
+            ctx.beginPath();
+            ctx.arc(rx, plat.y + plat.height / 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
     });
@@ -2494,6 +2736,14 @@ class GameRenderer {
   // --- CHEFÃO TITÃ (MECHAGODZILLA DINÂMICO HD - APEX TITAN DO EGITO) ---
   drawBoss(ctx, camera, boss) {
     if (boss.hiddenByDragon) return;
+    if (boss.isGhidorah) {
+      this.drawKingGhidorah(ctx, camera, boss);
+      return;
+    }
+    if (boss.isKingKong) {
+      this.drawKingKong(ctx, camera, boss);
+      return;
+    }
     ctx.save();
     const renderX = boss.cinematicX ?? boss.x;
     const renderY = boss.cinematicY ?? boss.y;
@@ -2745,239 +2995,535 @@ class GameRenderer {
     ctx.restore();
   }
 
+  // --- CHEFÃO SUPREMO: KING GHIDORAH (O DRAGÃO DOURADO TRICÉFALO) ---
+  drawKingGhidorah(ctx, camera, boss) {
+    if (!boss) return;
+    const isFlying = boss.isFlying || ['ASCEND', 'AERIAL_HOVER', 'AERIAL_BOMBARD', 'AERIAL_SWOOP'].includes(boss.state);
+    const groundLevelY = (boss.groundY || 440) - camera.y;
+    const renderX = (boss.cinematicX ?? boss.x) + boss.width / 2 + (boss.recoilX || 0);
+    const renderY = (boss.cinematicY ?? boss.y) + boss.height / 2 + (boss.bodyBob || 0);
+    const screenX = renderX - camera.x;
+    const screenY = renderY - camera.y;
+
+    // 1. Sombra Dinâmica no Solo
+    ctx.save();
+    const altitude = Math.max(0, (groundLevelY - screenY));
+    const shadowScale = Math.max(0.35, 1 - altitude / 450);
+    const shadowAlpha = Math.max(0.15, 0.55 - altitude / 600);
+    ctx.fillStyle = `rgba(15, 10, 2, ${shadowAlpha})`;
+    ctx.beginPath();
+    ctx.ellipse(screenX, groundLevelY - 8, (boss.width / 2 + 30) * shadowScale, 18 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2. Trilhas e Rastros de Velocidade no Rasante Aéreo (Swoop)
+    if (boss.state === 'AERIAL_SWOOP') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 24;
+      ctx.lineWidth = 14;
+      const trailDir = -(boss.facing || -1);
+      for (let t = 0; t < 6; t++) {
+        const ty = screenY - 50 + t * 20 + Math.sin(boss.animTime * 20 + t) * 10;
+        ctx.beginPath();
+        ctx.moveTo(screenX + trailDir * 40, ty);
+        ctx.lineTo(screenX + trailDir * (220 + t * 45), ty + Math.sin(boss.animTime * 15 + t) * 12);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 3. Renderização Principal do Sprite
+    ctx.save();
+    ctx.translate(screenX, screenY);
+    ctx.rotate(boss.cinematicTilt || boss.impactTilt || 0);
+    const baseScale = boss.spriteScale || 1.65;
+    ctx.scale((boss.facing || -1) * (boss.cinematicScale || 1) * baseScale, (boss.cinematicScale || 1) * baseScale);
+    ctx.globalAlpha = boss.cinematicOpacity ?? 1;
+
+    if (boss.flashTimer > 0) {
+      ctx.filter = 'brightness(2.8) contrast(1.2)';
+    }
+
+    let currentSprite = null;
+    const s = this.ghidorahSprites;
+
+    if (s && s.loaded) {
+      switch (boss.state) {
+        case 'DYING':
+          currentSprite = s.dead;
+          break;
+        case 'HURT_STAGGER':
+          currentSprite = isFlying ? s.hit_flip : s.crouch_hurt;
+          break;
+        case 'GRAVITY_BEAMS':
+          currentSprite = s.gravity_beam;
+          break;
+        case 'GROUND_SWEEP_BEAMS':
+          if (boss.sweepStage === 1) currentSprite = s.ground_beam_1;
+          else if (boss.sweepStage === 2) currentSprite = s.ground_beam_2;
+          else currentSprite = s.ground_beam_3;
+          break;
+        case 'GOLDEN_TORNADO':
+          currentSprite = s.tornado;
+          break;
+        case 'ENERGY_BURST':
+          currentSprite = s.energy_burst;
+          break;
+        case 'ASCEND':
+          currentSprite = s.ascend_blast;
+          break;
+        case 'AERIAL_SWOOP':
+          currentSprite = (Math.floor(boss.animTime * 8) % 2 === 0) ? s.swoop_1 : s.swoop_2;
+          break;
+        case 'AERIAL_HOVER':
+        case 'AERIAL_BOMBARD':
+          if (boss.isBombarding) {
+            currentSprite = s.front_glide;
+          } else {
+            const flyFrames = [s.fly_1, s.fly_2, s.fly_3, s.fly_2];
+            currentSprite = flyFrames[Math.floor(boss.animTime * 6) % 4] || s.fly_1;
+          }
+          break;
+        case 'WALK':
+          currentSprite = (Math.floor(boss.animTime * 5) % 2 === 0) ? s.walk_1 : s.walk_2;
+          break;
+        case 'ROAR':
+        case 'INTRO_LANDING':
+          currentSprite = (boss.stateTimer < 0.6) ? s.roaring_stand : (boss.isLanding ? s.front_glide : s.battle_pose);
+          break;
+        case 'IDLE':
+        case 'BATTLE_STANCE':
+        default:
+          currentSprite = (Math.sin(boss.animTime * 2.5) > 0.7) ? s.roaring_stand : s.battle_pose;
+          break;
+      }
+    }
+
+    if (currentSprite && currentSprite.width > 0) {
+      // Aura Dourada Radiante
+      const auraIntensity = (boss.phase === 3 ? 38 : (boss.phase === 2 ? 22 : 12)) + Math.sin(boss.animTime * 8) * 6;
+      ctx.shadowColor = (boss.phase === 3) ? '#ffcc00' : '#ffd700';
+      ctx.shadowBlur = auraIntensity;
+
+      const sw = currentSprite.width;
+      const sh = currentSprite.height;
+      ctx.drawImage(currentSprite, -sw / 2, -sh / 2, sw, sh);
+      ctx.shadowBlur = 0;
+
+      // Faíscas elétricas de sobrecarga nas cabeças
+      if (boss.phase >= 2 || boss.state === 'ROAR' || boss.state === 'GRAVITY_BEAMS') {
+        ctx.strokeStyle = '#fff5a0';
+        ctx.lineWidth = 2.5;
+        for (let arc = 0; arc < (boss.phase === 3 ? 5 : 3); arc++) {
+          const ax = 15 + (Math.random() - 0.5) * 50;
+          const ay = -40 + (Math.random() - 0.5) * 45;
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(ax + (Math.random() - 0.5) * 22, ay + (Math.random() - 0.5) * 22);
+          ctx.lineTo(ax + (Math.random() - 0.5) * 35, ay + (Math.random() - 0.5) * 35);
+          ctx.stroke();
+        }
+      }
+    } else {
+      // Fallback estilizado dourado caso sprite ainda esteja em carregamento
+      ctx.fillStyle = '#d4af37';
+      ctx.fillRect(-80, -80, 160, 160);
+    }
+
+    ctx.restore();
+
+    // 4. EFEITO: GRAVITY BEAMS (TRIPLE LIGHTNING BEAMS DAS 3 CABEÇAS)
+    if (boss.state === 'GRAVITY_BEAMS' && boss.stateTimer > 0.1) {
+      ctx.save();
+      const mouthX = screenX + (boss.facing === 1 ? 85 : -85);
+      const beamDir = boss.facing || -1;
+      const beamLength = 1100;
+      const headOffsets = [
+        { yOff: -48, angle: -0.06 },
+        { yOff: -20, angle: 0.02 },
+        { yOff: 8, angle: 0.1 }
+      ];
+
+      ctx.globalCompositeOperation = 'screen';
+      headOffsets.forEach((h, idx) => {
+        const startY = screenY + h.yOff;
+        const endX = mouthX + beamDir * beamLength;
+        const endY = startY + Math.tan(h.angle) * beamLength;
+
+        // Camada 1: Halo de Plasma Dourado
+        ctx.strokeStyle = 'rgba(255, 170, 0, 0.7)';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 28;
+        ctx.lineWidth = 24 + Math.sin(boss.animTime * 30 + idx) * 4;
+        ctx.beginPath();
+        ctx.moveTo(mouthX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Camada 2: Núcleo de Eletricidade Amarela
+        ctx.strokeStyle = '#ffee33';
+        ctx.lineWidth = 12 + Math.sin(boss.animTime * 40 + idx) * 3;
+        ctx.beginPath();
+        ctx.moveTo(mouthX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Camada 3: Feixe Central Branco Puro
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(mouthX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Arcos de Relâmpagos em Zig-Zag ao longo do Feixe
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        let curX = mouthX;
+        let curY = startY;
+        for (let seg = 0; seg < 12; seg++) {
+          const nextX = mouthX + (beamDir * (seg + 1) * (beamLength / 12));
+          const nextY = startY + (endY - startY) * ((seg + 1) / 12) + (Math.random() - 0.5) * 26;
+          ctx.lineTo(nextX, nextY);
+          curX = nextX;
+          curY = nextY;
+        }
+        ctx.stroke();
+
+        // Anéis de Choque Gravitacional
+        for (let r = 0; r < 5; r++) {
+          const ringDist = ((r * 220 + boss.animTime * 900) % beamLength);
+          const rx = mouthX + beamDir * ringDist;
+          const ry = startY + (endY - startY) * (ringDist / beamLength);
+          ctx.strokeStyle = 'rgba(255, 230, 80, 0.85)';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.ellipse(rx, ry, 10, 22, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    // 5. EFEITO: VARREDURA TRIPLA DE SOLO (GROUND SWEEP BEAMS)
+    if (boss.state === 'GROUND_SWEEP_BEAMS') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const mouthX = screenX + (boss.facing === 1 ? 70 : -70);
+      const startY = screenY - 20;
+      const sweepProgress = 1 - Math.max(0, boss.stateTimer / (boss.maxSweepTime || 1.8));
+      const groundImpactX = mouthX + (boss.facing || -1) * (150 + sweepProgress * 700);
+
+      // Três feixes convergindo no solo
+      [-25, 0, 25].forEach((yOff, i) => {
+        ctx.strokeStyle = 'rgba(255, 190, 0, 0.8)';
+        ctx.shadowColor = '#ffaa00';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(mouthX, startY + yOff);
+        ctx.lineTo(groundImpactX + (i - 1) * 35, groundLevelY - 10);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(mouthX, startY + yOff);
+        ctx.lineTo(groundImpactX + (i - 1) * 35, groundLevelY - 10);
+        ctx.stroke();
+      });
+
+      // Impacto de Fogo Dourado no Chão
+      ctx.fillStyle = 'rgba(255, 220, 50, 0.9)';
+      ctx.shadowColor = '#ff6600';
+      ctx.shadowBlur = 30;
+      ctx.beginPath();
+      ctx.ellipse(groundImpactX, groundLevelY - 8, 70, 25, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 6. EFEITO: VÓRTICE / TORNADO DOURADO (GOLDEN TORNADO)
+    if (boss.state === 'GOLDEN_TORNADO') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 32;
+
+      for (let ring = 0; ring < 7; ring++) {
+        const ringY = screenY - 120 + ring * 35;
+        const ringRadiusX = 40 + ring * 22 + Math.sin(boss.animTime * 18 + ring) * 12;
+        const ringRadiusY = 12 + ring * 3.5;
+        const rot = (boss.animTime * 14 + ring * 0.8);
+
+        ctx.strokeStyle = `rgba(255, ${200 + ring * 7}, ${ring * 20}, 0.85)`;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.ellipse(screenX + Math.sin(rot) * 15, ringY, ringRadiusX, ringRadiusY, Math.sin(rot) * 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Linhas de vento verticais em espiral
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(screenX - ringRadiusX * 0.8, ringY);
+        ctx.quadraticCurveTo(screenX, ringY - 25, screenX + ringRadiusX * 0.8, ringY + 25);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 7. EFEITO: SUPERNOVA / ENERGY BURST (EXPLOSÃO RADIAL EM 360°)
+    if (boss.state === 'ENERGY_BURST') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const burstProgress = 1 - Math.max(0, boss.stateTimer / (boss.maxBurstTime || 1.2));
+      const maxRadius = 380;
+      const curRadius = burstProgress * maxRadius;
+
+      // Anel expansivo 1
+      ctx.strokeStyle = `rgba(255, 230, 80, ${1 - burstProgress * 0.8})`;
+      ctx.shadowColor = '#ffcc00';
+      ctx.shadowBlur = 35;
+      ctx.lineWidth = 14 * (1 - burstProgress * 0.6);
+      ctx.beginPath();
+      ctx.arc(screenX, screenY, curRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Anel expansivo secundário
+      if (curRadius > 40) {
+        ctx.strokeStyle = `rgba(255, 120, 0, ${1 - burstProgress})`;
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, curRadius * 0.72, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Raios solares radiantes em 360 graus
+      const rayCount = 18;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < rayCount; i++) {
+        const ang = (i / rayCount) * Math.PI * 2 + boss.animTime * 5;
+        const rLen = curRadius * (0.85 + Math.sin(boss.animTime * 25 + i) * 0.25);
+        ctx.beginPath();
+        ctx.moveTo(screenX + Math.cos(ang) * (rLen * 0.3), screenY + Math.sin(ang) * (rLen * 0.3));
+        ctx.lineTo(screenX + Math.cos(ang) * rLen, screenY + Math.sin(ang) * rLen);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 8. EFEITO: DECOLAGEM COM PROPULSORES VERTICAIS (ASCEND BLAST)
+    if (boss.state === 'ASCEND') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 30;
+
+      // Dois pilares de energia atirados para baixo
+      [-28, 28].forEach(xOffset => {
+        const bx = screenX + xOffset;
+        const by = screenY + 40;
+        const bottomY = groundLevelY;
+
+        ctx.strokeStyle = 'rgba(255, 190, 30, 0.85)';
+        ctx.lineWidth = 18;
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx + (Math.random() - 0.5) * 12, bottomY);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx, bottomY);
+        ctx.stroke();
+
+        // Chamas de impacto no solo
+        ctx.fillStyle = '#ffaa00';
+        ctx.beginPath();
+        ctx.ellipse(bx, bottomY - 5, 35, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+  }
+
+  // --- CHEFÃO SUPREMO FINAL: KING KONG (O REI DE MANHATTAN) ---
+  drawKingKong(ctx, camera, boss) {
+    if (!boss) return;
+    const s = this.kongSprites;
+    const isLoaded = s && s.loaded;
+
+    ctx.save();
+    const renderX = boss.cinematicX ?? boss.x;
+    const renderY = boss.cinematicY ?? boss.y;
+    const posX = renderX - camera.x + boss.width / 2 + (boss.recoilX || 0);
+    const posY = renderY - camera.y + boss.height / 2;
+
+    ctx.translate(posX, posY);
+    ctx.rotate(boss.cinematicTilt || 0);
+    ctx.scale(boss.cinematicScale || 1, boss.cinematicScale || 1);
+    ctx.globalAlpha = boss.cinematicOpacity ?? 1;
+
+    // Flash de dano
+    if (boss.flashTimer > 0) {
+      ctx.filter = 'brightness(2.5) saturate(1.8)';
+    }
+
+    // 1. Sombra Gigantesca no Asfalto de Manhattan
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.beginPath();
+    ctx.ellipse(0, boss.height / 2 - 8, boss.width / 2 + 25, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Aura de Fúria / Berserker (Fase 3)
+    if (boss.phase === 3 || boss.isBerserker) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.shadowColor = '#ff2200';
+      ctx.shadowBlur = 28;
+      const auraPulse = Math.sin(this.time * 12) * 8;
+      ctx.fillStyle = 'rgba(255, 50, 0, 0.22)';
+      ctx.beginPath();
+      ctx.ellipse(0, -10, boss.width / 2 + 18 + auraPulse, boss.height / 2 + 18 + auraPulse, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.save();
+    // Inverter direção visual
+    ctx.scale(boss.facing || -1, 1);
+
+    // Micro-deslocamento dinâmico e respiração
+    const bob = boss.bodyBob || 0;
+    const tilt = boss.impactTilt || 0;
+    ctx.translate(0, bob);
+    if (tilt) ctx.rotate(tilt * (boss.facing || -1));
+
+    // Seleção de Sprite de Alta Definição
+    let sprite = s.idle_1;
+
+    if (isLoaded) {
+      const state = boss.state;
+      const animTime = boss.animTime || 0;
+      const timer = boss.stateTimer || 0;
+
+      if (state === 'INTRO_ROAR') {
+        const roarCycle = [s.roar_1, s.roar_2, s.roar_3, s.roar_4];
+        sprite = roarCycle[Math.floor(animTime * 6) % roarCycle.length] || s.roar_3;
+      } else if (state === 'IDLE') {
+        const idleCycle = [s.idle_1, s.idle_2, s.idle_3, s.idle_4, s.idle_3, s.idle_2];
+        sprite = idleCycle[Math.floor(animTime * 4.5) % idleCycle.length] || s.idle_1;
+      } else if (state === 'WALK') {
+        const walkCycle = [s.walk_1, s.walk_2, s.walk_3, s.walk_4, s.walk_5, s.walk_6];
+        sprite = walkCycle[Math.floor(animTime * 7) % walkCycle.length] || s.walk_1;
+      } else if (state === 'RUN') {
+        const runCycle = [s.run_1, s.run_2, s.run_3, s.run_2];
+        sprite = runCycle[Math.floor(animTime * 10) % runCycle.length] || s.run_1;
+      } else if (state === 'ROAR_TAUNT') {
+        const roarCycle = [s.roar_2, s.roar_3, s.roar_4, s.roar_3];
+        sprite = roarCycle[Math.floor(animTime * 8) % roarCycle.length] || s.roar_3;
+      } else if (state === 'CHEST_POUND') {
+        sprite = s.victory || s.roar_3;
+      } else if (state === 'PUNCH_COMBO') {
+        const punchCycle = [s.punch_1, s.punch_2, s.punch_3, s.punch_4];
+        sprite = punchCycle[Math.floor(animTime * 8) % punchCycle.length] || s.punch_2;
+      } else if (state === 'GROUND_SLAM') {
+        if (timer > 0.7) sprite = s.slam_1;
+        else if (timer > 0.25) sprite = s.slam_2;
+        else sprite = s.slam_3;
+      } else if (state === 'THROW_BOULDER' || state === 'THROW_CAR') {
+        if (timer > 0.6) sprite = s.throw_1;
+        else if (timer > 0.2) sprite = s.throw_2;
+        else sprite = s.throw_3;
+      } else if (state === 'HURT') {
+        const hurtCycle = [s.hurt_1, s.hurt_2, s.hurt_3];
+        sprite = hurtCycle[Math.floor(animTime * 9) % hurtCycle.length] || s.hurt_2;
+      } else if (state === 'DYING') {
+        if (timer > 1.6) sprite = s.death_1;
+        else if (timer > 0.8) sprite = s.death_2;
+        else sprite = s.death_3;
+      } else {
+        sprite = s.idle_1;
+      }
+
+      // Desenhar o Sprite renderizado
+      const sprScale = boss.spriteScale || 2.4;
+      const sw = (sprite.width || 80) * sprScale;
+      const sh = (sprite.height || 95) * sprScale;
+      ctx.drawImage(sprite, -sw / 2, -sh / 2 + (boss.height / 2 - sh / 2), sw, sh);
+
+      // Olhos Brilhantes Ameaçadores do King Kong (Fase 2 e 3)
+      if (boss.phase >= 2) {
+        const eyeX = 22;
+        const eyeY = -60 + (boss.bodyBob || 0);
+        ctx.fillStyle = boss.phase === 3 ? '#ff0000' : '#ff9900';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(eyeX, eyeY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+    } else {
+      // Fallback
+      ctx.fillStyle = '#4a2810';
+      ctx.fillRect(-boss.width / 2, -boss.height / 2, boss.width, boss.height);
+    }
+
+    ctx.restore();
+    ctx.restore();
+  }
+
   // --- DRAGÃO TRICÉFALO — CENA FINAL ORGÂNICA ---
   drawDragon(ctx, camera, dragon) {
-    const flapIntensity = ['CARRY', 'RETURN', 'SWEEP', 'IMPACT'].includes(dragon.state) ? 34 : 20;
-    const wingLift = Math.sin(dragon.wingPhase) * flapIntensity;
-    const wingTwist = Math.cos(dragon.wingPhase * 0.72) * 16;
-    const tailWave = Math.sin(dragon.tailPhase) * 16;
-    const bodyBreath = Math.sin(dragon.totalTime * 3.3) * 2;
+    if (!dragon) return;
+    const s = this.ghidorahSprites;
+    const isLoaded = s && s.fly_1 && (s.loaded || (s.fly_1.complete && s.fly_1.naturalWidth > 0));
 
     ctx.save();
     ctx.translate(dragon.x - camera.x, dragon.y - camera.y);
     ctx.rotate(dragon.bank || 0);
-    ctx.scale(dragon.facing * dragon.scale, dragon.scale);
+    const sprScale = 1.7 * (dragon.scale || 1);
+    ctx.scale((dragon.facing || -1) * sprScale, sprScale);
 
-    // Sombra ampla e pulsante dá peso ao voo e ao mergulho na câmera.
-    ctx.fillStyle = `rgba(12, 7, 2, ${dragon.state === 'IMPACT' ? 0.5 : 0.27})`;
+    // Sombra do Dragão
+    ctx.fillStyle = 'rgba(12, 7, 2, 0.35)';
     ctx.beginPath();
-    ctx.ellipse(0, 105, 155, 28, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 70, 110, 22, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Asa traseira: dobradiças e membrana respiram em ritmos diferentes.
-    ctx.save();
-    ctx.rotate(-0.1 + wingTwist * 0.006);
-    ctx.fillStyle = '#6d4b1f';
-    ctx.strokeStyle = '#2f1b0b';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(-25, -15);
-    ctx.quadraticCurveTo(-100, -105 - wingLift, -195, -72 - wingLift * 0.55);
-    ctx.quadraticCurveTo(-155, -16, -95, 22);
-    ctx.lineTo(-34, 30);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.strokeStyle = '#b98c42';
-    ctx.lineWidth = 2.5;
-    for (let rib = 0; rib < 4; rib++) {
-      const startY = -10 + rib * 9;
-      ctx.beginPath();
-      ctx.moveTo(-22, startY);
-      ctx.quadraticCurveTo(-95, -68 - wingLift * 0.55 + rib * 18, -170, -66 - wingLift * 0.5 + rib * 12);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Asa frontal, com outra amplitude para quebrar a simetria mecânica.
-    ctx.save();
-    ctx.rotate(0.08 - wingTwist * 0.004);
-    ctx.fillStyle = '#9a7131';
-    ctx.strokeStyle = '#39220d';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(-10, -20);
-    ctx.quadraticCurveTo(10, -125 + wingLift, -112, -148 + wingLift * 0.7);
-    ctx.quadraticCurveTo(-126, -38, -66, 16);
-    ctx.lineTo(-12, 26);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.strokeStyle = '#e2bd63';
-    ctx.lineWidth = 2.5;
-    for (let rib = 0; rib < 4; rib++) {
-      ctx.beginPath();
-      ctx.moveTo(-4, -13 + rib * 8);
-      ctx.quadraticCurveTo(-35, -96 + wingLift * 0.7 + rib * 18, -106, -135 + wingLift * 0.6 + rib * 13);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Cauda longa e flexível: três curvas conectadas simulam coluna e massa.
-    ctx.strokeStyle = '#4a2d10';
-    ctx.lineWidth = 24;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-62, 20);
-    ctx.bezierCurveTo(-122, 42 + tailWave, -165, -3 - tailWave, -226, 34 + tailWave * 0.6);
-    ctx.stroke();
-    ctx.strokeStyle = '#a87932';
-    ctx.lineWidth = 11;
-    ctx.beginPath();
-    ctx.moveTo(-64, 16);
-    ctx.bezierCurveTo(-124, 37 + tailWave, -164, 2 - tailWave, -224, 31 + tailWave * 0.6);
-    ctx.stroke();
-
-    // Corpo oval, peito pesado e placas dorsais em arco.
-    ctx.fillStyle = '#7d5926';
-    ctx.strokeStyle = '#2e1c0b';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.ellipse(-3, 18 + bodyBreath, 78, 49, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#c49a4b';
-    ctx.beginPath();
-    ctx.ellipse(12, 15 + bodyBreath, 46, 29, -0.12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(67, 39, 13, 0.7)';
-    ctx.lineWidth = 2;
-    for (let scale = -28; scale <= 34; scale += 16) {
-      ctx.beginPath();
-      ctx.arc(scale, 12 + bodyBreath, 12, 0.15, Math.PI - 0.15);
-      ctx.stroke();
-    }
-
-    // Patas articuladas, com atraso no joelho para sugerir peso e sustentação.
-    const legSwing = Math.sin(dragon.wingPhase * 0.5) * 9;
-    [[-36, 38, -1], [34, 38, 1]].forEach(([lx, ly, side]) => {
-      ctx.strokeStyle = '#4b2d10';
-      ctx.lineWidth = 18;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(lx, ly);
-      ctx.quadraticCurveTo(lx + side * 14, 65 + legSwing * side, lx + side * 8, 88);
-      ctx.stroke();
-      ctx.fillStyle = '#a77830';
-      ctx.beginPath();
-      ctx.ellipse(lx + side * 11, 90, 20, 9, 0.15 * side, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#2b1909';
-      ctx.lineWidth = 2;
-      for (let claw = -1; claw <= 1; claw++) {
-        ctx.beginPath();
-        ctx.moveTo(lx + side * (8 + claw * 6), 92);
-        ctx.lineTo(lx + side * (21 + claw * 5), 99);
-        ctx.stroke();
+    if (isLoaded) {
+      let sprite = s.fly_1;
+      if (dragon.state === 'SWEEP' || dragon.state === 'APPROACH') {
+        sprite = s.swoop_1 || s.fly_1;
+      } else if (dragon.state === 'GRAB' || dragon.state === 'CARRY') {
+        sprite = s.fly_2 || s.fly_1;
+      } else {
+        const flyCycle = [s.fly_1, s.fly_2, s.fly_3, s.fly_2];
+        sprite = flyCycle[Math.floor((dragon.wingPhase || 0) * 0.8) % 4] || s.fly_1;
       }
-    });
 
-    // Durante o rasante, as garras entram primeiro e deixam rastros de luz.
-    // Isso dá leitura clara de ataque sem redesenhar a identidade do dragão.
-    if (dragon.state === 'SWEEP' || dragon.state === 'GRAB') {
-      const swipe = Math.sin(dragon.wingPhase * 1.35) * 7;
-      ctx.save();
-      ctx.translate(48, 36);
-      ctx.rotate(-0.42 + swipe * 0.012);
-      ctx.strokeStyle = '#4b2d10';
-      ctx.lineWidth = 12;
-      ctx.lineCap = 'round';
-      for (let claw = -1; claw <= 1; claw++) {
-        ctx.beginPath();
-        ctx.moveTo(claw * 9, 0);
-        ctx.quadraticCurveTo(42 + claw * 9, -12, 70 + claw * 11, 11 + swipe * 0.15);
-        ctx.stroke();
-      }
-      if (dragon.state === 'SWEEP') {
-        ctx.strokeStyle = 'rgba(202, 248, 255, 0.75)';
-        ctx.shadowColor = '#8defff';
-        ctx.shadowBlur = 13;
-        ctx.lineWidth = 3;
-        for (let trail = 0; trail < 3; trail++) {
-          ctx.beginPath();
-          ctx.moveTo(18, -18 + trail * 14);
-          ctx.quadraticCurveTo(67, -34 + trail * 16, 103, -8 + trail * 18);
-          ctx.stroke();
-        }
-        ctx.shadowBlur = 0;
-      }
-      ctx.restore();
-    }
-
-    // Três pescoços independentes. Cada um usa fase diferente para evitar a
-    // sincronia artificial e dar vida às cabeças do dragão.
-    const heads = [-1, 0, 1];
-    heads.forEach((head, index) => {
-      const neckSway = Math.sin(dragon.headPhase + index * 1.8) * 10;
-      const neckY = -20 + head * 20;
-      const tipX = 86 + head * 7;
-      const tipY = -58 + head * 28 + neckSway;
-
-      ctx.strokeStyle = '#4b2d10';
-      ctx.lineWidth = 20;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(40, neckY);
-      ctx.quadraticCurveTo(52 + index * 12, neckY - 36 + neckSway, tipX, tipY);
-      ctx.stroke();
-      ctx.strokeStyle = '#aa7b34';
-      ctx.lineWidth = 11;
-      ctx.beginPath();
-      ctx.moveTo(41, neckY - 1);
-      ctx.quadraticCurveTo(56 + index * 10, neckY - 33 + neckSway, tipX, tipY);
-      ctx.stroke();
-
-      ctx.save();
-      ctx.translate(tipX + 9, tipY);
-      ctx.rotate(neckSway * 0.012 + head * 0.05);
-      ctx.fillStyle = '#80591f';
-      ctx.strokeStyle = '#2b1909';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-10, -12);
-      ctx.lineTo(21, -8);
-      ctx.lineTo(29, 0);
-      ctx.lineTo(20, 10);
-      ctx.lineTo(-10, 11);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      // Chifres, olho elétrico e mandíbula independente.
-      ctx.fillStyle = '#e8c36b';
-      ctx.beginPath();
-      ctx.moveTo(1, -10);
-      ctx.lineTo(8, -24);
-      ctx.lineTo(11, -9);
-      ctx.moveTo(12, -9);
-      ctx.lineTo(18, -21);
-      ctx.lineTo(21, -7);
-      ctx.fill();
-      ctx.fillStyle = '#c8f7ff';
-      ctx.shadowColor = '#7df9ff';
-      ctx.shadowBlur = 10;
-      ctx.fillRect(16, -4, 7, 3);
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 25;
+      const sw = sprite.width || 160;
+      const sh = sprite.height || 160;
+      ctx.drawImage(sprite, -sw / 2, -sh / 2, sw, sh);
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#321b08';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(8, 8);
-      ctx.lineTo(27, 7 + Math.sin(dragon.headPhase * 1.4 + index) * 2);
-      ctx.stroke();
-      ctx.restore();
-    });
-
-    // A aura branca/ciano no mergulho prepara visualmente o impacto.
-    if (dragon.state === 'RETURN' || dragon.state === 'IMPACT') {
-      const aura = ctx.createRadialGradient(0, 5, 10, 0, 5, 155);
-      aura.addColorStop(0, 'rgba(255, 255, 220, 0.34)');
-      aura.addColorStop(0.5, 'rgba(80, 220, 255, 0.14)');
-      aura.addColorStop(1, 'rgba(80, 220, 255, 0)');
-      ctx.fillStyle = aura;
-      ctx.beginPath();
-      ctx.arc(0, 5, 155, 0, Math.PI * 2);
-      ctx.fill();
+    } else {
+      // Fallback Dourado
+      ctx.fillStyle = '#ffd700';
+      ctx.fillRect(-80, -80, 160, 160);
     }
-
     ctx.restore();
   }
 
@@ -3175,6 +3721,42 @@ class GameRenderer {
         ctx.fillStyle = '#fff';
         ctx.beginPath();
         ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+      } else if (p.type === 'boulder') {
+        // Pedregulho massivo arremessado por King Kong
+        ctx.rotate(p.rotation || (this.time * 7));
+        const s = this.kongSprites;
+        if (s && s.boulder && s.boulder.complete && s.boulder.naturalWidth > 0) {
+          const bw = 46, bh = 46;
+          ctx.drawImage(s.boulder, -bw / 2, -bh / 2, bw, bh);
+        } else {
+          ctx.fillStyle = '#6b4c35';
+          ctx.beginPath();
+          ctx.arc(0, 0, 18, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+      } else if (p.type === 'car') {
+        // Destroços de Táxi Amarelo de Nova York em chamas rodopiando
+        ctx.rotate(p.rotation || (this.time * 5));
+        ctx.fillStyle = '#eab308'; // Amarelo táxi NY
+        ctx.fillRect(-22, -11, 44, 22);
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(-16, -13, 9, 3);
+        ctx.fillRect(7, -13, 9, 3);
+        ctx.fillRect(-16, 10, 9, 3);
+        ctx.fillRect(7, 10, 9, 3);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(-12, -7, 24, 14);
+        ctx.fillStyle = '#000';
+        for (let tx = -18; tx < 18; tx += 8) {
+          ctx.fillRect(tx, -2, 4, 4);
+        }
+        // Rastro de chamas
+        ctx.fillStyle = 'rgba(255, 68, 0, 0.75)';
+        ctx.beginPath();
+        ctx.arc(-18, 0, 9, 0, Math.PI * 2);
         ctx.fill();
       }
 

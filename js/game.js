@@ -1,5 +1,13 @@
 // Motor Principal do Jogo: Loop, Câmera, Colisões, Spawner e Interface
 
+// Sistema de Debug - Desabilitar em produção para melhor performance
+const DEBUG = false; // Mude para true para ativar logs de debug
+
+// Funções de log condicionais
+const debugLog = DEBUG ? console.log.bind(console) : () => {};
+const debugWarn = DEBUG ? console.warn.bind(console) : () => {};
+const debugError = console.error.bind(console); // Erros sempre aparecem
+
 class InputManager {
   constructor() {
     this.keys = {};
@@ -36,6 +44,7 @@ class InputManager {
       case 'bomb': return !!(this.keys['KeyL'] || this.keys['KeyX'] || this.keys['TouchBomb']);
       case 'enter': return !!(this.keys['KeyE'] || this.keys['KeyC'] || this.keys['TouchEnter']);
       case 'execution': return !!this.keys['KeyR'];
+      case 'pause': return !!(this.keys['Escape'] || this.keys['KeyP']); // Pause com ESC ou P
 
       // 2P Controls: Setas + Teclado Numérico / Linha de Números (1, 2, 3, 4, 0) + U/I/O/P/Y
       case 'p2_left': return !!(this.keys['ArrowLeft'] || this.keys['Numpad4']);
@@ -59,6 +68,7 @@ class InputManager {
       case 'bomb': return !!(this.pressed['KeyL'] || this.pressed['KeyX'] || this.pressed['TouchBomb']);
       case 'enter': return !!(this.pressed['KeyE'] || this.pressed['KeyC'] || this.pressed['TouchEnter']);
       case 'execution': return !!this.pressed['KeyR'];
+      case 'pause': return !!(this.pressed['Escape'] || this.pressed['KeyP']); // Pause pressed once
 
       // 2P
       case 'p2_jump': return !!(this.pressed['Digit1'] || this.pressed['Numpad1'] || this.pressed['KeyU']);
@@ -147,6 +157,8 @@ class Game {
     this.lastTime = 0;
     this.runId = 0;
     this.state = 'START'; // 'START', 'PLAYING', 'GAMEOVER', 'VICTORY'
+    this.activeTimers = []; // Array para armazenar IDs de timers e evitar memory leak
+    this.isPaused = false; // Sistema de pause
 
     // Modo de Jogo
     this.gameMode = '1P'; // '1P' ou '2P'
@@ -176,7 +188,8 @@ class Game {
       tokyo: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 1250 },
       brazil: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 2450 },
       europe: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 3650 },
-      egypt: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 4900 }
+      egypt: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 4900 },
+      newyork: { active: false, cleared: false, enemiesRequired: 0, enemiesKilled: 0, x: 6750 }
     };
 
     // Seleções de Personagens
@@ -207,6 +220,7 @@ class Game {
     
     // Boss e Slug HUD
     this.bossHud = document.getElementById('boss-hud');
+    this.bossTitle = document.getElementById('boss-title') || (this.bossHud ? this.bossHud.querySelector('.boss-title') : null);
     this.bossHpFill = document.getElementById('boss-hp-fill');
     this.bossPhase = document.getElementById('boss-phase');
     this.slugHud = document.getElementById('slug-hud');
@@ -260,6 +274,24 @@ class Game {
       });
     }
 
+    // Botões da tela de Pause
+    const resumeBtn = document.getElementById('btn-resume-game');
+    if (resumeBtn) {
+      resumeBtn.addEventListener('click', () => {
+        this.togglePause();
+      });
+    }
+
+    const restartFromPauseBtn = document.getElementById('btn-restart-from-pause');
+    if (restartFromPauseBtn) {
+      restartFromPauseBtn.addEventListener('click', () => {
+        this.isPaused = false;
+        const pauseScreen = document.getElementById('pause-screen');
+        if (pauseScreen) pauseScreen.style.display = 'none';
+        this.startGame();
+      });
+    }
+
     // Botão Mute
     const audioBtn = document.getElementById('btn-toggle-audio');
     if (audioBtn) {
@@ -270,8 +302,46 @@ class Game {
       });
     }
 
+    // Botão Fullscreen
+    const fullscreenBtn = document.getElementById('btn-toggle-fullscreen');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        this.toggleFullscreen();
+      });
+    }
+
     // Iniciar loop de animação
     requestAnimationFrame((t) => this.gameLoop(t));
+  }
+
+  toggleFullscreen() {
+    const doc = document.documentElement;
+    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+
+    if (!isFullscreen) {
+      if (doc.requestFullscreen) {
+        doc.requestFullscreen().catch(() => {});
+      } else if (doc.webkitRequestFullscreen) {
+        doc.webkitRequestFullscreen();
+      } else if (doc.mozRequestFullScreen) {
+        doc.mozRequestFullScreen();
+      } else if (doc.msRequestFullscreen) {
+        doc.msRequestFullscreen();
+      }
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
   }
 
   setupModeSelection() {
@@ -368,6 +438,18 @@ class Game {
 
   startGame() {
     this.runId++;
+    
+    // Limpar todos os timers ativos do jogo anterior (evita memory leak)
+    if (this.activeTimers && this.activeTimers.length > 0) {
+      this.activeTimers.forEach(timerId => clearTimeout(timerId));
+      this.activeTimers = [];
+    }
+    
+    // Garantir que não está pausado
+    this.isPaused = false;
+    const pauseScreen = document.getElementById('pause-screen');
+    if (pauseScreen) pauseScreen.style.display = 'none';
+    
     audio.init();
     audio.resume();
     audio.startBGM();
@@ -463,7 +545,13 @@ class Game {
 
     this.input.updateGamepad();
 
-    if (this.state === 'PLAYING') {
+    // Verificar se pause foi pressionado durante o jogo
+    if (this.state === 'PLAYING' && this.input.isPressed('pause')) {
+      this.togglePause();
+    }
+
+    // Se está pausado, não atualizar o jogo, apenas renderizar
+    if (this.state === 'PLAYING' && !this.isPaused) {
       this.update(dt);
     }
 
@@ -471,6 +559,22 @@ class Game {
     this.input.clearPressed();
 
     requestAnimationFrame((t) => this.gameLoop(t));
+  }
+
+  togglePause() {
+    this.isPaused = !this.isPaused;
+    
+    const pauseScreen = document.getElementById('pause-screen');
+    if (pauseScreen) {
+      pauseScreen.style.display = this.isPaused ? 'flex' : 'none';
+    }
+    
+    // Pausar/Resumir áudio
+    if (this.isPaused) {
+      audio.pauseBGM();
+    } else {
+      audio.resumeBGM();
+    }
   }
 
   update(dt) {
@@ -516,6 +620,12 @@ class Game {
       this.addFloatingText(this.camera.x + 480, 80, '🏜️ ARENA FINAL: PIRÂMIDES DE GIZÉ & ESFINGE, EGITO 🏜️', '#ffcc00', 16);
       audio.announce("FINAL ARENA EGYPT DETECTED");
     }
+    if (!this.announcedRegions['newyork'] && leadPlayerX > 5150) {
+      this.announcedRegions['newyork'] = true;
+      this.addFloatingText(this.camera.x + 480, 80, '🗽 APOCALIPSE: MANHATTAN DESTRUÍDA, NOVA YORK 🗽', '#ff3333', 17);
+      audio.announce("APOCALYPSE NEW YORK CITY");
+      this.triggerScreenShake(15, 0.6);
+    }
 
     this.map.enemySpawners.forEach(spawner => {
       if (!spawner.spawned && leadPlayerX > spawner.triggerX) {
@@ -560,7 +670,7 @@ class Game {
     });
 
     // 4. Checar Spawn do Chefão (MechaGodzilla Titan Boss)
-    if (!this.boss && this.map.bossSpawn && leadPlayerX > this.map.bossSpawn.triggerX) {
+    if (!this.boss && this.map.bossSpawn && leadPlayerX > this.map.bossSpawn.triggerX && leadPlayerX < (this.map.finalBossSpawn ? this.map.finalBossSpawn.triggerX - 500 : 6000)) {
       this.boss = new Boss(this.map.bossSpawn.x, this.map.bossSpawn.y);
       audio.playBossWarning();
       audio.playMechaRoar();
@@ -569,15 +679,43 @@ class Game {
       this.addFloatingText(this.boss.x, this.boss.y - 30, '⚠️ WARNING! MECHAGODZILLA APEX TITAN! ⚠️', '#ff0033', 15);
     }
 
+    // 5. Checar Spawn do King Kong em Nova York (Boss Final Apocalíptico)
+    if (!this.boss && this.map.finalBossSpawn && leadPlayerX > this.map.finalBossSpawn.triggerX) {
+      this.boss = new KingKongBoss(this.map.finalBossSpawn.x, this.map.finalBossSpawn.y);
+      audio.playBossWarning();
+      audio.playKongRoar();
+      audio.announce("EXTREME DANGER! KING KONG DETECTED");
+      this.bossHud.style.display = 'flex';
+      this.addFloatingText(this.boss.x, this.boss.y - 40, '🦍 ALERTA MÁXIMO! KING KONG TITÃ! 🦍', '#ff3300', 18);
+      this.triggerScreenShake(24, 0.8);
+    }
+
     if (this.boss) {
       const targetP = this.getClosestPlayer(this.boss.x, this.boss.y);
-      this.boss.update(dt, targetP, this);
+      
+      // Só atualiza o boss se não estiver na cinemática do dragão
+      if (!this.cinematicActive || this.boss.isGhidorah || this.boss.isKingKong) {
+        this.boss.update(dt, targetP, this);
+      }
+
+      // Salvaguarda: Se o MechaGodzilla foi derrotado e a cinemática ainda não iniciou, dispara agora
+      if (this.boss.isDead && !this.boss.isGhidorah && !this.boss.isKingKong && !this.cinematicActive && !this.dragon) {
+        this.startDragonFinale(this.boss);
+      }
     }
 
     // A cinemática é atualizada pelo motor, não por timers soltos: assim as
     // asas, a carcaça carregada e o mergulho respeitam cada frame do jogo.
     if (this.dragon && this.dragon.state !== 'DONE') {
-      this.dragon.update(dt, this);
+      // Verificar se o boss ainda existe antes de atualizar o dragão
+      if (this.boss && !this.boss.isGhidorah) {
+        this.dragon.update(dt, this);
+      } else if (!this.boss) {
+        // Se o boss foi removido, pular para o Ghidorah
+        debugWarn('Boss foi removido durante cinemática, spawnando Ghidorah');
+        this.dragon = null;
+        this.spawnGhidorahBoss();
+      }
     }
 
     // 5. Atualizar Reféns POW
@@ -671,6 +809,7 @@ class Game {
   }
 
   getBiomeAt(x) {
+    if (x > 5200) return 'newyork';
     if (x > 3700) return 'egypt';
     if (x > 2500) return 'europe';
     if (x > 1250) return 'brazil';
@@ -857,19 +996,45 @@ class Game {
 
   updateFinaleCinematic(dt) {
     this.finaleElapsed += dt;
+    
+    // Verificar se ainda temos um boss válido antes de tentar atualizar o dragão
+    if (!this.boss) {
+      debugWarn('Boss não encontrado durante cinemática, forçando spawn do Ghidorah');
+      this.spawnGhidorahBoss();
+      return;
+    }
+    
     try {
-      if (this.dragon && this.dragon.state !== 'DONE') this.dragon.update(dt, this);
+      if (this.dragon && this.dragon.state !== 'DONE') {
+        this.dragon.update(dt, this);
+      }
     } catch (error) {
-      // A vitória nunca pode deixar o loop preso caso um efeito visual falhe.
-      console.error('Falha na cinemática final:', error);
-      this.finishDragonFinale();
+      debugError('Falha na cinemática do dragão:', error);
+      this.spawnGhidorahBoss();
       return;
     }
 
     if (this.state !== 'PLAYING') return;
-    if (!this.dragon || this.dragon.state === 'DONE' || this.finaleElapsed >= 10.5) {
-      this.finishDragonFinale();
+
+    // Timeout de segurança: se passar de 2.5s por qualquer motivo, força o spawn imediato do King Ghidorah
+    if (this.finaleElapsed >= 2.5 && (!this.boss || !this.boss.isGhidorah)) {
+      debugLog('Timeout de segurança atingido, spawning Ghidorah');
+      this.spawnGhidorahBoss();
       return;
+    }
+
+    // Se o dragão já levou o MechaGodzilla embora e King Ghidorah está pronto
+    if (!this.dragon || this.dragon.state === 'DONE') {
+      if (this.boss && this.boss.isGhidorah) {
+        debugLog('Cinemática completa, King Ghidorah está ativo');
+        this.cinematicActive = false;
+        return;
+      } else {
+        // Se o dragão acabou mas o Ghidorah não foi spawnado, spawnar agora
+        debugLog('Dragão terminou mas Ghidorah não foi spawnado, corrigindo...');
+        this.spawnGhidorahBoss();
+        return;
+      }
     }
     this.cinematicFlash = Math.max(0, this.cinematicFlash - dt * 1.8);
 
@@ -924,9 +1089,11 @@ class Game {
     let targetX = avgX - this.canvas.width * 0.35;
     const maxCamX = Math.max(0, this.map.width - this.canvas.width);
 
-    // Se o Chefão estiver ativado, travar a câmera suavemente na arena
-    if (this.boss) {
-      const arenaMinX = Math.min(maxCamX, (this.map.bossSpawn ? this.map.bossSpawn.triggerX - 80 : 3000));
+    // Se o Chefão estiver ativado, travar a câmera suavemente na arena correta
+    if (this.boss && !this.boss.isDead) {
+      const arenaMinX = this.boss.isKingKong
+        ? Math.min(maxCamX, (this.map.finalBossSpawn ? this.map.finalBossSpawn.triggerX - 80 : 6400))
+        : Math.min(maxCamX, (this.map.bossSpawn ? this.map.bossSpawn.triggerX - 80 : 3800));
       targetX = Math.max(arenaMinX, Math.min(maxCamX, targetX));
     } else {
       targetX = Math.max(0, Math.min(maxCamX, targetX));
@@ -1068,7 +1235,12 @@ class Game {
   }
 
   startDragonFinale(boss) {
-    if (this.dragon || !boss) return;
+    if (this.dragon || !boss) {
+      debugWarn('startDragonFinale: dragão já existe ou boss é nulo');
+      return;
+    }
+    
+    debugLog('Iniciando cinemática do dragão...');
     this.cinematicActive = true;
     this.finaleElapsed = 0;
     this.projectiles = [];
@@ -1076,7 +1248,82 @@ class Game {
       player.isInvulnerable = true;
       player.vx = 0;
     });
-    this.dragon = new DragonCinematic(boss, this);
+    
+    try {
+      this.dragon = new DragonCinematic(boss, this);
+      debugLog('DragonCinematic criado com sucesso');
+    } catch (error) {
+      debugError('Erro ao criar DragonCinematic:', error);
+      // Se falhar, spawnar Ghidorah diretamente
+      this.spawnGhidorahBoss();
+    }
+  }
+
+  startGhidorahBossTransition() {
+    this.cinematicActive = true;
+    this.dragon = null;
+    this.projectiles = [];
+    this.lightningEffects = [];
+    
+    // Trovoadas e escurecimento elétrico do céu
+    this.cinematicFlash = 0.6;
+    this.cinematicFlashColor = '#ffd700';
+    this.triggerScreenShake(20, 0.8);
+    audio.playBossWarning();
+    audio.playGhidorahRoar();
+    audio.announce("WARNING! KING GHIDORAH HAS AWAKENED");
+
+    this.addFloatingText(this.camera.x + this.canvas.width / 2, 120, '⚡ ALERTA MÁXIMO! O DRAGÃO DOURADO RETORNA! ⚡', '#ffd700', 18);
+
+    // Gerar relâmpagos pelo cenário antes do pouso
+    const currentRunId = this.runId;
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        if (this.runId !== currentRunId || this.state !== 'PLAYING') return;
+        const lx = this.camera.x + 80 + Math.random() * (this.canvas.width - 160);
+        this.addLightningBolt(lx, 0, lx + (Math.random() - 0.5) * 80, 440);
+        this.spawnExplosion(lx, 440, 30);
+        audio.playExplosion(false);
+      }, i * 180);
+    }
+
+    setTimeout(() => {
+      if (this.runId === currentRunId && this.state === 'PLAYING') {
+        this.spawnGhidorahBoss();
+      }
+    }, 1400);
+  }
+
+  spawnGhidorahBoss() {
+    // Garantir que não spawna múltiplas vezes
+    if (this.boss && this.boss.isGhidorah) {
+      debugLog('King Ghidorah já existe, pulando spawn');
+      return;
+    }
+
+    debugLog('Spawning King Ghidorah Boss...');
+    
+    // CRÍTICO: Limpar completamente o estado da cinemática
+    this.cinematicActive = false;
+    this.dragon = null;
+    this.finaleElapsed = 0;
+    
+    // Remover invulnerabilidade dos jogadores
+    this.players.forEach(player => {
+      player.isInvulnerable = false;
+    });
+
+    // Criar o novo boss (King Ghidorah)
+    const spawnX = Math.min(this.map.bossSpawn ? this.map.bossSpawn.x : 4600, this.camera.x + this.canvas.width * 0.72);
+    const spawnY = this.map.bossSpawn ? this.map.bossSpawn.y : 220;
+    this.boss = new KingGhidorahBoss(spawnX, spawnY);
+    
+    // Atualizar HUD
+    if (this.bossHud) {
+      this.bossHud.style.display = 'flex';
+    }
+    
+    debugLog('King Ghidorah Boss spawned successfully at', spawnX, spawnY);
   }
 
   finishDragonFinale() {
@@ -1256,11 +1503,33 @@ class Game {
 
     // Barra de Vida do Chefão
     if (this.boss && !this.boss.isDead) {
+      this.bossHud.style.display = 'flex';
       const bossHpPct = Math.max(0, Math.min(100, (this.boss.hp / this.boss.maxHp) * 100));
       this.bossHpFill.style.width = `${bossHpPct}%`;
-      if (this.bossPhase) {
-        const phaseLabels = ['SISTEMAS ONLINE', 'PROTOCOLO DE CAÇA', 'NÚCLEO EM FUSÃO'];
-        this.bossPhase.textContent = `FASE ${this.boss.phase} · ${phaseLabels[this.boss.phase - 1]}`;
+      if (this.boss.isKingKong) {
+        if (this.bossTitle) this.bossTitle.textContent = '👑 TITÃ SUPREMO: KING KONG 👑';
+        this.bossHpFill.style.background = 'linear-gradient(90deg, #ff2200, #ff7700, #ffcc00)';
+        this.bossHpFill.style.boxShadow = '0 0 16px #ff4400';
+        if (this.bossPhase) {
+          const kongLabels = this.boss.phaseLabels || ['FÚRIA URBANA', 'DESTRUIÇÃO TOTAL', 'APOCALIPSE PRIMORDIAL'];
+          this.bossPhase.textContent = `FASE ${this.boss.phase} · ${kongLabels[this.boss.phase - 1] || 'BATALHA FINAL'}`;
+        }
+      } else if (this.boss.isGhidorah) {
+        if (this.bossTitle) this.bossTitle.textContent = '👑 TITÃ ANCESTRAL: KING GHIDORAH 👑';
+        this.bossHpFill.style.background = 'linear-gradient(90deg, #ffd700, #ff9900, #fff580)';
+        this.bossHpFill.style.boxShadow = '0 0 15px #ffd700';
+        if (this.bossPhase) {
+          const ghidorahLabels = this.boss.phaseLabels || ['TEMPESTADE DOURADA', 'SOBRECARGA GRAVITACIONAL', 'APOCALIPSE ANCESTRAL'];
+          this.bossPhase.textContent = `FASE ${this.boss.phase} · ${ghidorahLabels[this.boss.phase - 1] || 'BATALHA FINAL'}`;
+        }
+      } else {
+        if (this.bossTitle) this.bossTitle.textContent = '⚠️ APEX TITAN: MECHAGODZILLA ⚠️';
+        this.bossHpFill.style.background = 'linear-gradient(90deg, #ff0033, #ff6600, #ffee00)';
+        this.bossHpFill.style.boxShadow = '0 0 12px #ff0033';
+        if (this.bossPhase) {
+          const phaseLabels = ['SISTEMAS ONLINE', 'PROTOCOLO DE CAÇA', 'NÚCLEO EM FUSÃO'];
+          this.bossPhase.textContent = `FASE ${this.boss.phase} · ${phaseLabels[this.boss.phase - 1]}`;
+        }
       }
     } else {
       this.bossHud.style.display = 'none';
@@ -1322,7 +1591,7 @@ class Game {
     renderer.drawExecutionEffects(this.ctx, this.camera, this.executionEffects);
 
     // 6. Chefão Goliath
-    if (this.boss) {
+    if (this.boss && !this.boss.hiddenByDragon) {
       renderer.drawBoss(this.ctx, this.camera, this.boss);
     }
 
@@ -1361,4 +1630,5 @@ class Game {
 // Inicializar motor de jogo quando a página carregar
 window.addEventListener('DOMContentLoaded', () => {
   window.gameEngine = new Game();
+  window.game = window.gameEngine;
 });

@@ -561,8 +561,8 @@ body {
 }
 
 #start-screen .char-avatar-box {
-  width: clamp(50px, 9.5vh, 72px);
-  height: clamp(54px, 10.5vh, 80px);
+  width: clamp(70px, 12vh, 96px);
+  height: clamp(76px, 13vh, 108px);
   margin-bottom: clamp(4px, 0.85vh, 8px);
 }
 
@@ -626,7 +626,7 @@ body {
   #start-screen .game-title-logo { font-size: 20px; }
   #start-screen .mode-selector-container { margin-bottom: 5px; }
   #start-screen .character-select-section { margin-bottom: 4px; }
-  #start-screen .char-avatar-box { width: 42px; height: 44px; }
+  #start-screen .char-avatar-box { width: 58px; height: 64px; }
   #start-screen .char-perk { display: none; }
   #start-screen .char-card { padding: 4px 6px; }
 }
@@ -796,8 +796,8 @@ body {
 }
 
 .char-avatar-box {
-  width: 72px;
-  height: 80px;
+  width: 96px;
+  height: 108px;
   border-radius: 8px;
   border: 2px solid #3d4e68;
   overflow: hidden;
@@ -1074,6 +1074,32 @@ body {
   box-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
 }
 
+/* Fullscreen toggle button */
+.fullscreen-btn {
+  position: absolute;
+  top: 16px;
+  right: 175px;
+  z-index: 60;
+  background: rgba(14, 20, 32, 0.85);
+  border: 2px solid #2e4162;
+  color: var(--neon-blue);
+  padding: 6px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.fullscreen-btn:hover {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
 /* Virtual Touch D-Pad e Botões para Mobile / Tablet */
 #touch-controls {
   position: absolute;
@@ -1149,16 +1175,118 @@ body {
   color: var(--neon-blue);
 }
 
-/* Media Queries */
-@media (max-width: 900px) {
+/* Aviso de Rotação para Celular */
+.rotate-prompt {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 7, 12, 0.97);
+  z-index: 99999;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 30px;
+}
+
+.rotate-icon {
+  font-size: 50px;
+  margin-bottom: 22px;
+  animation: pulseRotate 2s infinite ease-in-out;
+}
+
+@keyframes pulseRotate {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.18) rotate(90deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.rotate-prompt h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  color: var(--neon-yellow);
+  margin-bottom: 14px;
+  text-shadow: 0 0 10px rgba(255, 238, 0, 0.6);
+}
+
+.rotate-prompt p {
+  font-size: 10px;
+  color: #a0b2c6;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+/* Media Queries para Mobile & Tela Cheia Horizontal */
+@media (max-width: 1024px) {
+  html, body {
+    width: 100%;
+    height: 100%;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  #game-wrapper {
+    width: 100vw;
+    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   #touch-controls {
     display: flex;
+    padding: 0 max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   }
+
   .hud-top {
-    padding: 4px;
+    padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
   }
+
   .weapon-card, .hud-player-badge {
     padding: 4px 8px;
+  }
+
+  .audio-btn {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    font-size: 8px;
+    padding: 5px 8px;
+  }
+
+  .fullscreen-btn {
+    top: max(8px, env(safe-area-inset-top));
+    right: calc(max(8px, env(safe-area-inset-right)) + 120px);
+    font-size: 8px;
+    padding: 5px 8px;
+  }
+
+  .dpad {
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 44px);
+  }
+
+  .touch-btn {
+    font-size: 13px;
+  }
+
+  .action-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  .rotate-prompt {
+    display: flex;
   }
 }
 

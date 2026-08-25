@@ -390,6 +390,259 @@ class SoundSystem {
     this.playNoise(0.4, 0.5, 1200, 'bandpass');
   }
 
+  // --- EFEITOS SONOROS DE KING GHIDORAH (DRAGÃO TRICÉFALO) ---
+  playGhidorahRoar() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Grito Triplo Elétrico das Três Cabeças Douradas (Acordes dissonantes e chiado cósmico)
+    const baseFreqs = [520, 680, 840];
+    baseFreqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + idx * 0.04;
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(140, t + 0.9);
+
+      // Vibrato rápido para efeito de grito alienígena elétrico
+      const lfo = this.ctx.createOscillator();
+      const lfoGain = this.ctx.createGain();
+      lfo.frequency.setValueAtTime(28 + idx * 4, t);
+      lfoGain.gain.setValueAtTime(45, t);
+      lfo.connect(osc.frequency);
+      lfo.start(t);
+      lfo.stop(t + 0.9);
+
+      gain.gain.setValueAtTime(0.45, t);
+      gain.gain.linearRampToValueAtTime(0.01, t + 0.9);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.9);
+    });
+
+    this.playNoise(0.8, 0.65, 2400, 'bandpass');
+    this.playNoise(0.5, 0.75, 350, 'lowpass');
+  }
+
+  playGravityBeams() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Zumbido elétrico de alta voltagem contínuo
+    for (let i = 0; i < 3; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + i * 0.03;
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(750 + i * 180, t);
+      osc.frequency.linearRampToValueAtTime(320 + i * 60, t + 0.65);
+
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.linearRampToValueAtTime(0.01, t + 0.65);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.65);
+    }
+    this.playNoise(0.7, 0.6, 3200, 'highpass');
+  }
+
+  playGhidorahTornado() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Turbilhão giratório de vento e eletricidade
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.linearRampToValueAtTime(380, now + 0.5);
+    osc.frequency.linearRampToValueAtTime(140, now + 1.2);
+
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 1.2);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 1.2);
+
+    this.playNoise(1.2, 0.7, 900, 'bandpass');
+  }
+
+  playGhidorahBurst() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Supernova / Explosão Dourada em 360°
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(28, now + 0.6);
+
+    gain.gain.setValueAtTime(0.85, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.6);
+
+    this.playNoise(0.75, 0.85, 500, 'lowpass');
+    this.playNoise(0.4, 0.6, 2800, 'bandpass');
+  }
+
+  playGhidorahAscend() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(100, now);
+    osc.frequency.exponentialRampToValueAtTime(550, now + 0.55);
+
+    gain.gain.setValueAtTime(0.5, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.55);
+
+    this.playNoise(0.6, 0.6, 1200, 'bandpass');
+  }
+
+  // --- EFEITOS SONOROS DO KING KONG (FINAL BOSS DE NOVA YORK) ---
+  playKongRoar() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Rugido primata gutural grave e estrondoso
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(110, now);
+    osc1.frequency.linearRampToValueAtTime(170, now + 0.3);
+    osc1.frequency.exponentialRampToValueAtTime(45, now + 1.2);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(65, now);
+    osc2.frequency.linearRampToValueAtTime(95, now + 0.3);
+    osc2.frequency.exponentialRampToValueAtTime(30, now + 1.2);
+
+    gain.gain.setValueAtTime(0.85, now);
+    gain.gain.linearRampToValueAtTime(0.9, now + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.sfxGain);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + 1.2);
+    osc2.stop(now + 1.2);
+
+    this.playNoise(0.9, 0.55, 650, 'lowpass');
+  }
+
+  playKongChestPound() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Batidas percussivas no peito
+    [0, 0.14, 0.28, 0.42].forEach(delay => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(35, now + delay + 0.1);
+
+      gain.gain.setValueAtTime(0.7, now + delay);
+      gain.gain.linearRampToValueAtTime(0.01, now + delay + 0.1);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.1);
+    });
+
+    this.playNoise(0.5, 0.4, 400, 'lowpass');
+  }
+
+  playKongSlam() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(20, now + 0.7);
+
+    gain.gain.setValueAtTime(0.9, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.7);
+
+    this.playNoise(0.8, 0.85, 350, 'lowpass');
+  }
+
+  playKongThrow() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.exponentialRampToValueAtTime(320, now + 0.2);
+
+    gain.gain.setValueAtTime(0.6, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.25);
+
+    this.playNoise(0.3, 0.5, 900, 'bandpass');
+  }
+
+  playKongPunch() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+
+    gain.gain.setValueAtTime(0.75, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.18);
+
+    this.playNoise(0.18, 0.6, 800, 'lowpass');
+  }
+
   playProtonBeam() {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
@@ -724,6 +977,72 @@ class SoundSystem {
     if (this.bgmInterval) {
       clearInterval(this.bgmInterval);
       this.bgmInterval = null;
+    }
+  }
+
+  pauseBGM() {
+    if (this.bgmInterval) {
+      clearInterval(this.bgmInterval);
+      this.bgmInterval = null;
+    }
+    // Mantém bgmPlaying = true para poder resumir depois
+  }
+
+  resumeBGM() {
+    // Se estava tocando antes de pausar, retoma
+    if (this.bgmPlaying && !this.bgmInterval) {
+      const bassNotes = [110, 110, 130.81, 146.83, 110, 110, 164.81, 146.83];
+      const leadNotes = [440, 493.88, 523.25, 587.33, 659.25, 587.33, 523.25, 493.88];
+      const stepDuration = 60 / (this.tempo * 2);
+
+      this.bgmInterval = setInterval(() => {
+        if (!this.bgmPlaying || !this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        const bFreq = bassNotes[this.bgmStep % bassNotes.length];
+        const bassOsc = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bassOsc.type = 'sawtooth';
+        bassOsc.frequency.value = bFreq;
+        bassGain.gain.setValueAtTime(0.45, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, now + stepDuration * 0.9);
+
+        bassOsc.connect(bassGain);
+        bassGain.connect(this.bgmGain);
+        bassOsc.start(now);
+        bassOsc.stop(now + stepDuration * 0.9);
+
+        if (this.bgmStep % 4 === 0) {
+          const kickOsc = this.ctx.createOscillator();
+          const kickGain = this.ctx.createGain();
+          kickOsc.frequency.value = 55;
+          kickGain.gain.setValueAtTime(0.7, now);
+          kickGain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+          kickOsc.connect(kickGain);
+          kickGain.connect(this.bgmGain);
+          kickOsc.start(now);
+          kickOsc.stop(now + 0.1);
+        } else if (this.bgmStep % 4 === 2) {
+          this.playNoise(0.08, 0.15, 1200, 'bandpass');
+        }
+
+        if (this.bgmStep % 2 === 0) {
+          const lFreq = leadNotes[(Math.floor(this.bgmStep / 2)) % leadNotes.length];
+          const leadOsc = this.ctx.createOscillator();
+          const leadGain = this.ctx.createGain();
+          leadOsc.type = 'square';
+          leadOsc.frequency.value = lFreq;
+          leadGain.gain.setValueAtTime(0.18, now);
+          leadGain.gain.exponentialRampToValueAtTime(0.01, now + stepDuration * 1.5);
+
+          leadOsc.connect(leadGain);
+          leadGain.connect(this.bgmGain);
+          leadOsc.start(now);
+          leadOsc.stop(now + stepDuration * 1.5);
+        }
+
+        this.bgmStep++;
+      }, stepDuration * 1000);
     }
   }
 }

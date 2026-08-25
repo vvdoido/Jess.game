@@ -1,8 +1,8 @@
-// Sistema de Mapa de Fase: Volta ao Mundo (Tóquio, Brasil, Europa e Egito - Arena MechaGodzilla)
+// Sistema de Mapa de Fase: Volta ao Mundo (Tóquio, Brasil, Europa, Egito e NOVA YORK - Batalha Final)
 
 class LevelMap {
   constructor(canvasWidth, canvasHeight) {
-    this.width = 5200; // Grande jornada mundial dividida em 4 países e culturas
+    this.width = 7200; // EXPANDIDO! Jornada mundial com 5 biomas incluindo NYC apocalíptica
     this.height = canvasHeight || 600;
 
     this.platforms = [];
@@ -11,6 +11,7 @@ class LevelMap {
     this.powSpawns = [];
     this.slugSpawns = [];
     this.bossSpawn = null;
+    this.finalBossSpawn = null; // King Kong (Final Boss Supremo de Nova York)
 
     this.initLevel();
   }
@@ -32,6 +33,9 @@ class LevelMap {
 
     // Zona 4: EGITO / DESERTO DE GIZÉ & PIRÂMIDES (3750 -> 5200px) - ARENA DO MECHAGODZILLA
     this.platforms.push({ x: 3750, y: H - 80, width: 1450, height: 80, isGround: true, biome: 'egypt' });
+
+    // Zona 5: NOVA YORK / MANHATTAN DESTRUÍDA (5200 -> 7200px) - APOCALIPSE FINAL - KING GHIDORAH
+    this.platforms.push({ x: 5200, y: H - 80, width: 2000, height: 80, isGround: true, biome: 'newyork' });
 
     // --- 2. PLATAFORMAS ELEVADAS TEMÁTICAS ---
     // [TÓQUIO] Telhados com telhas orientais e passarelas neon
@@ -57,6 +61,16 @@ class LevelMap {
     this.platforms.push({ x: 4180, y: H - 260, width: 210, height: 20, isGround: false, biome: 'egypt' });
     this.platforms.push({ x: 4480, y: H - 190, width: 180, height: 20, isGround: false, biome: 'egypt' });
 
+    // [NOVA YORK] Destroços de arranha-céus, vigas de aço tortas, escombros de concreto e pontes suspensas
+    // Manhattan devastada - plataformas instáveis e caóticas
+    this.platforms.push({ x: 5300, y: H - 170, width: 200, height: 20, isGround: false, biome: 'newyork' });
+    this.platforms.push({ x: 5550, y: H - 250, width: 240, height: 20, isGround: false, biome: 'newyork' });
+    this.platforms.push({ x: 5850, y: H - 200, width: 180, height: 20, isGround: false, biome: 'newyork' });
+    this.platforms.push({ x: 6100, y: H - 290, width: 220, height: 20, isGround: false, biome: 'newyork' });
+    this.platforms.push({ x: 6380, y: H - 210, width: 200, height: 20, isGround: false, biome: 'newyork' });
+    this.platforms.push({ x: 6650, y: H - 260, width: 250, height: 20, isGround: false, biome: 'newyork' });
+    this.platforms.push({ x: 6950, y: H - 190, width: 180, height: 20, isGround: false, biome: 'newyork' });
+
     // --- 3. OBSTÁCULOS DESTRUTÍVEIS TEMÁTICOS ---
     this.destructibles = [
       // Tóquio: Barris de neon e caixas de alta tecnologia
@@ -78,7 +92,16 @@ class LevelMap {
       // Egito: vasos canópicos energizados e caixas de relíquias antes da arena
       { id: 11, x: 4020, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'egypt', hp: 20, destroyed: false },
       { id: 12, x: 4330, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'egypt', hp: 20, destroyed: false },
-      { id: 13, x: 4210, y: H - 292, width: 32, height: 32, type: 'crate', biome: 'egypt', hp: 30, destroyed: false }
+      { id: 13, x: 4210, y: H - 292, width: 32, height: 32, type: 'crate', biome: 'egypt', hp: 30, destroyed: false },
+
+      // Nova York: Carros abandonados, hidrantes quebrados vazando, containers de metal
+      { id: 14, x: 5350, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'newyork', hp: 20, destroyed: false },
+      { id: 15, x: 5620, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'newyork', hp: 20, destroyed: false },
+      { id: 16, x: 5760, y: H - 112, width: 32, height: 32, type: 'crate', biome: 'newyork', hp: 30, destroyed: false },
+      { id: 17, x: 6000, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'newyork', hp: 20, destroyed: false },
+      { id: 18, x: 6280, y: H - 282, width: 32, height: 32, type: 'crate', biome: 'newyork', hp: 30, destroyed: false },
+      { id: 19, x: 6500, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'newyork', hp: 20, destroyed: false },
+      { id: 20, x: 6800, y: H - 116, width: 24, height: 36, type: 'barrel', biome: 'newyork', hp: 20, destroyed: false }
     ];
 
     // --- 4. REFÉNS / POWs ESPALHADOS PELO MUNDO ---
@@ -87,13 +110,16 @@ class LevelMap {
       { x: 1050, y: H - 122, reward: 'SHOTGUN' },     // Fim de Tóquio
       { x: 1750, y: H - 282, reward: 'ROCKET' },      // Selva Brasil
       { x: 2850, y: H - 122, reward: 'FLAME' },       // Europa
-      { x: 3500, y: H - 122, reward: 'LASER' }        // Entrada do Egito
+      { x: 3500, y: H - 122, reward: 'LASER' },       // Entrada do Egito
+      { x: 5600, y: H - 292, reward: 'HMG' },         // Nova York - Arranha-céu
+      { x: 6150, y: H - 332, reward: 'ROCKET' }       // Nova York - Topo dos destroços
     ];
 
     // --- 5. THE CYBER SLUG (TANQUES ESTACIONADOS) ---
     this.slugSpawns = [
       { x: 1600, y: H - 140 }, // Slug 1: Selva Brasileira
-      { x: 3350, y: H - 140 }  // Slug 2: Entrada do Deserto do Egito
+      { x: 3350, y: H - 140 }, // Slug 2: Entrada do Deserto do Egito
+      { x: 5900, y: H - 140 }  // Slug 3: Times Square Destruída - Nova York
     ];
 
     // --- 6. CHECKPOINTS DE SPAWN DE INIMIGOS POR BIOMA ---
@@ -133,10 +159,38 @@ class LevelMap {
       { x: 4450, y: H - 130, type: 'shield', biome: 'egypt', triggerX: 3900 },
       { x: 4550, y: 120, type: 'drone', biome: 'egypt', triggerX: 3950 },
       { x: 4650, y: H - 130, type: 'rocket_trooper', biome: 'egypt', triggerX: 4000 },
-      { x: 4750, y: H - 130, type: 'soldier', biome: 'egypt', triggerX: 4050 }
+      { x: 4750, y: H - 130, type: 'soldier', biome: 'egypt', triggerX: 4050 },
+
+      // Zona 5: NOVA YORK (Elite Forces, Mechas de Combate Urbano, Drones Militares) - APOCALIPSE FINAL - MÁXIMA DIFICULDADE!
+      { x: 5280, y: H - 130, type: 'soldier', biome: 'newyork', triggerX: 5000 },
+      { x: 5350, y: H - 130, type: 'shield', biome: 'newyork', triggerX: 5050 },
+      { x: 5420, y: H - 202, type: 'soldier', biome: 'newyork', triggerX: 5100 },
+      { x: 5500, y: H - 130, type: 'rocket_trooper', biome: 'newyork', triggerX: 5150 },
+      { x: 5600, y: 100, type: 'drone', biome: 'newyork', triggerX: 5200 },
+      { x: 5700, y: H - 282, type: 'soldier', biome: 'newyork', triggerX: 5280 },
+      { x: 5780, y: H - 130, type: 'shield', biome: 'newyork', triggerX: 5350 },
+      { x: 5900, y: H - 232, type: 'rocket_trooper', biome: 'newyork', triggerX: 5450 },
+      { x: 6000, y: H - 130, type: 'soldier', biome: 'newyork', triggerX: 5550 },
+      { x: 6100, y: H - 130, type: 'shield', biome: 'newyork', triggerX: 5650 },
+      { x: 6180, y: 110, type: 'drone', biome: 'newyork', triggerX: 5750 },
+      { x: 6250, y: H - 322, type: 'soldier', biome: 'newyork', triggerX: 5850 },
+      { x: 6350, y: H - 130, type: 'rocket_trooper', biome: 'newyork', triggerX: 5950 },
+      { x: 6450, y: H - 242, type: 'shield', biome: 'newyork', triggerX: 6050 },
+      { x: 6550, y: H - 130, type: 'soldier', biome: 'newyork', triggerX: 6150 },
+      { x: 6650, y: 100, type: 'drone', biome: 'newyork', triggerX: 6250 },
+      { x: 6750, y: H - 292, type: 'rocket_trooper', biome: 'newyork', triggerX: 6350 },
+      { x: 6850, y: H - 130, type: 'shield', biome: 'newyork', triggerX: 6450 },
+      { x: 6950, y: H - 222, type: 'soldier', biome: 'newyork', triggerX: 6550 },
+      { x: 7050, y: H - 130, type: 'rocket_trooper', biome: 'newyork', triggerX: 6650 }
     ];
 
     // --- 7. CHEFÃO TITÃ MECHAGODZILLA (ARENA DO EGITO / PIRÂMIDES DE GIZÉ) ---
     this.bossSpawn = { x: 4600, y: H - 320, triggerX: 3950 };
+
+    // --- 8. CHEFÃO SUPREMO: KING GHIDORAH (TRANSIÇÃO APÓS MECHAGODZILLA) ---
+    // O dragão carrega o MechaGodzilla e spawna o King Ghidorah no mesmo lugar
+
+    // --- 9. BOSS FINAL APOCALÍPTICO: KING KONG (NOVA YORK / EMPIRE STATE BUILDING) ---
+    this.finalBossSpawn = { x: 6800, y: H - 360, triggerX: 6500 };
   }
 }
