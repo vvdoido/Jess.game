@@ -332,25 +332,26 @@
   
   <div id="ios-pwa-guide" class="ios-pwa-guide">
     <div class="ios-guide-header">
-      <div class="ios-guide-title">📱 FULLSCREEN NO iOS</div>
-      <button class="ios-guide-close" onclick="document.getElementById('ios-pwa-guide').classList.remove('show')">×</button>
+      <div class="ios-guide-title">📱 JOGAR EM TELA CHEIA NO iOS</div>
     </div>
     <div class="ios-guide-content">
+      Para jogar em fullscreen no iPhone/iPad, siga estes passos:
       <div class="ios-guide-steps">
         <div class="ios-guide-step">
           <div class="ios-guide-number">1</div>
-          <div class="ios-guide-text">Toque <span class="ios-guide-icon">⬆️</span> compartilhar</div>
+          <div>Toque no botão <span class="ios-guide-icon">⬆️</span> de <strong>Compartilhar</strong> no Safari</div>
         </div>
         <div class="ios-guide-step">
           <div class="ios-guide-number">2</div>
-          <div class="ios-guide-text">Adicionar à Tela Inicial <span class="ios-guide-icon">➕</span></div>
+          <div>Selecione <span class="ios-guide-icon">➕</span> <strong>"Adicionar à Tela Inicial"</strong></div>
         </div>
         <div class="ios-guide-step">
           <div class="ios-guide-number">3</div>
-          <div class="ios-guide-text">Abra pelo ícone!</div>
+          <div>Abra o jogo pelo ícone da tela inicial = <strong>Fullscreen!</strong></div>
         </div>
       </div>
     </div>
+    <button class="ios-guide-ok-btn" onclick="document.getElementById('ios-pwa-guide').classList.remove('show'); localStorage.setItem('iosGuideShown', 'true');">OK, ENTENDI!</button>
   </div>
 
   
@@ -376,8 +377,7 @@
       if (isIOSSafari() && !localStorage.getItem('iosGuideShown')) {
         setTimeout(() => {
           document.getElementById('ios-pwa-guide').classList.add('show');
-          localStorage.setItem('iosGuideShown', 'true');
-        }, 3000); // Mostra após 3 segundos
+        }, 1000);
       }
     }
 
