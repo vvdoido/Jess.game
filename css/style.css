@@ -565,8 +565,8 @@ body {
 }
 
 #start-screen .char-avatar-box {
-  width: clamp(70px, 12vh, 96px);
-  height: clamp(76px, 13vh, 108px);
+  width: clamp(90px, 14vh, 128px);
+  height: clamp(100px, 16vh, 144px);
   margin-bottom: clamp(4px, 0.85vh, 8px);
 }
 
@@ -800,8 +800,8 @@ body {
 }
 
 .char-avatar-box {
-  width: 96px;
-  height: 108px;
+  width: 128px;
+  height: 144px;
   border-radius: 8px;
   border: 2px solid #3d4e68;
   overflow: hidden;

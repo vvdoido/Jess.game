@@ -74,36 +74,54 @@ class GameRenderer {
       hurt: [],
       death: [],
       jump: [],
+      grab: [],
+      hang: [],
+      climb: [],
+      fall: [],
       loaded: false
     };
     
-    // Carregar sprites do Kong
-    const kongStates = ['idle', 'walk', 'run', 'punch', 'slam', 'throw', 'roar', 'hurt', 'death', 'jump'];
-    const kongFrameCounts = { idle: 4, walk: 6, run: 3, punch: 4, slam: 3, throw: 3, roar: 4, hurt: 3, death: 3, jump: 4 };
+    // Carregar sprites do Kong com os nomes corretos dos arquivos
+    const kongAnimations = {
+      idle: 4,    // idle_1 a idle_4
+      walk: 6,    // walk_1 a walk_6
+      run: 3,     // run_1 a run_3
+      punch: 4,   // punch_1 a punch_4
+      slam: 3,    // slam_1 a slam_3
+      throw: 3,   // throw_1 a throw_3
+      roar: 4,    // roar_1 a roar_4
+      hurt: 3,    // hurt_1 a hurt_3
+      death: 3,   // death_1 a death_3
+      jump: 4,    // jump_1 a jump_4
+      grab: 3,    // grab_1 a grab_3
+      hang: 3,    // hang_1 a hang_3
+      climb: 3,   // climb_1 a climb_3
+      fall: 4     // fall_1 a fall_4
+    };
     
     let kongLoadCount = 0;
-    const totalKongFrames = Object.values(kongFrameCounts).reduce((a, b) => a + b, 0);
+    const totalKongFrames = Object.values(kongAnimations).reduce((a, b) => a + b, 0);
     
-    kongStates.forEach(state => {
-      const frameCount = kongFrameCounts[state];
+    Object.keys(kongAnimations).forEach(animName => {
+      const frameCount = kongAnimations[animName];
       for (let i = 1; i <= frameCount; i++) {
         const img = new Image();
         img.onload = () => {
           kongLoadCount++;
           if (kongLoadCount === totalKongFrames) {
             this.kongSprites.loaded = true;
-            console.log('✅ King Kong sprites carregados!');
+            console.log('✅ King Kong sprites carregados! Total:', totalKongFrames);
           }
         };
         img.onerror = () => {
-          console.warn(`⚠️ Erro ao carregar kong/${state}_${i}.png`);
+          console.warn(`⚠️ Erro ao carregar kong/${animName}_${i}.png`);
           kongLoadCount++;
           if (kongLoadCount === totalKongFrames) {
             this.kongSprites.loaded = true;
           }
         };
-        img.src = `assets/kong/${state}_${i}.png`;
-        this.kongSprites[state].push(img);
+        img.src = `assets/kong/${animName}_${i}.png`;
+        this.kongSprites[animName].push(img);
       }
     });
 
@@ -3363,7 +3381,7 @@ class GameRenderer {
       ctx.filter = 'brightness(2) saturate(0.3)';
     }
 
-    // Selecionar sprite baseado no estado
+    // Selecionar sprite baseado no estado (animações naturais de gorila)
     let spriteArray = this.kongSprites.idle;
     let frameIndex = 0;
     
@@ -3371,47 +3389,60 @@ class GameRenderer {
       switch (boss.state) {
         case 'WALK':
           spriteArray = this.kongSprites.walk;
-          frameIndex = Math.floor((boss.animTimer || 0) * 8) % spriteArray.length;
+          frameIndex = Math.floor((boss.animTimer || 0) * 7) % spriteArray.length;
           break;
+        
         case 'PUNCH_COMBO':
         case 'PUNCH_LEFT':
         case 'PUNCH_RIGHT':
           spriteArray = this.kongSprites.punch;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 10), spriteArray.length - 1);
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 9), spriteArray.length - 1);
           break;
+        
         case 'GROUND_SLAM':
+        case 'BERSERKER_SLAM':
           spriteArray = this.kongSprites.slam;
           frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 8), spriteArray.length - 1);
           break;
+        
         case 'THROW_BOULDER':
         case 'THROW_CAR':
           spriteArray = this.kongSprites.throw;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 7), spriteArray.length - 1);
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 6), spriteArray.length - 1);
           break;
+        
         case 'CHEST_POUND':
         case 'BERSERKER_ROAR':
+        case 'INTRO_ROAR':
+        case 'ROAR_TAUNT':
           spriteArray = this.kongSprites.roar;
           frameIndex = Math.floor((boss.stateTimer || 0) * 6) % spriteArray.length;
           break;
+        
         case 'HURT':
           spriteArray = this.kongSprites.hurt;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 8), spriteArray.length - 1);
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 10), spriteArray.length - 1);
           break;
+        
         case 'DYING':
           spriteArray = this.kongSprites.death;
-          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 5), spriteArray.length - 1);
+          frameIndex = Math.min(Math.floor((boss.stateTimer || 0) * 3), spriteArray.length - 1);
           break;
+        
         case 'LEAP':
+          // Usar animação de jump para leap
           spriteArray = this.kongSprites.jump;
-          frameIndex = Math.floor((boss.stateTimer || 0) * 6) % spriteArray.length;
+          frameIndex = Math.floor((boss.stateTimer || 0) * 8) % spriteArray.length;
           break;
+        
         case 'RUN':
           spriteArray = this.kongSprites.run;
-          frameIndex = Math.floor((boss.animTimer || 0) * 12) % spriteArray.length;
+          frameIndex = Math.floor((boss.animTimer || 0) * 11) % spriteArray.length;
           break;
-        default: // IDLE
+        
+        default: // IDLE e outros estados
           spriteArray = this.kongSprites.idle;
-          frameIndex = Math.floor((boss.animTimer || 0) * 4) % spriteArray.length;
+          frameIndex = Math.floor((boss.animTimer || 0) * 5) % spriteArray.length;
           break;
       }
 
@@ -3424,7 +3455,16 @@ class GameRenderer {
         ctx.save();
         ctx.translate(boss.width / 2, boss.height / 2);
         ctx.scale(boss.facing, 1);
+        
+        // Adicionar balanço natural do corpo (gorila se movimenta)
+        const breathe = Math.sin(boss.animTimer * 3) * 2;
+        ctx.translate(0, breathe);
+        
         ctx.rotate(boss.impactTilt || 0);
+        
+        // Manter nitidez dos pixels (estilo arcade clássico)
+        ctx.imageSmoothingEnabled = false;
+        
         ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
         ctx.restore();
       } else {

@@ -35,7 +35,7 @@ class Player {
     // Status Base
     this.hp = 100;
     this.maxHp = 100;
-    this.lives = 3;
+    this.lives = 4; // Vida extra para dar mais chance!
     this.score = 0;
     this.grenades = 10;
     
@@ -2534,9 +2534,9 @@ class KingKongBoss {
     this.x = x;
     this.y = y;
     this.groundY = y;
-    this.width = 210;
-    this.height = 270;
-    this.spriteScale = 2.2;
+    this.width = 280; // Aumentado de 210 para 280 (+33%)
+    this.height = 360; // Aumentado de 270 para 360 (+33%)
+    this.spriteScale = 3.0; // Aumentado de 2.2 para 3.0 (bem maior agora!)
 
     this.hp = 32000;
     this.maxHp = 32000;
@@ -2553,6 +2553,7 @@ class KingKongBoss {
     this.stateTimer = 2.5;
     this.attackCooldown = 0.7;
     this.animTimer = 0; // Para animação de sprites
+    this.frameBlend = 0; // Para suavizar transições entre frames
 
     this.vx = 0;
     this.vy = 0;
@@ -2595,6 +2596,9 @@ class KingKongBoss {
 
     this.impactTilt += (0 - this.impactTilt) * 7 * dt;
     this.recoilX += (0 - this.recoilX) * 6 * dt;
+    
+    // Movimento orgânico de respiração e balanço (gorila vivo!)
+    this.bodyBob = Math.sin(this.animTime * 2.5) * 3 + Math.cos(this.animTime * 1.8) * 2;
 
     if (this.isDead || this.state === 'DYING') {
       this.vx = 0;
@@ -2647,17 +2651,21 @@ class KingKongBoss {
               this.transition('CHEST_POUND');
             }
           } else if (absDist < 420) {
-            // Média distância: Investida ou Rugido de Fúria
-            if (Math.random() < 0.75) {
+            // Média distância: Mix de ataques agressivos
+            const rand = Math.random();
+            if (rand < 0.35) {
               this.transition(this.isBerserker ? 'RUN' : 'WALK');
-            } else {
+            } else if (rand < 0.65) {
               this.transition('ROAR_TAUNT');
+            } else {
+              this.transition('LEAP'); // Kong pode pular pra fechar distância!
             }
           } else {
-            // Longa distância: Arremesso de Pedregulhos e Táxis
-            if (this.boulderCooldown <= 0 && Math.random() < 0.6) {
+            // Longa distância: Arremesso variado
+            const rand = Math.random();
+            if (this.boulderCooldown <= 0 && rand < 0.5) {
               this.transition('THROW_BOULDER');
-            } else if (this.carThrowCooldown <= 0) {
+            } else if (this.carThrowCooldown <= 0 && rand < 0.8) {
               this.transition('THROW_CAR');
             } else {
               this.transition(this.isBerserker ? 'RUN' : 'WALK');
@@ -2668,14 +2676,14 @@ class KingKongBoss {
 
       case 'WALK':
         this.stepTimer += dt;
-        const walkSpeed = this.speed * (this.isBerserker ? 1.4 : 1);
+        const walkSpeed = this.speed * (this.isBerserker ? 1.5 : 1);
         this.vx = this.targetFacing * walkSpeed;
-        this.bodyBob = Math.sin(this.animTime * 8) * 4;
+        this.bodyBob = Math.sin(this.animTime * 7) * 5; // Balanço mais natural
         
-        if (this.stepTimer >= 0.42) {
+        if (this.stepTimer >= 0.38) { // Passos um pouco mais rápidos
           this.stepTimer = 0;
           this.stepCount++;
-          game.triggerScreenShake(4, 0.18);
+          game.triggerScreenShake(5, 0.2);
           audio.playMechaStep();
           game.spawnDust(this.x + (this.facing === 1 ? 40 : this.width - 40), this.y + this.height - 5);
         }
@@ -2687,12 +2695,12 @@ class KingKongBoss {
 
       case 'RUN':
         this.stepTimer += dt;
-        this.vx = this.targetFacing * this.runSpeed;
-        this.bodyBob = Math.sin(this.animTime * 14) * 7;
+        this.vx = this.targetFacing * this.runSpeed * 1.15; // Corrida mais rápida!
+        this.bodyBob = Math.sin(this.animTime * 16) * 9; // Balanço intenso
         
-        if (this.stepTimer >= 0.22) {
+        if (this.stepTimer >= 0.18) { // Passos mais rápidos
           this.stepTimer = 0;
-          game.triggerScreenShake(7, 0.22);
+          game.triggerScreenShake(8, 0.25);
           audio.playMechaStep();
           game.spawnDust(this.x + this.width / 2, this.y + this.height - 5);
           game.spawnSpark(this.x + (this.facing === 1 ? this.width : 0), this.y + this.height - 15);
@@ -2700,7 +2708,7 @@ class KingKongBoss {
 
         // Atropelar jogadores durante a corrida
         if (absDist < 120) {
-          this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height * 0.6, 120, this.phase === 3 ? 45 : 35, game);
+          this.damageNearbyPlayers(this.x + this.width / 2, this.y + this.height * 0.6, 120, this.phase === 3 ? 50 : 40, game);
           game.triggerScreenShake(12, 0.3);
           this.transition('PUNCH_COMBO');
         } else if (this.stateTimer <= 0) {
@@ -2710,15 +2718,15 @@ class KingKongBoss {
 
       case 'ROAR_TAUNT':
         this.vx = 0;
-        this.bodyBob = Math.sin(this.animTime * 16) * 8;
+        this.bodyBob = Math.sin(this.animTime * 18) * 10; // Rugido com mais movimento
         
         if (this.stateTimer <= 0) {
           audio.playKongRoar();
-          game.triggerScreenShake(15, 0.5);
-          game.cinematicFlash = 0.35;
+          game.triggerScreenShake(16, 0.6);
+          game.cinematicFlash = 0.4;
           game.cinematicFlashColor = '#ff4400';
           game.addFloatingText(this.x + this.width / 2, this.y - 30, '🦍 ROAR OF THE PRIMAL KING! 🦍', '#ff3300', 16);
-          this.attackCooldown = 0.7;
+          this.attackCooldown = 0.5; // Cooldown menor = mais agressivo
           this.transition('IDLE');
         }
         break;
