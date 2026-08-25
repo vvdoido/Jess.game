@@ -2534,9 +2534,9 @@ class KingKongBoss {
     this.x = x;
     this.y = y;
     this.groundY = y;
-    this.width = 280; // Aumentado de 210 para 280 (+33%)
-    this.height = 360; // Aumentado de 270 para 360 (+33%)
-    this.spriteScale = 3.0; // Aumentado de 2.2 para 3.0 (bem maior agora!)
+    this.width = 280;
+    this.height = 360;
+    this.spriteScale = 3.0;
 
     this.hp = 32000;
     this.maxHp = 32000;
@@ -2552,8 +2552,8 @@ class KingKongBoss {
     this.state = 'INTRO_ROAR';
     this.stateTimer = 2.5;
     this.attackCooldown = 0.7;
-    this.animTimer = 0; // Para animação de sprites
-    this.frameBlend = 0; // Para suavizar transições entre frames
+    this.animTimer = 0;
+    this.frameBlend = 0;
 
     this.vx = 0;
     this.vy = 0;

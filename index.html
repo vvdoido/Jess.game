@@ -9,7 +9,9 @@
   <meta name="apple-mobile-web-app-title" content="Cyber Classica">
   <title>Cyber Classica: Neon Front - Arcade Action</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <link rel="apple-touch-icon" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512x512.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -327,11 +329,62 @@
     <p>Deite o celular na horizontal para jogar em tela cheia arcade!</p>
   </div>
 
+  <!-- iOS PWA Fullscreen Guide -->
+  <div id="ios-pwa-guide" class="ios-pwa-guide">
+    <div class="ios-guide-header">
+      <div class="ios-guide-title">🎮 JOGUE EM TELA CHEIA NO iOS</div>
+      <button class="ios-guide-close" onclick="document.getElementById('ios-pwa-guide').classList.remove('show')">×</button>
+    </div>
+    <div class="ios-guide-content">
+      <div class="ios-guide-steps">
+        <div class="ios-guide-step">
+          <div class="ios-guide-number">1</div>
+          <div class="ios-guide-text">Toque no botão <span class="ios-guide-icon">⬆️</span> de compartilhar do Safari</div>
+        </div>
+        <div class="ios-guide-step">
+          <div class="ios-guide-number">2</div>
+          <div class="ios-guide-text">Selecione "Adicionar à Tela Inicial" <span class="ios-guide-icon">➕</span></div>
+        </div>
+        <div class="ios-guide-step">
+          <div class="ios-guide-number">3</div>
+          <div class="ios-guide-text">Abra o jogo pelo ícone da tela inicial para jogar em fullscreen!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts do Jogo -->
   <script src="js/audio.js"></script>
   <script src="js/renderer.js"></script>
   <script src="js/entities.js"></script>
   <script src="js/map.js"></script>
   <script src="js/game.js"></script>
+
+  <!-- iOS PWA Detection Script -->
+  <script>
+    // Detecta se é iOS Safari e se não está rodando como PWA
+    function isIOSSafari() {
+      const ua = window.navigator.userAgent;
+      const iOS = /iPad|iPhone|iPod/.test(ua);
+      const webkit = /WebKit/.test(ua);
+      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+      return iOS && webkit && !isStandalone;
+    }
+
+    // Mostra o guia apenas uma vez (usa localStorage)
+    function showIOSGuideOnce() {
+      if (isIOSSafari() && !localStorage.getItem('iosGuideShown')) {
+        setTimeout(() => {
+          document.getElementById('ios-pwa-guide').classList.add('show');
+          localStorage.setItem('iosGuideShown', 'true');
+        }, 3000); // Mostra após 3 segundos
+      }
+    }
+
+    // Inicializa quando a página carregar
+    window.addEventListener('load', showIOSGuideOnce);
+  </script>
+
+
 </body>
 </html>
