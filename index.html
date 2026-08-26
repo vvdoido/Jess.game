@@ -273,7 +273,10 @@
         <p style="color: #88a0c7; font-size: 10px; margin-bottom: 8px;">PONTUAÇÃO FINAL:</p>
         <h2 id="final-score-gameover" style="color: #ffcc00; font-size: 24px;">000000</h2>
       </div>
-      <button id="btn-restart-game" class="btn-arcade">🔄 JOGAR NOVAMENTE</button>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+        <button id="btn-restart-game" class="btn-arcade">🔄 JOGAR NOVAMENTE</button>
+        <button id="btn-char-select-gameover" class="btn-arcade" style="background: linear-gradient(180deg, #9933ff, #6600cc);">👤 TROCAR PERSONAGEM</button>
+      </div>
     </div>
 
     
@@ -285,6 +288,7 @@
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
           <button id="btn-resume-game" class="btn-arcade" style="background: linear-gradient(180deg, #00d9ff, #0088cc);">▶ CONTINUAR</button>
           <button id="btn-restart-from-pause" class="btn-arcade" style="background: linear-gradient(180deg, #ffaa00, #cc6600);">🔄 REINICIAR</button>
+          <button id="btn-char-select-pause" class="btn-arcade" style="background: linear-gradient(180deg, #9933ff, #6600cc);">👤 TROCAR PERSONAGEM</button>
         </div>
       </div>
     </div>
@@ -297,7 +301,10 @@
         <p style="color: #88a0c7; font-size: 10px; margin-bottom: 8px;">PONTUAÇÃO DA VITÓRIA:</p>
         <h2 id="final-score-victory" style="color: #00ff66; font-size: 24px;">000000</h2>
       </div>
-      <button id="btn-play-again" class="btn-arcade">🏆 JOGAR DE NOVO</button>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+        <button id="btn-play-again" class="btn-arcade">🏆 JOGAR DE NOVO</button>
+        <button id="btn-char-select-victory" class="btn-arcade" style="background: linear-gradient(180deg, #9933ff, #6600cc);">👤 TROCAR PERSONAGEM</button>
+      </div>
     </div>
 
     
@@ -314,7 +321,7 @@
         <div></div>
       </div>
       <div class="action-buttons">
-        <button id="btn-touch-enter" class="touch-btn action-btn btn-enter" type="button">SLUG</button>
+        <button id="btn-touch-special" class="touch-btn action-btn btn-special" type="button">R</button>
         <button id="btn-touch-bomb" class="touch-btn action-btn btn-bomb" type="button">BOMB</button>
         <button id="btn-touch-jump" class="touch-btn action-btn btn-jump" type="button">JUMP</button>
         <button id="btn-touch-shoot" class="touch-btn action-btn btn-shoot" type="button">FIRE</button>

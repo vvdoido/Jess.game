@@ -1174,9 +1174,9 @@ body {
   color: var(--neon-red);
 }
 
-.action-btn.btn-enter {
-  border-color: var(--neon-blue);
-  color: var(--neon-blue);
+.action-btn.btn-special {
+  border-color: #9933ff;
+  color: #9933ff;
 }
 
 

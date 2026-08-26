@@ -63,8 +63,8 @@ class InputManager {
       case 'jump': return !!(this.keys['Space'] || this.keys['KeyJ'] || this.keys['TouchJump'] || this.gamepadKeys.jump);
       case 'shoot': return !!(this.keys['KeyK'] || this.keys['KeyZ'] || this.keys['TouchShoot'] || this.gamepadKeys.shoot);
       case 'bomb': return !!(this.keys['KeyL'] || this.keys['KeyX'] || this.keys['TouchBomb'] || this.gamepadKeys.bomb);
-      case 'enter': return !!(this.keys['KeyE'] || this.keys['KeyC'] || this.keys['TouchEnter'] || this.gamepadKeys.enter);
-      case 'execution': return !!this.keys['KeyR'];
+      case 'enter': return !!(this.keys['KeyE'] || this.keys['KeyC'] || this.gamepadKeys.enter);
+      case 'execution': return !!(this.keys['KeyR'] || this.keys['TouchSpecial']);
       case 'pause': return !!(this.keys['Escape'] || this.keys['KeyP']);
 
 
@@ -87,8 +87,8 @@ class InputManager {
       case 'jump': return !!(this.pressed['Space'] || this.pressed['KeyJ'] || this.pressed['TouchJump'] || this.pressed['GamepadJump']);
       case 'shoot': return !!(this.pressed['KeyK'] || this.pressed['KeyZ'] || this.pressed['TouchShoot'] || this.pressed['GamepadShoot']);
       case 'bomb': return !!(this.pressed['KeyL'] || this.pressed['KeyX'] || this.pressed['TouchBomb'] || this.pressed['GamepadBomb']);
-      case 'enter': return !!(this.pressed['KeyE'] || this.pressed['KeyC'] || this.pressed['TouchEnter'] || this.pressed['GamepadEnter']);
-      case 'execution': return !!this.pressed['KeyR'];
+      case 'enter': return !!(this.pressed['KeyE'] || this.pressed['KeyC'] || this.pressed['GamepadEnter']);
+      case 'execution': return !!(this.pressed['KeyR'] || this.pressed['TouchSpecial']);
       case 'pause': return !!(this.pressed['Escape'] || this.pressed['KeyP']);
 
 
@@ -144,7 +144,7 @@ class InputManager {
     bindTouch('btn-touch-jump', 'TouchJump');
     bindTouch('btn-touch-shoot', 'TouchShoot');
     bindTouch('btn-touch-bomb', 'TouchBomb');
-    bindTouch('btn-touch-enter', 'TouchEnter');
+    bindTouch('btn-touch-special', 'TouchSpecial');
   }
 
   updateGamepad() {
@@ -337,6 +337,27 @@ class Game {
         const pauseScreen = document.getElementById('pause-screen');
         if (pauseScreen) pauseScreen.style.display = 'none';
         this.startGame();
+      });
+    }
+
+    const charSelectPauseBtn = document.getElementById('btn-char-select-pause');
+    if (charSelectPauseBtn) {
+      charSelectPauseBtn.addEventListener('click', () => {
+        this.returnToCharacterSelection();
+      });
+    }
+
+    const charSelectGameoverBtn = document.getElementById('btn-char-select-gameover');
+    if (charSelectGameoverBtn) {
+      charSelectGameoverBtn.addEventListener('click', () => {
+        this.returnToCharacterSelection();
+      });
+    }
+
+    const charSelectVictoryBtn = document.getElementById('btn-char-select-victory');
+    if (charSelectVictoryBtn) {
+      charSelectVictoryBtn.addEventListener('click', () => {
+        this.returnToCharacterSelection();
       });
     }
 
@@ -638,6 +659,35 @@ class Game {
 
     this.state = 'PLAYING';
     this.lastTime = performance.now();
+  }
+
+  returnToCharacterSelection() {
+    this.state = 'MENU';
+    this.isPaused = false;
+
+    document.getElementById('pause-screen').style.display = 'none';
+    document.getElementById('gameover-screen').style.display = 'none';
+    document.getElementById('victory-screen').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'flex';
+
+    this.players = [];
+    this.player = null;
+    this.enemies = [];
+    this.projectiles = [];
+    this.particles = [];
+    this.boss = null;
+    this.enemies.length = 0;
+    this.projectiles.length = 0;
+    this.particles.length = 0;
+
+    if (this.bossHud) {
+      this.bossHud.style.display = 'none';
+    }
+
+    this.clearAllTimers();
+
+    audio.stopAnnounce();
+    audio.stopBossMusic();
   }
 
   gameLoop(currentTime) {
