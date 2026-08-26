@@ -371,6 +371,8 @@
 
   
   <script>
+    const CURRENT_VERSION = '2.0.1';
+    
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
@@ -382,7 +384,13 @@
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   console.log('🔄 Nova versão disponível! Atualizando...');
-                  window.location.reload();
+                  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    if (confirm('🎮 Nova versão disponível!\n\nPara atualizar no iOS:\n1. Remova o jogo da tela inicial\n2. Adicione novamente pelo Safari\n\nAtualizar agora abrindo no Safari?')) {
+                      window.location.href = 'https://vvdoido.github.io/Jess.game/';
+                    }
+                  } else {
+                    window.location.reload();
+                  }
                 }
               });
             });
