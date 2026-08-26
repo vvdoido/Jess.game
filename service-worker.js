@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cyber-classica-v1';
+const CACHE_NAME = 'cyber-classica-v2';
 const urlsToCache = [
   './',
   './index.html',
